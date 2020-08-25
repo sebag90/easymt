@@ -1,0 +1,28 @@
+{   
+    "version" :      0,
+    "dataset":       {
+        "train" : "paracrawl-en-it",
+        "begin_train":   1,
+        "train_lines":   5000000,
+        "val"   : "paracrawl-en-it",
+        "begin_val":     5000002,
+        "val_lines":     1000000,
+        "test"  : "WMT-News.en-it",
+        "begin_test":    0,
+        "test_lines":    0
+
+    },
+    "total_steps":   150000,
+    "save_valid":    5000,
+    "layers":        2,
+    "rnn_size":      1024,
+    "word_vec_size": 1024,
+    "attention":     "general",
+    "bpe":           45000,
+    "transformer" : "yes",
+    "trained":       0,
+    "src_lang":      "en",
+    "tgt_lang" :     "it",
+    "last_bleu":     "",
+    "models": {}
+}
