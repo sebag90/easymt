@@ -187,9 +187,9 @@ def update_json(param, bleu = None):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-tutto", help="preprocess - train - translate", action = "store_true")
+    parser.add_argument("-complete", help="preprocess, train and translate", action = "store_true")
     parser.add_argument("-translate", help="translate", action = "store_true")
-    parser.add_argument("-new_test", help="preprocess and translate exam file", action = "store_true")
+    parser.add_argument("-new_test", help="preprocess a new test data set", action = "store_true")
 
     args = parser.parse_args()
 
