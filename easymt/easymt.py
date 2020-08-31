@@ -137,27 +137,6 @@ def bleu(param):
     " < ../6-detok_pred/pred.detok." + str(param["tgt_lang"]) + str(param["trained"])).read()
     clean_bleu = re.findall("^(.*?),", bleu_score)[0]
 
-    # with open ("../../results", "a") as results:
-    #     results.write("version: "           + str(param["version"])+ "\n\n")
-    #     results.write("train: "             + str(param["train_lines"])+ "\n")
-    #     results.write("val: "               + str(param["val_lines"])+ "\n\n")
-    #     results.write("steps: "             + str(param["total_steps"]) + "\n")
-    #     results.write("save_valid steps: "  + str(param["save_valid"]) + "\n")
-    #     results.write("layers: "            + str(param["layers"]) + "\n")
-    #     results.write("rnn size: "          + str(param["rnn_size"]) + "\n")
-    #     results.write("word vec size: "     + str(param["word_vec_size"]) + "\n")
-    #     results.write("attention: "         + str(param["attention"]) + "\n")
-    #     results.write("bpe: "               + str(param["bpe"]) + "\n")
-    #     results.write("trained models: "    + str(param["trained"]) + "\n")
-    #     results.write("used datasets:\n ")
-    #     for key in param["models"]:
-    #         results.write(str(key) + " : " + str(param["models"][key]) + "\n")
-    #     results.write("\n\n")
-    #     results.write(bleu_score)
-
-    # with open ("../../results", "a") as results:
-    #     results.write("\n###\n\n")
-
     param["last_bleu"] = param["dataset"]["test"] + ", " + str(clean_bleu)
     
     update_json(param, clean_bleu)

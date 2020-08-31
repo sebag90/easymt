@@ -1,5 +1,5 @@
-preprocessing tools is a collection from the moses project  
-dexml comes from the http://www.statmt.org/europarl/
+preprocessing tools is a collection from the moses project:  https://github.com/moses-smt/mosesdecoder  
+dexml comes from the europarl website:  http://www.statmt.org/europarl/
 
 
 
