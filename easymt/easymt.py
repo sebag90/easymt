@@ -42,7 +42,7 @@ def tokenize(name, param, language):
 
 def train_truecase(language, param):
     command = (f"perl ../preprocessing-tools/train-truecaser.perl -corpus ../2-tok/train.tok.{language}{param['trained']}" + 
-               f" -model ../3-true_models/truecasing.{language}.model({param['trained']}")
+               f" -model ../3-true_models/truecasing.{language}.model{param['trained']}")
 
     os.system(command)
 
