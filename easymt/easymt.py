@@ -18,47 +18,52 @@ def create_directories():
 
 
 def cut_single_file(name, param, start, stop, language):
-    os.system('sed -n "'+ str(start) +','+ str(stop)  +' p" ../../texts/' + param["dataset"][name] + '.'+ str(language) +
-    '  > ../0-dataset/' + str(name) + '.' + str(language) + str(param["trained"]))
+    command = (f'sed -n "{start},{stop}p" ../../texts/{param["dataset"][name]}.{language} > ../0-dataset/{name}.{language}{param["trained"]}')
+
+    os.system(command)
 
 
 def copy_file(param, language, dataset):
-    copyfile( "../../texts/" + str(param["dataset"][dataset]) + "." + str(language), 
-    "../0-dataset/" + dataset +"." + str(language) + str(param["trained"]))
+    copyfile(f"../../texts/{param['dataset'][dataset]}.{language}", f"../0-dataset/{dataset}.{language}{param['trained']}")
 
 
 def normalize(name, param, language):
-    os.system("perl ../preprocessing-tools/normalize-punctuation.perl -l " + str(language) +
-    " < ../0-dataset/" + str(name) + "." + str(language) + str(param["trained"]) +
-    " > ../1-norm/" + str(name) + ".norm." + str(language) + str(param["trained"]))
+    command = (f"perl ../preprocessing-tools/normalize-punctuation.perl -l {language} < ../0-dataset/{name}.{language}{param['trained']}" +
+               f" > ../1-norm/{name}.norm.{language}{param['trained']}")
+
+    os.system(command)
 
 
 def tokenize(name, param, language):
-    os.system("perl ../preprocessing-tools/tokenizer.perl -l " + str(language) + 
-    " -no-escape < ../1-norm/" + str(name) + ".norm." + str(language)+ str(param["trained"]) + 
-    " > ../2-tok/" + str(name) + ".tok." + str(language) + str(param["trained"]))
+    command = (f"perl ../preprocessing-tools/tokenizer.perl -l {language} -no-escape < ../1-norm/{name}.norm.{language}{param['trained']}" + 
+               f" > ../2-tok/{name}.tok.{language}{param['trained']}")
 
+    os.system(command)
 
 def train_truecase(language, param):
-    os.system("perl ../preprocessing-tools/train-truecaser.perl -corpus ../2-tok/train.tok." + str(language) + str(param["trained"]) + 
-    " -model ../3-true_models/truecasing." + str(language) + ".model" + str(param["trained"]))
+    command = (f"perl ../preprocessing-tools/train-truecaser.perl -corpus ../2-tok/train.tok.{language}{param['trained']}" + 
+               f" -model ../3-true_models/truecasing.{language}.model({param['trained']}")
 
+    os.system(command)
 
 def true_case(name, param, language):
-    os.system("perl ../preprocessing-tools/truecase.perl -model ../3-true_models/truecasing." + str(language) + ".model"+ str(param["trained"]) + 
-    " <  ../2-tok/" + str(name) + ".tok." + str(language) + str(param["trained"]) + 
-    " > ../3-true/" + str(name) + ".true." + str(language) + str(param["trained"]))
+    command = (f"perl ../preprocessing-tools/truecase.perl -model ../3-true_models/truecasing.{language}.model{param['trained']}" + 
+               f" <  ../2-tok/{name}.tok.{language}{param['trained']} > ../3-true/{name}.true.{language}{param['trained']}")
+
+    os.system(command)
 
 
 def learn_bpe(param, language):
-    os.system("subword-nmt learn-bpe -s "+ str(param["bpe"]) +" < ../3-true/train.true." + str(language) + str(param["trained"]) + 
-    " > ../3-true_models/bpe."+ str(language) +".codes" + str(param["trained"] ))
+    command = (f"subword-nmt learn-bpe -s {param['bpe']} < ../3-true/train.true.{language}{param['trained']} " +
+               f"> ../3-true_models/bpe.{language}.codes{param['trained']}")
 
+    os.system(command)
 
 def bpe_splitting(name, param, language):
-    os.system("subword-nmt apply-bpe -c ../3-true_models/bpe." + str(language) + ".codes"+ str(param["trained"]) + 
-    " < ../3-true/" + str(name) + ".true." + str(language) + str(param["trained"]) + 
-    " > ../3-true/" + str(name) + ".bpe." + str(language) + str(param["trained"]))
+    command = (f"subword-nmt apply-bpe -c ../3-true_models/bpe.{language}.codes{param['trained']}" + 
+               f" < ../3-true/{name}.true.{language}{param['trained']} > ../3-true/{name}.bpe.{language}{param['trained']}")
+
+    os.system(command)
 
 
 def convert_byte(param):
@@ -67,29 +72,29 @@ def convert_byte(param):
     else:
         name = "bpe"
 
-    command = ("onmt_preprocess -train_src ../3-true/train." + name + "." + str(param["src_lang"]) + str(param["trained"]) + " " + 
-                                "-train_tgt ../3-true/train." + name + "." + str(param["tgt_lang"]) + str(param["trained"]) + " " + 
-                                "-valid_src ../3-true/val." + name + "."   + str(param["src_lang"]) + str(param["trained"]) + " " +  
-                                "-valid_tgt ../3-true/val." + name + "."   + str(param["tgt_lang"]) + str(param["trained"]) + " " +  
-                                "-save_data ../4-byte_data/data-" + str(param["src_lang"]) + "-" + str(param["tgt_lang"]) + str(param["trained"]))
+    command = (f"onmt_preprocess -train_src ../3-true/train.{name}.{param['src_lang']}{param['trained']} " + 
+                               f"-train_tgt ../3-true/train.{name}.{param['tgt_lang']}{param['trained']} " + 
+                               f"-valid_src ../3-true/val.{name}.{param['src_lang']}{param['trained']} " +  
+                               f"-valid_tgt ../3-true/val.{name}.{param['tgt_lang']}{param['trained']} " +  
+                               f"-save_data ../4-byte_data/data-{param['src_lang']}-{param['tgt_lang']}{param['trained']}")
 
     os.system(command)
 
 
 def train(param):
-    command = ("onmt_train -data ../4-byte_data/data-" + str(param["src_lang"]) + "-" + str(param["tgt_lang"]) + str(param["trained"]) + " "+
-                            "-save_model ../5-trained_models/model-" + str(param["src_lang"]) + "-" + str(param["tgt_lang"]) + str(param["trained"]) + " "+
-                            "-train_steps "            + str(param["total_steps"]*param["trained"]) + " "+
-                            "-save_checkpoint_steps "  + str(param["save_valid"]) + " "+
-                            "-valid_steps "            + str(param["save_valid"]) + " "+
-                            "-global_attention "       + str(param["attention"]) + " "+
-                            "-input_feed 0 " +
-                            "-dropout 0.1 " +
-                            "-world_size 1 " +
-                            "-gpu_ranks 0 " +
-                            "-layers "                 + str(param["layers"]) + " "+
-                            "-rnn_size "               + str(param["rnn_size"]) + " "+
-                            "-word_vec_size "          + str(param["word_vec_size"]) )
+    command = (f"onmt_train -data ../4-byte_data/data-{param['src_lang']}-{param['tgt_lang']}{param['trained']} " +
+                        f"-save_model ../5-trained_models/model-{param['src_lang']}-{param['tgt_lang']}{param['trained']} " +
+                        f"-train_steps {param['total_steps']*param['trained']} " +
+                        f"-save_checkpoint_steps {param['save_valid']} " +
+                        f"-valid_steps {param['save_valid']} " +
+                        f"-global_attention {param['attention']} " +
+                        f"-input_feed 0 " +
+                        f"-dropout 0.1 " +
+                        f"-world_size 1 " +
+                        f"-gpu_ranks 0 " +
+                        f"-layers {param['layers']} " +
+                        f"-rnn_size {param['rnn_size']} " +
+                        f"-word_vec_size {param['word_vec_size']}")
 
     if param["transformer"] == "yes":
         command += (" -transformer_ff 2048 -heads 8 " +
@@ -101,58 +106,58 @@ def train(param):
                     "-label_smoothing 0.1")
     
     if param["trained"] != 1:
-        command += (" -train_from ../5-trained_models/model-" + str(param["src_lang"]) + "-" + str(param["tgt_lang"]) + str(param["trained"] - 1) + 
-        "_step_" + str((param["trained"]-1)*100000) + ".pt")
+        command += (f" -train_from ../5-trained_models/model-{param['src_lang']}-{param['tgt_lang']}{param['trained'] - 1}_step_{(param['trained']-1)*100000}.pt")
 
-        
     os.system(command)
 
 
 def translate(param):
     if param["bpe"] == 0:
-        source = "../3-true/test.true." + str(param["src_lang"]) + "1"
+        source = (f"../3-true/test.true.{param['src_lang']}1")
     else:
-        source = "../3-true/test.bpe." + str(param["src_lang"]) + "1"
+        source = (f"../3-true/test.bpe.{param['src_lang']}1")
 
+    command = (f"onmt_translate -model ../5-trained_models/model-{param['src_lang']}-{param['tgt_lang']}*00000.pt " +  
+                                f"-src {source} " +
+                                f"-output ../6-raw_pred/pred_{param['tgt_lang']}{param['trained']} " +
+                                f"-gpu 0")
 
-    command = ("onmt_translate -model ../5-trained_models/model-" + str(param["src_lang"]) + "-" + str(param["tgt_lang"]) + "*00000.pt " +  
-                                "-src " + source  + " " +
-                                "-output ../6-raw_pred/pred_" + str(param["tgt_lang"]) + str(param["trained"]) + " "  +
-                                "-gpu 0")
     os.system(command)
 
 
 def detokenize(param):
     if param["bpe"] == 0:
-        os.system("perl ../preprocessing-tools/detokenizer.perl -u -l " + str(param["tgt_lang"]) + " < ../6-raw_pred/pred_" + str(param["tgt_lang"]) + 
-        str(param["trained"]) + " > ../6-detok_pred/pred.detok." + str(param["tgt_lang"]) + str(param["trained"]))
+        command = (f"perl ../preprocessing-tools/detokenizer.perl -u -l {param['tgt_lang']} < ../6-raw_pred/pred_{param['tgt_lang']}{param['trained']} "+
+                   f"> ../6-detok_pred/pred.detok.{param['tgt_lang']}{param['trained']}")
     else:
-        os.system("sed -r 's/(@@ )|(@@ ?$)//g' < ../6-raw_pred/pred_" + str(param["tgt_lang"]) + str(param["trained"]) + 
-        " | perl ../preprocessing-tools/detokenizer.perl -u -l " + str(param["tgt_lang"]) + " > ../6-detok_pred/pred.detok." + 
-        str(param["tgt_lang"]) + str(param["trained"]))
+        command = (f"sed -r 's/(@@ )|(@@ ?$)//g' < ../6-raw_pred/pred_{param['tgt_lang']}{param['trained']}" + 
+        f" | perl ../preprocessing-tools/detokenizer.perl -u -l {param['tgt_lang']} > ../6-detok_pred/pred.detok.{param['tgt_lang']}{param['trained']}")
 
+    os.system(command)
 
 def bleu(param):
-    bleu_score = os.popen("perl ../preprocessing-tools/multi-bleu-detok.perl ../0-dataset/test." + str(param["tgt_lang"])+ "1" + 
-    " < ../6-detok_pred/pred.detok." + str(param["tgt_lang"]) + str(param["trained"])).read()
+    command = (f"perl ../preprocessing-tools/multi-bleu-detok.perl ../0-dataset/test.{param['tgt_lang']}1" + 
+               f" < ../6-detok_pred/pred.detok.{param['tgt_lang']}{param['trained']}")
+
+    bleu_score = os.popen(command).read()
     clean_bleu = re.findall("^(.*?),", bleu_score)[0]
 
-    param["last_bleu"] = param["dataset"]["test"] + ", " + str(clean_bleu)
+    param["last_bleu"] = f'{param["dataset"]["test"]}, {clean_bleu}'
     
     update_json(param, clean_bleu)
 
 
 def update_json(param, bleu = None):
     # add used dataset
-    used = {"Train":  param["dataset"]["train"] + " " +  str(param["dataset"]["begin_train"])  + "-" + str(param["dataset"]["begin_train"] + param["dataset"]["train_lines"]),
-            "Val":    param["dataset"]["val"]   + " " +  str(param["dataset"]["begin_val"])  + "-" + str(param["dataset"]["val_lines"] + param["dataset"]["begin_val"]),
+    used = {"Train":  f"{param['dataset']['train']} {param['dataset']['begin_train']}-{param['dataset']['begin_train'] + param['dataset']['train_lines']}",
+            "Val":    f'{param["dataset"]["val"]} {param["dataset"]["begin_val"]}-{param["dataset"]["val_lines"] + param["dataset"]["begin_val"]}',
             "Test":   param["dataset"]["test"]
             }
 
     if param["dataset"]["begin_test"] == param["dataset"]["test_lines"]:
         used["Test"] += " complete"
     else:
-        used["Test"] += " " + str(param["dataset"]["begin_test"])  + "-" + str(param["dataset"]["test_lines"] + param["dataset"]["begin_test"])
+        used["Test"] += f' {param["dataset"]["begin_test"]}-{param["dataset"]["test_lines"] + param["dataset"]["begin_test"]}'
 
     if bleu != None:
         used["BLEU"] =  bleu.split()[2]
@@ -176,7 +181,7 @@ def main():
         param = json.load(f)
     
     
-    if args.tutto == True:
+    if args.complete == True:
 
         if param["trained"] == 0:
             create_directories()
