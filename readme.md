@@ -26,7 +26,7 @@ Structure:
 |         |
 |         +----parameters.json  
 |  
-+----[Texts]  
++----[texts]  
      |  
      +----save here all datasets with format filename.language  
           es. newstest2009.en, newstest2009.it  
