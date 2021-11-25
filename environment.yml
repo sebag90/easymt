@@ -1,0 +1,12 @@
+name: easymt
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python
+  - pytorch
+  - pip
+  - pip:
+    - subword-nmt
+    - sacrebleu
+    
