@@ -159,7 +159,7 @@ def translate(args):
             # write decoded sentence to output file
             outfile.write(f"{as_string}\n")
 
-            print(f"Translating: line {progress}", end="\r")
+            print(f"Translating: line {progress + 1}", end="\r")
 
     out_lang = model.tgt_lang.name
 
