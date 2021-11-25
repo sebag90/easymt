@@ -261,14 +261,6 @@ class Trainer:
                 self.optimizer.step()
                 self.steps += 1
 
-                # validation step
-                if self.steps % self.params.valid_steps == 0:
-                    eval_loss = self.evaluate()
-                    self.scheduler.step(eval_loss)
-                    print("-"*len(to_print), flush=True)
-                    print(f"Validation loss: {round((eval_loss.item()), 5):.5f}")
-                    print("-"*len(to_print), flush=True)
-
                 # print every x batches
                 if i % self.params.p_every == 0:
                     t_1 = time.time()
@@ -294,6 +286,17 @@ class Trainer:
 
                     # reset loss
                     memory.print_reset()
+
+                # validation step
+                if self.steps % self.params.valid_steps == 0:
+                    eval_loss = self.evaluate()
+                    self.scheduler.step(eval_loss)
+                    print("-"*len(to_print), flush=True)
+                    print(
+                        f"Validation loss: {round((eval_loss.item()), 5):.5f}",
+                        flust=True
+                    )
+                    print("-"*len(to_print), flush=True)
 
             # calculate epoch loss
             print("-"*len(to_print), flush=True)
