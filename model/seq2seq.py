@@ -106,6 +106,63 @@ class seq2seq(nn.Module):
         )
         return decoder_output
 
+    @torch.no_grad()
+    def translate_batch(self, batch, lengths, device):
+        # move to device and set evaluation mode (dropout)
+        self.encoder.to(device)
+        self.decoder.to(device)
+        self.encoder.eval()
+        self.decoder.eval()
+
+        # prepare input sentence
+        batch = batch.to(device)
+
+        # pass through encoder
+        encoded = self.encoder(batch, lengths)
+        encoder_outputs, encoder_hidden, encoder_cell = encoded
+
+        # create first input for 1st step of decoder
+        sos_index = self.src_lang.word2index["SOS"]
+
+        decoder_input = torch.LongTensor(
+            [[sos_index for _ in range(batch.shape[1])]],
+            device=device
+        )
+        context_vector = torch.zeros(
+            (batch.shape[1], self.encoder.hidden_size),
+            device=device
+        )
+
+        # rename encoder output for loop decoding
+        decoder_hidden = encoder_hidden
+        decoder_cell = encoder_cell
+
+        # empty tensor to store outputs
+        all_tokens = torch.zeros([0], device=device, dtype=torch.long)
+
+        # decode word by word -- no teacher
+        for i in range(self.max_len):
+            # pass through decoder
+            (decoder_output, context_vector,
+             decoder_hidden, decoder_cell) = self.decoder(
+                decoder_input,
+                context_vector,
+                decoder_hidden,
+                decoder_cell,
+                encoder_outputs
+            )
+
+            # get index of argmax for each element in batch
+            _, topi = decoder_output.topk(1)
+            # add result to matrix
+            all_tokens = torch.cat((all_tokens, topi), dim=1)
+
+            # prepare input for next word prediction
+            decoder_input = topi.t()
+            decoder_input = decoder_input.to(device)
+
+        return all_tokens
+
     def train_batch(
             self, batch, memory, device, teacher_forcing_ratio, criterion):
         input_var, lengths, target_var, mask, max_target_len = batch

@@ -1,5 +1,6 @@
 from copy import deepcopy
 from functools import total_ordering
+import itertools
 from pathlib import Path
 import os
 
@@ -44,27 +45,54 @@ class Hypothesis:
         return torch.tensor(self.tokens)
 
 
-def translate(args):
-    inputfile = Path(args.file)
-    model = seq2seq.load(Path(args.model))
-    beam_size = int(args.beam)
+def zeroPadding(l, fillvalue=0):
+    return list(itertools.zip_longest(*l, fillvalue=fillvalue))
 
-    # pick device
-    device = torch.device(
-        "cuda" if torch.cuda.is_available() else "cpu"
-    )
-    cpu = os.cpu_count()
-    torch.set_num_threads(cpu)
 
-    # print model
-    print(model)
+def greedy_decoding(inputfile, model, device):
+
+    batchsize = 500
+    progress = 0
 
     with open(inputfile, "r", encoding="utf-8") as infile, \
             open("raw.txt", "w", encoding="utf-8") as outfile:
 
         # get first 50 lines
-        for progress, line in enumerate(infile):
+        batch = list(itertools.islice(infile, batchsize))
+        while batch:
             # encode the batch
+            coded = [
+                model.src_lang.indexes_from_sentence(line) for line in batch
+            ]
+            lengths = torch.tensor([len(indexes) for indexes in coded])
+            padded = zeroPadding(coded)
+            input_batch = torch.tensor(padded)
+
+            # translate batch
+            translated = model.translate_batch(input_batch, lengths, device)
+
+            # encode translation
+            for sentence in translated:
+                string = [
+                    model.tgt_lang.index2word[i.item()] for i in sentence
+                    if i.item() != model.tgt_lang.word2index["EOS"]
+                ]
+
+                joined = ' '.join(string)
+                outfile.write(f"{joined}\n")
+
+            progress += batchsize
+            print(f"Translating: line {progress}", end="\r")
+
+            # get next batch
+            batch = list(itertools.islice(infile, batchsize))
+
+
+def beam_search(inputfile, model, beam_size, device):
+    with open(inputfile, "r", encoding="utf-8") as infile, \
+            open("raw.txt", "w", encoding="utf-8") as outfile:
+        for progress, line in enumerate(infile):
+            # encode line
             coded = model.src_lang.indexes_from_sentence(line)
             lengths = torch.tensor([len(coded)])
             input_batch = coded.unsqueeze(1)
@@ -160,6 +188,28 @@ def translate(args):
             outfile.write(f"{as_string}\n")
 
             print(f"Translating: line {progress + 1}", end="\r")
+
+
+def translate(args):
+    inputfile = Path(args.file)
+    model = seq2seq.load(Path(args.model))
+    beam_size = int(args.beam)
+
+    # pick device
+    device = torch.device(
+        "cuda" if torch.cuda.is_available() else "cpu"
+    )
+    cpu = os.cpu_count()
+    torch.set_num_threads(cpu)
+
+    # print model
+    print(model)
+
+    if beam_size == 1:
+        # greedy batch decoding
+        greedy_decoding(inputfile, model, device)
+    else:
+        beam_search(inputfile, model, beam_size, device)
 
     out_lang = model.tgt_lang.name
 
