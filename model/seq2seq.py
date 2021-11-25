@@ -72,13 +72,13 @@ class seq2seq(nn.Module):
         sos_index = self.src_lang.word2index["SOS"]
 
         decoder_input = torch.LongTensor(
-            [[sos_index for _ in range(batch.shape[1])]],
-            device=device
+            [[sos_index for _ in range(batch.shape[1])]]
         )
         context_vector = torch.zeros(
-            (batch.shape[1], self.encoder.hidden_size),
-            device=device
+            (batch.shape[1], self.encoder.hidden_size)
         )
+        decoder_input = decoder_input.to(device)
+        context_vector = context_vector.to(device)
 
         # rename encoder output for loop decoding
         decoder_hidden = encoder_hidden
