@@ -265,9 +265,12 @@ class Trainer:
                 if self.steps % self.params.valid_steps == 0:
                     eval_loss = self.evaluate()
                     self.scheduler.step(eval_loss)
+                    print("-"*len(to_print), flush=True)
+                    print(f"Validation loss: {round((eval_loss.item()), 5):.5f}")
+                    print("-"*len(to_print), flush=True)
 
                 # print every x batches
-                if (i+1) % self.params.p_every == 0:
+                if i % self.params.p_every == 0:
                     t_1 = time.time()
                     ts = int(t_1 - t_init)
                     print_loss = memory.print_loss / memory.n_totals
