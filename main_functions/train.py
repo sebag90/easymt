@@ -279,7 +279,7 @@ class Trainer:
                     print_time = datetime.timedelta(seconds=ts)
                     to_print = (
                         f"Epoch: {epoch + 1}/{self.params.epochs} "
-                        f"[{i + 1}/{len(self.train_data) + 1}] | "
+                        f"[{i}/{len(self.train_data) + 1}] | "
                         f"lr: {lr} | "
                         f"Loss: {round((print_loss), 5):.5f} | "
                         f"ppl: {round(ppl, 5):.5f} | "
