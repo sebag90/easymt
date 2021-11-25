@@ -23,14 +23,27 @@ class Memory:
     during training
     """
     def __init__(self):
-        self.print_loss = 0
-        self.epoch_loss = 0
-        self.n_totals = 0
-        self.epoch_totals = 0
+        self._print_loss = list()
+        self._epoch_loss = list()
+
+    @property
+    def print_loss(self):
+        return torch.tensor(
+            self._print_loss
+        ).mean().item()
+
+    @property
+    def epoch_loss(self):
+        return torch.tensor(
+            self._epoch_loss
+        ).mean().item()
+
+    def add(self, loss):
+        self._print_loss.append(loss)
+        self._epoch_loss.append(loss)
 
     def print_reset(self):
-        self.print_loss = 0
-        self.n_totals = 0
+        self._print_loss = list()
 
 
 class Parameters():
@@ -214,13 +227,13 @@ class Trainer:
     def evaluate(self):
         losses = []
         for batch in self.eval_data:
-            loss, _ = self.model.train_batch(
+            loss = self.model.train_batch(
                 batch,
-                Memory(),
                 self.device,
                 0,
                 self.criterion
             )
+
             losses.append(loss)
 
         return torch.tensor(losses).mean()
@@ -230,7 +243,7 @@ class Trainer:
         # test_loss = torch.nn.CrossEntropyLoss(ignore_index=0)
         for epoch in range(self.params.epochs):
             # initialize variables for monitoring
-            memory = Memory()
+            loss_memory = Memory()
 
             # shuffle data
             self.train_data.create_order()
@@ -243,13 +256,13 @@ class Trainer:
                 self.optimizer.zero_grad()
 
                 # process batch
-                loss, memory = self.model.train_batch(
+                loss = self.model.train_batch(
                     batch,
-                    memory,
                     self.device,
                     self.params.teacher_forcing_ratio,
                     self.criterion
                 )
+                loss_memory.add(loss)
 
                 # calculate gradient
                 loss.backward()
@@ -265,7 +278,7 @@ class Trainer:
                 if i % self.params.p_every == 0:
                     t_1 = time.time()
                     ts = int(t_1 - t_init)
-                    print_loss = memory.print_loss / memory.n_totals
+                    print_loss = loss_memory.print_loss
                     ppl = math.exp(print_loss)
                     lr = self.optimizer.param_groups[0]['lr']
                     print_time = datetime.timedelta(seconds=ts)
@@ -285,7 +298,7 @@ class Trainer:
                     self.model.history[idx].append(print_loss)
 
                     # reset loss
-                    memory.print_reset()
+                    loss_memory.print_reset()
 
                 # validation step
                 if self.steps % self.params.valid_steps == 0:
@@ -294,14 +307,14 @@ class Trainer:
                     print("-"*len(to_print), flush=True)
                     print(
                         f"Validation loss: {round((eval_loss.item()), 5):.5f}",
-                        flust=True
+                        flush=True
                     )
                     print("-"*len(to_print), flush=True)
 
             # calculate epoch loss
             print("-"*len(to_print), flush=True)
             epoch_loss = round(
-                (memory.epoch_loss / memory.epoch_totals), 5
+                loss_memory.epoch_loss, 5
             )
 
             print(f"Epoch loss:\t{epoch_loss}", flush=True)

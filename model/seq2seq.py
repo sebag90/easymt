@@ -164,7 +164,7 @@ class seq2seq(nn.Module):
         return all_tokens
 
     def train_batch(
-            self, batch, memory, device, teacher_forcing_ratio, criterion):
+            self, batch, device, teacher_forcing_ratio, criterion):
         input_var, lengths, target_var, mask, max_target_len = batch
         len_batch = input_var.shape[1]
 
@@ -195,6 +195,8 @@ class seq2seq(nn.Module):
         decoder_hidden = encoder_hidden
         decoder_cell = encoder_cell
 
+        preds = list()
+
         for t in range(max_target_len):
             # decide if teacher for next word
             use_teacher_forcing = (
@@ -212,6 +214,9 @@ class seq2seq(nn.Module):
                 encoder_outputs
             )
 
+            # collect outputs
+            preds.append(decoder_output)
+
             if use_teacher_forcing:
                 # next word is current target
                 decoder_input = target_var[t].view(1, -1)
@@ -221,17 +226,7 @@ class seq2seq(nn.Module):
                 decoder_input = topi.t()
                 decoder_input = decoder_input.to(device)
 
-            # Calculate and accumulate loss
-            mask_loss, total = criterion(
-                decoder_output, target_var[t], mask[t]
-            )
-
-            # tl = test_loss(decoder_output, target_var[t])
-            loss += mask_loss
-
-            memory.print_loss += mask_loss.item() * total
-            memory.epoch_loss += mask_loss.item() * total
-            memory.n_totals += total
-            memory.epoch_totals += total
-
-        return loss, memory
+        # calculate batch loss
+        preds = torch.stack(preds)
+        loss = criterion(preds, target_var, mask)
+        return loss
