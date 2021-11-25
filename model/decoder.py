@@ -21,7 +21,6 @@ class AttentionDecoder(nn.Module):
         self.output_size = output_size
         self.layers = layers
         self.dropout_p = dropout
-        self.relu = nn.ReLU()
 
         # Define layers
         self.embedding = nn.Embedding(
