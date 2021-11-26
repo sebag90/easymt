@@ -275,7 +275,8 @@ class Trainer:
                 self.steps += 1
 
                 # print every x batches
-                if i % self.params.p_every == 0:
+                if (i % self.params.p_every == 0
+                        and i != 0):
                     t_1 = time.time()
                     ts = int(t_1 - t_init)
                     print_loss = loss_memory.print_loss
