@@ -55,7 +55,7 @@ class AttentionDecoder(nn.Module):
 
         rnn_input = torch.cat(
             (embedded, context_vector.unsqueeze(0)),
-            2
+            dim=2
         )
 
         # forward through RNN
