@@ -123,16 +123,19 @@ class DataLoader:
 class BatchedData:
     def __init__(self, path):
         self.path = path
-        self.files = os.listdir(path)
+        self.max = max([int(i) for i in os.listdir(path)])
 
     def __len__(self):
-        return len(self.files)
+        return self.max
 
     def create_order(self):
-        random.shuffle(self.files)
+        """
+        do nothing, placeholder
+        """
+        pass
     
     def __iter__(self):
-        for filename in self.files:
+        for filename in range(self.max + 1):
             with open(Path(f"data/batched/{filename}"), "rb") as infile:
                 batch = pickle.load(infile)
             yield batch
