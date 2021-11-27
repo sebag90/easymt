@@ -133,10 +133,9 @@ class BatchedData:
         do nothing, placeholder
         """
         pass
-    
+
     def __iter__(self):
         for filename in range(self.max + 1):
             with open(Path(f"data/batched/{filename}"), "rb") as infile:
                 batch = pickle.load(infile)
             yield batch
-    

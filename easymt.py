@@ -8,6 +8,7 @@ from main_functions.translate import translate
 from main_functions.evaluate import evaluate
 from main_functions.convert_to_byte import convert_to_byte
 
+
 def main():
     args = get_arguments()
     if args:

@@ -165,7 +165,6 @@ class Trainer:
                 self.params.max_len, self.params.batch_size
             )
 
-
     def create_model(self):
         if self.resume is None:
             encoder = Encoder(

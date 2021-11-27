@@ -41,7 +41,7 @@ def convert_to_byte(args):
     # find last file in data/batched
     os.makedirs(Path("data/batched"), exist_ok=True)
     existing = os.listdir(Path("data/batched"))
-    
+
     if len(existing) == 0:
         start_from = 0
     else:

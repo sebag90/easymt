@@ -83,8 +83,6 @@ def get_arguments():
         help="train files are already batched"
     )
 
-
-
     # translate
     translate = subparsers.add_parser(
         "translate", help="translate a file"
