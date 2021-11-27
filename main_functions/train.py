@@ -240,7 +240,6 @@ class Trainer:
 
     def train_loop(self):
         t_init = time.time()
-        # test_loss = torch.nn.CrossEntropyLoss(ignore_index=0)
         for epoch in range(self.params.epochs):
             # initialize variables for monitoring
             loss_memory = Memory()

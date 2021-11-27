@@ -195,8 +195,6 @@ class seq2seq(nn.Module):
         decoder_hidden = encoder_hidden
         decoder_cell = encoder_cell
 
-        preds = list()
-
         for t in range(max_target_len):
             # decide if teacher for next word
             use_teacher_forcing = (
@@ -214,8 +212,10 @@ class seq2seq(nn.Module):
                 encoder_outputs
             )
 
-            # collect outputs
-            preds.append(decoder_output)
+            step_loss = criterion(
+                decoder_output, target_var[t], mask[t]
+            )
+            loss += step_loss
 
             if use_teacher_forcing:
                 # next word is current target
@@ -227,6 +227,4 @@ class seq2seq(nn.Module):
                 decoder_input = decoder_input.to(device)
 
         # calculate batch loss
-        preds = torch.stack(preds)
-        loss = criterion(preds, target_var, mask)
-        return loss
+        return loss / max_target_len
