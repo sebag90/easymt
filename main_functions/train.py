@@ -14,7 +14,7 @@ from model.seq2seq import seq2seq
 from model.loss import MaskedLoss
 
 from utils.lang import Language
-from utils.dataset import DataLoader
+from utils.dataset import DataLoader, BatchedData
 
 
 class Memory:
@@ -23,27 +23,28 @@ class Memory:
     during training
     """
     def __init__(self):
-        self._print_loss = list()
-        self._epoch_loss = list()
+        self._print_loss = 0
+        self._epoch_loss = 0
+        self._epoch_counter = 0
+        self._print_counter = 0
 
     @property
     def print_loss(self):
-        return torch.tensor(
-            self._print_loss
-        ).mean().item()
+        return self._print_loss / self._print_counter
 
     @property
     def epoch_loss(self):
-        return torch.tensor(
-            self._epoch_loss
-        ).mean().item()
+        return self._epoch_loss / self._epoch_counter
 
     def add(self, loss):
-        self._print_loss.append(loss)
-        self._epoch_loss.append(loss)
+        self._print_loss += loss
+        self._epoch_loss += loss
+        self._print_counter += 1
+        self._epoch_counter += 1
 
     def print_reset(self):
-        self._print_loss = list()
+        self._print_loss = 0
+        self._print_counter = 0
 
 
 class Parameters():
@@ -58,6 +59,7 @@ class Parameters():
 class Trainer:
     def __init__(self, args):
         self.resume = args.resume
+        self.batched = args.batched
         self.steps = 0
         self.read_configuration(args.path)
         # pick device
@@ -147,15 +149,22 @@ class Trainer:
             self.src_language = self.model.src_lang
             self.tgt_language = self.model.tgt_lang
 
-        self.train_data = DataLoader.from_files(
-            "train", self.src_language, self.tgt_language,
-            self.params.max_len, self.params.batch_size
-        )
-
+        # load eval dataset
         self.eval_data = DataLoader.from_files(
             "eval", self.src_language, self.tgt_language,
             self.params.max_len, self.params.batch_size
         )
+
+        # load train dataset
+        if self.batched:
+            self.train_data = BatchedData(Path("data/batched"))
+
+        else:
+            self.train_data = DataLoader.from_files(
+                "train", self.src_language, self.tgt_language,
+                self.params.max_len, self.params.batch_size
+            )
+
 
     def create_model(self):
         if self.resume is None:
@@ -261,7 +270,7 @@ class Trainer:
                     self.params.teacher_forcing_ratio,
                     self.criterion
                 )
-                loss_memory.add(loss)
+                loss_memory.add(loss.item())
 
                 # calculate gradient
                 loss.backward()

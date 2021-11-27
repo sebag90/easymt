@@ -48,6 +48,24 @@ def get_arguments():
         default=0
     )
 
+    # convert to byte
+    byte = subparsers.add_parser(
+        "convert-to-byte",
+        help="convert train files to byte files"
+    )
+    byte.add_argument(
+        "path", metavar="PATH", action="store",
+        help="Path to the configuration file"
+    )
+    # byte.add_argument(
+    #     "--n", metavar="N", action="store",
+    #     help=(
+    #         "number of batches for each file"
+    #         " (0 = full corpus - default: %(default)s)"
+    #     ),
+    #     default=0
+    # )
+
     # train
     train = subparsers.add_parser(
         "train", help="train a new model"
@@ -56,11 +74,16 @@ def get_arguments():
         "path", metavar="PATH", action="store",
         help="Path to the configuration file"
     )
-
     train.add_argument(
         "--resume", action="store",
         help="path to model to resume training"
     )
+    train.add_argument(
+        "--batched", action="store_true",
+        help="train files are already batched"
+    )
+
+
 
     # translate
     translate = subparsers.add_parser(

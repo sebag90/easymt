@@ -1,5 +1,7 @@
 import itertools
 from functools import total_ordering
+import os
+import pickle
 from pathlib import Path
 import random
 
@@ -116,3 +118,22 @@ class DataLoader:
 
         data = cls(src, tgt, shuffle=True, batch_size=batch_size)
         return data
+
+
+class BatchedData:
+    def __init__(self, path):
+        self.path = path
+        self.files = os.listdir(path)
+
+    def __len__(self):
+        return len(self.files)
+
+    def create_order(self):
+        random.shuffle(self.files)
+    
+    def __iter__(self):
+        for filename in self.files:
+            with open(Path(f"data/batched/{filename}"), "rb") as infile:
+                batch = pickle.load(infile)
+            yield batch
+    
