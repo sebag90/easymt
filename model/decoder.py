@@ -53,6 +53,7 @@ class AttentionDecoder(nn.Module):
         # Get the embedding of the current input word
         embedded = self.embedding(input_step)
 
+        # concatenate current word input with previous context vector
         rnn_input = torch.cat(
             (embedded, context_vector.unsqueeze(0)),
             dim=2
