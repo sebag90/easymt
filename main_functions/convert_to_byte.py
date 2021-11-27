@@ -11,6 +11,7 @@ def convert_to_byte(args):
     # read data from configuration file
     config = configparser.ConfigParser()
     config.read(args.path)
+    batches_per_file = args.n
     src = config["DATASET"]["source"]
     tgt = config["DATASET"]["target"]
     max_len = int(
@@ -47,9 +48,18 @@ def convert_to_byte(args):
     else:
         start_from = max([int(i) for i in existing])
 
+    batches = list()
     for i, batch in enumerate(train_data):
-        with open(Path(f"data/batched/{start_from}"), "wb") as ofile:
-            pickle.dump(batch, ofile)
-        start_from += 1
+        batches.append(batch)
 
+        if len(batches) == batches_per_file:
+            # write batches to file
+            with open(Path(f"data/batched/{start_from}"), "wb") as ofile:
+                pickle.dump(batches, ofile)
+            
+            # increment name of file and empty batches list
+            start_from += 1
+            batches = list()
+
+        # print progress
         print(f"Saving batch: {i}/{len(train_data)}", end="\r")

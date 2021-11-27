@@ -57,14 +57,14 @@ def get_arguments():
         "path", metavar="PATH", action="store",
         help="Path to the configuration file"
     )
-    # byte.add_argument(
-    #     "--n", metavar="N", action="store",
-    #     help=(
-    #         "number of batches for each file"
-    #         " (0 = full corpus - default: %(default)s)"
-    #     ),
-    #     default=0
-    # )
+    byte.add_argument(
+        "--n", metavar="N", action="store",
+        help=(
+            "number of batches for each file"
+            " (0 = full corpus - default: %(default)s)"
+        ),
+        default=5
+    )
 
     # train
     train = subparsers.add_parser(

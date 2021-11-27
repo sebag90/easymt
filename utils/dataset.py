@@ -125,8 +125,13 @@ class BatchedData:
         self.path = path
         self.max = max([int(i) for i in os.listdir(path)])
 
+        # obtain number of batches in a file
+        with open(Path(f"data/batched/0"), "rb") as infile:
+            batches = pickle.load(infile)
+        self.len = self.max * len(batches)
+
     def __len__(self):
-        return self.max
+        return self.len
 
     def create_order(self):
         """
@@ -137,5 +142,8 @@ class BatchedData:
     def __iter__(self):
         for filename in range(self.max + 1):
             with open(Path(f"data/batched/{filename}"), "rb") as infile:
-                batch = pickle.load(infile)
-            yield batch
+                batches = pickle.load(infile)
+
+            # batches is always a list of batches
+            for batch in batches:
+                yield batch
