@@ -47,7 +47,9 @@ def convert_to_byte(args):
     else:
         start_from = max([int(i) for i in existing])
 
-    for batch in train_data:
+    for i, batch in enumerate(train_data):
         with open(Path(f"data/batched/{start_from}"), "wb") as ofile:
             pickle.dump(batch, ofile)
         start_from += 1
+
+        print(f"Saving batch: {i}/{len(train_data)}", end="\r")
