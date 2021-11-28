@@ -55,11 +55,11 @@ class seq2seq(nn.Module):
 
     @torch.no_grad()
     def encode(self, batch, lengths, device):
-        # move to device and set evaluation mode (dropout)
-        self.encoder.to(device)
-        self.decoder.to(device)
-        self.encoder.eval()
-        self.decoder.eval()
+        # # move to device and set evaluation mode (dropout)
+        # self.encoder.to(device)
+        # self.decoder.to(device)
+        # self.encoder.eval()
+        # self.decoder.eval()
 
         # prepare input sentence
         batch = batch.to(device)

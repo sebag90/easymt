@@ -206,6 +206,10 @@ def translate(args):
     cpu = os.cpu_count()
     torch.set_num_threads(cpu)
 
+    # transfer model and set eval mode
+    model.to(device)
+    model.eval()
+
     # print model
     print(model)
 

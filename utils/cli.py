@@ -59,11 +59,11 @@ def get_arguments():
     )
     byte.add_argument(
         "--n", metavar="N", action="store",
+        default=100,
         help=(
             "number of batches for each file"
-            " (0 = full corpus - default: %(default)s)"
-        ),
-        default=5
+            " (Default: %(default)s)"
+        )
     )
 
     # train
