@@ -133,3 +133,6 @@ data
 
 # pretrained_models
 pretrained_models
+
+# translated files
+translated.*
