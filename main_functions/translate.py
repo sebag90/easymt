@@ -175,6 +175,10 @@ def beam_search(inputfile, model, beam_size, device):
                 # increase t
                 t += 1
 
+            # if no complete hypothesis, use the alive ones
+            if len(complete_hypotheses) == 0:
+                complete_hypotheses = live_hypotheses
+
             # pick most probabile hypothesis
             complete_hypotheses.sort(reverse=True)
             indeces = complete_hypotheses[0].get_indeces()
