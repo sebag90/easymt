@@ -127,6 +127,9 @@ class Trainer:
         params.valid_steps = int(
             config["TRAINING"]["valid_steps"]
         )
+        params.input_feed = eval(
+            config["MODEL"]["input_feed"]
+        )
 
         self.params = params
 
@@ -181,7 +184,8 @@ class Trainer:
                 self.params.hidden_size,
                 self.tgt_language.n_words,
                 self.params.layers,
-                self.params.dropout
+                self.params.dropout,
+                self.params.input_feed
             )
 
             self.model = seq2seq(

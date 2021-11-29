@@ -56,7 +56,7 @@ def convert_to_byte(args):
             # write batches to file
             with open(Path(f"data/batched/{start_from}"), "wb") as ofile:
                 pickle.dump(batches, ofile)
-            
+
             # increment name of file and empty batches list
             start_from += 1
             batches = list()

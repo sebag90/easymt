@@ -12,7 +12,8 @@ class AttentionDecoder(nn.Module):
             hidden_size,
             output_size,
             layers,
-            dropout=0.1):
+            dropout=0.1,
+            input_feed=True):
         super().__init__()
 
         # Keep parameters for reference
@@ -21,6 +22,12 @@ class AttentionDecoder(nn.Module):
         self.output_size = output_size
         self.layers = layers
         self.dropout_p = dropout
+        self.input_feed = input_feed
+
+        if input_feed:
+            rnn_input_size = word_vec_size + hidden_size
+        else:
+            rnn_input_size = word_vec_size
 
         # Define layers
         self.embedding = nn.Embedding(
@@ -29,7 +36,7 @@ class AttentionDecoder(nn.Module):
             padding_idx=0
         )
         self.rnn = nn.LSTM(
-            word_vec_size + hidden_size,
+            rnn_input_size,
             hidden_size,
             num_layers=layers,
             dropout=(0 if layers == 1 else dropout)
@@ -53,11 +60,14 @@ class AttentionDecoder(nn.Module):
         # Get the embedding of the current input word
         embedded = self.embedding(input_step)
 
-        # concatenate current word input with previous context vector
-        rnn_input = torch.cat(
-            (embedded, context_vector.unsqueeze(0)),
-            dim=2
-        )
+        if self.input_feed:
+            # concatenate current word input with previous context vector
+            rnn_input = torch.cat(
+                (embedded, context_vector.unsqueeze(0)),
+                dim=2
+            )
+        else:
+            rnn_input = embedded
 
         # forward through RNN
         rnn_output, (hidden, cell) = self.rnn(
