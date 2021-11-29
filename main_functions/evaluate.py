@@ -1,4 +1,5 @@
 import os
+import subprocess
 
 
 def evaluate(args):
@@ -7,8 +8,11 @@ def evaluate(args):
         f" {args.reference} < {args.translation}"
     )
 
-    print("-----")
-
-    os.system(
+    print("-----\nSacreBLEU:")
+    command = (
         f"sacrebleu {args.reference} -i {args.translation}"
     )
+    result = subprocess.check_output(command, shell=True)
+    result = eval(result)
+    for key, value in result.items():
+        print(f"{key:17}{value}")
