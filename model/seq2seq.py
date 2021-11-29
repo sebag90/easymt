@@ -31,7 +31,7 @@ class seq2seq(nn.Module):
 
     def __repr__(self):
         obj_str = (
-            f"Seq2Seq: {self.src_lang.name}-{self.tgt_lang.name} "
+            f"Seq2Seq: {self.src_lang.name} --> {self.tgt_lang.name} "
             f"[{self.epoch_trained} epoch(s)]\n"
             f"{self.encoder}\n"
             f"{self.decoder}"
