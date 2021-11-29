@@ -4,7 +4,7 @@ import torch.nn as nn
 from model.attention import Attention
 
 
-class AttentionDecoder(nn.Module):
+class Decoder(nn.Module):
     def __init__(
             self,
             attn_model,
@@ -45,7 +45,7 @@ class AttentionDecoder(nn.Module):
         self.out = nn.Linear(hidden_size, output_size)
 
         # Choose attention model
-        if attn_model != 'none':
+        if attn_model.lower() != 'none':
             self.attn = Attention(
                 attn_model, hidden_size
             )
@@ -74,11 +74,17 @@ class AttentionDecoder(nn.Module):
             rnn_input, (last_hidden, encoder_cell)
         )
 
-        # calculate output with attention
-        attention_output = self.attn(rnn_output, encoder_outputs)
+        if self.attn_model.lower() != "none":
+            # calculate output with attention
+            attention_output = self.attn(rnn_output, encoder_outputs)
+            out_input = attention_output
+        else:
+            # no attention, pass the rnn output
+            # context vector is just a placeholder
+            out_input = rnn_output.squeeze(0)
+            attention_output = None
 
         # pass through dense layer
-        decoder_output = self.out(attention_output)
+        decoder_output = self.out(out_input)
         decoder_output = self.dropout(decoder_output)
-
         return decoder_output, attention_output, hidden, cell

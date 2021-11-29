@@ -9,10 +9,11 @@ import torch
 import torch.nn as nn
 
 from model.encoder import Encoder
-from model.decoder import AttentionDecoder
+from model.decoder import Decoder
 from model.seq2seq import seq2seq
 from model.loss import MaskedLoss
 
+from utils.errors import InvalidArgument
 from utils.lang import Language
 from utils.dataset import DataLoader, BatchedData
 
@@ -131,6 +132,12 @@ class Trainer:
             config["MODEL"]["input_feed"]
         )
 
+        if (params.input_feed
+                and params.attention.lower() == "none"):
+            raise InvalidArgument(
+                "Input feed needs attention"
+            )
+
         self.params = params
 
     def read_data(self):
@@ -178,7 +185,7 @@ class Trainer:
                 self.params.dropout,
                 self.params.bidirectional
             )
-            decoder = AttentionDecoder(
+            decoder = Decoder(
                 self.params.attention,
                 self.params.word_vec_size,
                 self.params.hidden_size,
