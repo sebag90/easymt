@@ -97,23 +97,6 @@ class seq2seq(nn.Module):
             decoder_cell, encoder_outputs
         )
 
-    @torch.no_grad()
-    def decoder_step(
-            self, decoder_input, context_vector,
-            decoder_hidden, decoder_cell, encoder_outputs):
-        """
-        single step through the decoder
-        """
-        # pass through decoder
-        decoder_output = self.decoder(
-            decoder_input,
-            context_vector,
-            decoder_hidden,
-            decoder_cell,
-            encoder_outputs
-        )
-        return decoder_output
-
     def train_batch(
             self, batch, device, teacher_forcing_ratio, criterion):
         """
@@ -193,7 +176,6 @@ class seq2seq(nn.Module):
         lengths = torch.tensor([len(coded)])
         input_batch = coded.unsqueeze(1)
 
-        # encode sentence
         # decoder_state:
         # 1 - context vector
         # 2 - decoder_hidden
@@ -217,17 +199,20 @@ class seq2seq(nn.Module):
         while t < self.max_len and len(complete_hypotheses) < beam_size:
             step_hypotheses = list()
 
+            # collect tensors from live hypotheses
+            # to create input batch (batch size = beam size)
             step_input = list()
             step_context_vector = list()
             step_hidden = list()
             step_cell = list()
             step_encoder_outputs = list()
 
-
             for hypothesis in live_hypotheses:
                 step_input.append(hypothesis.last_word)
                 step_encoder_outputs.append(encoder_outputs)
-                context_vector, decoder_hidden, decoder_cell = hypothesis.decoder_state
+                (context_vector,
+                 decoder_hidden,
+                 decoder_cell) = hypothesis.decoder_state
                 step_context_vector.append(context_vector)
                 step_hidden.append(decoder_hidden)
                 step_cell.append(decoder_cell)
@@ -239,7 +224,8 @@ class seq2seq(nn.Module):
             decoder_cell = torch.cat(step_cell, dim=1)
             enc_outputs = torch.cat(step_encoder_outputs, dim=1)
 
-            decoder_output, attention_output, hidden, cell = self.decoder_step(
+            # pass through decoder
+            decoder_output, attention_output, hidden, cell = self.decoder(
                 decoder_input,
                 context_vector,
                 decoder_hidden,
@@ -247,14 +233,19 @@ class seq2seq(nn.Module):
                 enc_outputs
             )
 
+            # softmax to get negative log likelihood to sum scores
             decoder_output = F.log_softmax(decoder_output, dim=-1)
 
+            # decide k and get best options
             k = beam_size - len(complete_hypotheses)
-
             probs, indeces = decoder_output.topk(k)
-            
-            for i, (live_probs, live_indeces) in enumerate(zip(probs, indeces)):
+
+            # for each live hypothesis explore k alternatives
+            for i, k_bests in enumerate(zip(probs, indeces)):
+                best_probs, best_indeces = k_bests
                 hypothesis = live_hypotheses[i]
+
+                # save attention, hidden and cell tensors
                 this_context = attention_output[i].unsqueeze(0)
                 this_hidden = hidden[:, i, :].unsqueeze(1)
                 this_cell = cell[:, i, :].unsqueeze(1)
@@ -263,11 +254,12 @@ class seq2seq(nn.Module):
                     this_context, this_hidden, this_cell
                 )
 
-                for log_prob, decoded in zip(live_probs, live_indeces):
+                for log_prob, decoded in zip(best_probs, best_indeces):
+                    # create a new hypothesis for each k alternative
                     new_hyp = deepcopy(hypothesis)
-
                     token_id = decoded.unsqueeze(0).unsqueeze(0)
-    
+
+                    # update hypothesis with new word and score
                     new_hyp.update(
                         token_id, decoder_state, log_prob.item()
                     )
@@ -278,7 +270,10 @@ class seq2seq(nn.Module):
                         complete_hypotheses.append(new_hyp)
                     else:
                         step_hypotheses.append(new_hyp)
-                    
+
+            # update k for pruning
+            k = beam_size - len(complete_hypotheses)
+
             # prune the k best live_hypotheses
             step_hypotheses.sort(reverse=True)
             live_hypotheses = step_hypotheses[:k]
