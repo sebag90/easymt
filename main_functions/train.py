@@ -71,6 +71,10 @@ class Trainer:
         torch.set_num_threads(cpu)
 
     def read_configuration(self, path):
+        """
+        read parameters from the configuration file
+        and save it in object self.params
+        """
         # argument parser
         config = configparser.ConfigParser()
         config.read(path)
@@ -141,6 +145,9 @@ class Trainer:
         self.params = params
 
     def read_data(self):
+        """
+        read and prepare train and eval dataset
+        """
         if self.resume is None:
             # create language objects
             self.src_language = Language(self.params.src_lang)
@@ -176,6 +183,9 @@ class Trainer:
             )
 
     def create_model(self):
+        """
+        create a model, either from scratch or load it from file
+        """
         if self.resume is None:
             encoder = Encoder(
                 self.src_language.n_words,
@@ -233,6 +243,9 @@ class Trainer:
         )
 
     def save_model(self):
+        """
+        move model to cpu and save it
+        """
         # move model to cpu
         self.model.to("cpu")
 
@@ -244,7 +257,12 @@ class Trainer:
 
     @torch.no_grad()
     def evaluate(self):
-        losses = []
+        """
+        evaluate the model on the evaluation data set
+        """
+        self.model.eval()
+
+        losses = list()
         for batch in self.eval_data:
             loss = self.model.train_batch(
                 batch,
@@ -255,9 +273,13 @@ class Trainer:
 
             losses.append(loss)
 
+        self.model.train()
         return torch.tensor(losses).mean()
 
     def train_loop(self):
+        """
+        main function of the train loop
+        """
         t_init = time.time()
         for epoch in range(self.params.epochs):
             # initialize variables for monitoring
@@ -341,6 +363,7 @@ class Trainer:
             if self.params.epochs != 1 and epoch + 1 != self.params.epochs:
                 if self.params.save_every != 0:
                     if epoch % (self.params.save_every - 1) == 0:
+                        # important! move back to GPU after saving
                         self.save_model()
                         self.model.to(self.device)
             print("-"*len(to_print), flush=True)
