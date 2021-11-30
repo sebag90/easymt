@@ -9,6 +9,7 @@ import torch.nn.functional as F
 
 from utils.lang import Hypothesis
 
+
 class seq2seq(nn.Module):
     def __init__(
             self,

@@ -2,6 +2,7 @@ from functools import total_ordering
 
 import torch
 
+
 class Language:
 
     def __init__(self, name):
