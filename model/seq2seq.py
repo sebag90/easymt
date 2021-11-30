@@ -194,6 +194,10 @@ class seq2seq(nn.Module):
         input_batch = coded.unsqueeze(1)
 
         # encode sentence
+        # decoder_state:
+        # 1 - context vector
+        # 2 - decoder_hidden
+        # 3 - decoder_cell
         (decoder_input, *decoder_state, encoder_outputs) = self.encode(
             input_batch, lengths, device
         )
@@ -213,50 +217,59 @@ class seq2seq(nn.Module):
         while t < self.max_len and len(complete_hypotheses) < beam_size:
             step_hypotheses = list()
 
-            # iterate through hypotheses and explore them
-            for hypothesis in live_hypotheses:
-                # obtain last decoder input from hypothesis
-                decoder_input = hypothesis.last_word
-                decoder_state = hypothesis.decoder_state
+            step_input = list()
+            step_context_vector = list()
+            step_hidden = list()
+            step_cell = list()
+            step_encoder_outputs = list()
 
-                # pass through the decoder
-                decoder_output, *decoder_state = self.decoder_step(
-                    decoder_input,
-                    *decoder_state,
-                    encoder_outputs
+
+            for hypothesis in live_hypotheses:
+                step_input.append(hypothesis.last_word)
+                step_encoder_outputs.append(encoder_outputs)
+                context_vector, decoder_hidden, decoder_cell = hypothesis.decoder_state
+                step_context_vector.append(context_vector)
+                step_hidden.append(decoder_hidden)
+                step_cell.append(decoder_cell)
+
+            # create batch with live hypotheses
+            decoder_input = torch.cat(step_input, dim=1)
+            context_vector = torch.cat(step_context_vector)
+            decoder_hidden = torch.cat(step_hidden, dim=1)
+            decoder_cell = torch.cat(step_cell, dim=1)
+            enc_outputs = torch.cat(step_encoder_outputs, dim=1)
+
+            decoder_output, attention_output, hidden, cell = self.decoder_step(
+                decoder_input,
+                context_vector,
+                decoder_hidden,
+                decoder_cell,
+                enc_outputs
+            )
+
+            decoder_output = F.log_softmax(decoder_output, dim=-1)
+
+            k = beam_size - len(complete_hypotheses)
+
+            probs, indeces = decoder_output.topk(k)
+            
+            for i, (live_probs, live_indeces) in enumerate(zip(probs, indeces)):
+                hypothesis = live_hypotheses[i]
+                this_context = attention_output[i].unsqueeze(0)
+                this_hidden = hidden[:, i, :].unsqueeze(1)
+                this_cell = cell[:, i, :].unsqueeze(1)
+
+                decoder_state = (
+                    this_context, this_hidden, this_cell
                 )
 
-                # pass decoder output through softmax
-                # to obtain negative log likelihood
-                decoder_output = F.log_softmax(decoder_output, dim=-1)
-
-                # obtain k (number of alive threads)
-                k = beam_size - len(complete_hypotheses)
-
-                # obtain k best options
-                probs, indeces = decoder_output.topk(k)
-                indeces = indeces.squeeze()
-                probs = probs.squeeze()
-
-                # adjust dimensions if k == 1
-                if len(indeces.shape) == 0:
-                    indeces = indeces.unsqueeze(0)
-                    probs = probs.unsqueeze(0)
-
-                # iterate through the k most possible
-                for i in range(k):
-                    # get decoded index and its log prob
-                    decoded = indeces[i]
-                    log_prob = probs[i].item()
-
-                    # create new hypothesis based on current one
+                for log_prob, decoded in zip(live_probs, live_indeces):
                     new_hyp = deepcopy(hypothesis)
 
-                    # update last word, score and decoder_state
                     token_id = decoded.unsqueeze(0).unsqueeze(0)
-
+    
                     new_hyp.update(
-                        token_id, decoder_state, log_prob
+                        token_id, decoder_state, log_prob.item()
                     )
 
                     # complete hypothesis if decoded EOS
@@ -265,7 +278,7 @@ class seq2seq(nn.Module):
                         complete_hypotheses.append(new_hyp)
                     else:
                         step_hypotheses.append(new_hyp)
-
+                    
             # prune the k best live_hypotheses
             step_hypotheses.sort(reverse=True)
             live_hypotheses = step_hypotheses[:k]
