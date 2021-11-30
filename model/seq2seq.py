@@ -1,10 +1,13 @@
-import pickle
+from copy import deepcopy
 from pathlib import Path
+import pickle
 import random
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
+from utils.lang import Hypothesis
 
 class seq2seq(nn.Module):
     def __init__(
@@ -39,6 +42,9 @@ class seq2seq(nn.Module):
         return obj_str
 
     def save(self, outputpath):
+        """
+        save model to a pickle file
+        """
         l1 = self.src_lang.name
         l2 = self.tgt_lang.name
         ep = self.epoch_trained
@@ -49,12 +55,19 @@ class seq2seq(nn.Module):
 
     @classmethod
     def load(cls, inputpath):
+        """
+        load model from pickle file
+        """
         with open(inputpath, "rb") as infile:
             obj = pickle.load(infile)
             return obj
 
     @torch.no_grad()
     def encode(self, batch, lengths, device):
+        """
+        encode a batch of sentences for translation
+        (batch size = 1)
+        """
         # prepare input sentence
         batch = batch.to(device)
 
@@ -100,65 +113,11 @@ class seq2seq(nn.Module):
         )
         return decoder_output
 
-    @torch.no_grad()
-    def translate_batch(self, batch, lengths, device):
-        # move to device and set evaluation mode (dropout)
-        self.encoder.to(device)
-        self.decoder.to(device)
-        self.encoder.eval()
-        self.decoder.eval()
-
-        # prepare input sentence
-        batch = batch.to(device)
-
-        # pass through encoder
-        encoded = self.encoder(batch, lengths)
-        encoder_outputs, encoder_hidden, encoder_cell = encoded
-
-        # create first input for 1st step of decoder
-        sos_index = self.src_lang.word2index["SOS"]
-
-        decoder_input = torch.LongTensor(
-            [[sos_index for _ in range(batch.shape[1])]],
-            device=device
-        )
-        context_vector = torch.zeros(
-            (batch.shape[1], self.encoder.hidden_size),
-            device=device
-        )
-
-        # rename encoder output for loop decoding
-        decoder_hidden = encoder_hidden
-        decoder_cell = encoder_cell
-
-        # empty tensor to store outputs
-        all_tokens = torch.zeros([0], device=device, dtype=torch.long)
-
-        # decode word by word -- no teacher
-        for i in range(self.max_len):
-            # pass through decoder
-            (decoder_output, context_vector,
-             decoder_hidden, decoder_cell) = self.decoder(
-                decoder_input,
-                context_vector,
-                decoder_hidden,
-                decoder_cell,
-                encoder_outputs
-            )
-
-            # get index of argmax for each element in batch
-            _, topi = decoder_output.topk(1)
-            # add result to matrix
-            all_tokens = torch.cat((all_tokens, topi), dim=1)
-
-            # prepare input for next word prediction
-            decoder_input = topi.t()
-            decoder_input = decoder_input.to(device)
-
-        return all_tokens
-
     def train_batch(
             self, batch, device, teacher_forcing_ratio, criterion):
+        """
+        calculate and return the error on a mini batch
+        """
         input_var, lengths, target_var, mask, max_target_len = batch
         len_batch = input_var.shape[1]
 
@@ -222,3 +181,105 @@ class seq2seq(nn.Module):
 
         # calculate batch loss
         return loss / max_target_len
+
+    @torch.no_grad()
+    def beam_search(self, line, beam_size, device):
+        """
+        beam translation for a single line of text
+        """
+        # encode line
+        coded = self.src_lang.indexes_from_sentence(line.strip())
+        lengths = torch.tensor([len(coded)])
+        input_batch = coded.unsqueeze(1)
+
+        # encode sentence
+        (decoder_input, *decoder_state, encoder_outputs) = self.encode(
+            input_batch, lengths, device
+        )
+
+        complete_hypotheses = list()
+        live_hypotheses = list()
+
+        # create 5 empty hypotheses with only SOS token
+        for i in range(beam_size):
+            hyp = Hypothesis()
+            hyp.add_word(decoder_input)
+            hyp.decoder_state = decoder_state
+            live_hypotheses.append(hyp)
+
+        # begin beam search
+        t = 0
+        while t < self.max_len and len(complete_hypotheses) < beam_size:
+            step_hypotheses = list()
+
+            # iterate through hypotheses and explore them
+            for hypothesis in live_hypotheses:
+                # obtain last decoder input from hypothesis
+                decoder_input = hypothesis.last_word
+                decoder_state = hypothesis.decoder_state
+
+                # pass through the decoder
+                decoder_output, *decoder_state = self.decoder_step(
+                    decoder_input,
+                    *decoder_state,
+                    encoder_outputs
+                )
+
+                # pass decoder output through softmax
+                # to obtain negative log likelihood
+                decoder_output = F.log_softmax(decoder_output, dim=-1)
+
+                # obtain k (number of alive threads)
+                k = beam_size - len(complete_hypotheses)
+
+                # obtain k best options
+                probs, indeces = decoder_output.topk(k)
+                indeces = indeces.squeeze()
+                probs = probs.squeeze()
+
+                # adjust dimensions if k == 1
+                if len(indeces.shape) == 0:
+                    indeces = indeces.unsqueeze(0)
+                    probs = probs.unsqueeze(0)
+
+                # iterate through the k most possible
+                for i in range(k):
+                    # get decoded index and its log prob
+                    decoded = indeces[i]
+                    log_prob = probs[i].item()
+
+                    # create new hypothesis based on current one
+                    new_hyp = deepcopy(hypothesis)
+
+                    # update last word, score and decoder_state
+                    new_hyp.add_word(decoded.unsqueeze(0).unsqueeze(0))
+                    new_hyp.decoder_state = decoder_state
+                    new_hyp.score += log_prob
+
+                    # complete hypothesis if decoded EOS
+                    idx = decoded.item()
+                    if self.tgt_lang.index2word[idx] == "EOS":
+                        complete_hypotheses.append(new_hyp)
+                    else:
+                        step_hypotheses.append(new_hyp)
+
+            # prune the k best live_hypotheses
+            step_hypotheses.sort(reverse=True)
+            live_hypotheses = step_hypotheses[:k]
+
+            # increase t
+            t += 1
+
+        # if no complete hypothesis, use the alive ones
+        if len(complete_hypotheses) == 0:
+            complete_hypotheses = live_hypotheses
+
+        # pick most probabile hypothesis
+        complete_hypotheses.sort(reverse=True)
+        indeces = complete_hypotheses[0].get_indeces()
+        tokens = [self.tgt_lang.index2word[i.item()] for i in indeces]
+
+        # remove SOS and EOS
+        tokens = tokens[1:-1]
+        as_string = " ".join(tokens)
+        return as_string

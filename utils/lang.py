@@ -1,5 +1,6 @@
-import torch
+from functools import total_ordering
 
+import torch
 
 class Language:
 
@@ -89,3 +90,38 @@ class Vocab:
             for word, count in sorted_vocab.items():
                 if count >= self.min_freq:
                     ofile.write(f"{word}\t{count}\n")
+
+
+@total_ordering
+class Hypothesis:
+    def __init__(self):
+        self.score = 0
+        self.tokens = []
+        self.decoder_state = None
+
+    def __str__(self):
+        return str(self.score)
+
+    def __repr__(self):
+        return self.__str__()
+
+    def add_word(self, word):
+        self.tokens.append(word)
+
+    def __lt__(self, other):
+        return self.weigthed_score < other.weigthed_score
+
+    @property
+    def weigthed_score(self):
+        return self.score / len(self.tokens)
+
+    @property
+    def last_word(self):
+        return self.tokens[-1]
+
+    @property
+    def sentence(self):
+        return self.__str__()
+
+    def get_indeces(self):
+        return torch.tensor(self.tokens)
