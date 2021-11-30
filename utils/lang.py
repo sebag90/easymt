@@ -4,7 +4,6 @@ import torch
 
 
 class Language:
-
     def __init__(self, name):
         self.name = name
         self.word2index = {
@@ -97,20 +96,26 @@ class Vocab:
 class Hypothesis:
     def __init__(self):
         self.score = 0
-        self.tokens = []
+        self.tokens = list()
+        self.attention_stack = list()
         self.decoder_state = None
 
     def __str__(self):
-        return str(self.score)
+        return str(self.weigthed_score)
 
     def __repr__(self):
         return self.__str__()
 
-    def add_word(self, word):
-        self.tokens.append(word)
-
     def __lt__(self, other):
         return self.weigthed_score < other.weigthed_score
+
+    def update(self, word, decoder_state, log_prob):
+        self.tokens.append(word)
+        self.score += log_prob
+        self.decoder_state = decoder_state
+        self.attention_stack.append(
+            decoder_state[0]  # attention vector
+        )
 
     @property
     def weigthed_score(self):
@@ -126,3 +131,6 @@ class Hypothesis:
 
     def get_indeces(self):
         return torch.tensor(self.tokens)
+
+    def get_attention(self):
+        return torch.cat(self.attention_stack)

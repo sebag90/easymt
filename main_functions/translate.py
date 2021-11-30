@@ -30,7 +30,21 @@ def translate(args):
             open("raw.txt", "w", encoding="utf-8") as outfile:
         for progress, line in enumerate(infile):
             line = line.strip()
-            translated = model.beam_search(line, beam_size, device)
+            hypotheses = model.beam_search(line, beam_size, device)
+
+            for hyp in hypotheses:
+                indeces = hyp.get_indeces()
+                tokens = [model.tgt_lang.index2word[i.item()] for i in indeces]
+                print(tokens[1:-1])
+
+            breakpoint()
+            # get indeces of best hypothesis
+            indeces = hypotheses[0].get_indeces()
+            tokens = [model.tgt_lang.index2word[i.item()] for i in indeces]
+
+            # remove SOS and EOS
+            tokens = tokens[1:-1]
+            translated = " ".join(tokens)
 
             # write decoded sentence to output file
             outfile.write(f"{translated}\n")

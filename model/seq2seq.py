@@ -201,12 +201,12 @@ class seq2seq(nn.Module):
         complete_hypotheses = list()
         live_hypotheses = list()
 
-        # create 5 empty hypotheses with only SOS token
-        for i in range(beam_size):
-            hyp = Hypothesis()
-            hyp.add_word(decoder_input)
-            hyp.decoder_state = decoder_state
-            live_hypotheses.append(hyp)
+        # create empty hypothesis with only SOS token
+        hyp = Hypothesis()
+        hyp.update(
+            decoder_input, decoder_state, 0
+        )
+        live_hypotheses.append(hyp)
 
         # begin beam search
         t = 0
@@ -253,9 +253,11 @@ class seq2seq(nn.Module):
                     new_hyp = deepcopy(hypothesis)
 
                     # update last word, score and decoder_state
-                    new_hyp.add_word(decoded.unsqueeze(0).unsqueeze(0))
-                    new_hyp.decoder_state = decoder_state
-                    new_hyp.score += log_prob
+                    token_id = decoded.unsqueeze(0).unsqueeze(0)
+
+                    new_hyp.update(
+                        token_id, decoder_state, log_prob
+                    )
 
                     # complete hypothesis if decoded EOS
                     idx = decoded.item()
@@ -277,10 +279,6 @@ class seq2seq(nn.Module):
 
         # pick most probabile hypothesis
         complete_hypotheses.sort(reverse=True)
-        indeces = complete_hypotheses[0].get_indeces()
-        tokens = [self.tgt_lang.index2word[i.item()] for i in indeces]
 
-        # remove SOS and EOS
-        tokens = tokens[1:-1]
-        as_string = " ".join(tokens)
-        return as_string
+        # return sorted hypotheses
+        return complete_hypotheses
