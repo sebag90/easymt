@@ -207,6 +207,7 @@ class seq2seq(nn.Module):
             step_cell = list()
             step_encoder_outputs = list()
 
+            # obtain input words and decoder state
             for hypothesis in live_hypotheses:
                 step_input.append(hypothesis.last_word)
                 step_encoder_outputs.append(encoder_outputs)
@@ -254,10 +255,10 @@ class seq2seq(nn.Module):
                     this_context, this_hidden, this_cell
                 )
 
-                for log_prob, decoded in zip(best_probs, best_indeces):
+                for log_prob, index in zip(best_probs, best_indeces):
                     # create a new hypothesis for each k alternative
                     new_hyp = deepcopy(hypothesis)
-                    token_id = decoded.unsqueeze(0).unsqueeze(0)
+                    token_id = index.unsqueeze(0).unsqueeze(0)
 
                     # update hypothesis with new word and score
                     new_hyp.update(
@@ -265,7 +266,7 @@ class seq2seq(nn.Module):
                     )
 
                     # complete hypothesis if decoded EOS
-                    idx = decoded.item()
+                    idx = index.item()
                     if self.tgt_lang.index2word[idx] == "EOS":
                         complete_hypotheses.append(new_hyp)
                     else:
