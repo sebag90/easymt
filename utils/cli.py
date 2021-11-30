@@ -101,6 +101,10 @@ def get_arguments():
         default=5,
         help="Size of search beam (default: %(default)s)"
     )
+    translate.add_argument(
+        "--verbose", action="store_true",
+        help="print all candidates for each line"
+    )
 
     # evaluate
     evaluate = subparsers.add_parser(

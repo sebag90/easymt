@@ -32,12 +32,15 @@ def translate(args):
             line = line.strip()
             hypotheses = model.beam_search(line, beam_size, device)
 
-            for hyp in hypotheses:
-                indeces = hyp.get_indeces()
-                tokens = [model.tgt_lang.index2word[i.item()] for i in indeces]
-                print(tokens[1:-1])
+            # if verbose print all hypotheses
+            if args.verbose:
+                for hyp in hypotheses:
+                    indeces = hyp.get_indeces()
+                    tokens = [
+                        model.tgt_lang.index2word[i.item()] for i in indeces
+                    ]
+                    print(tokens)
 
-            breakpoint()
             # get indeces of best hypothesis
             indeces = hypotheses[0].get_indeces()
             tokens = [model.tgt_lang.index2word[i.item()] for i in indeces]
@@ -48,7 +51,11 @@ def translate(args):
 
             # write decoded sentence to output file
             outfile.write(f"{translated}\n")
-            print(f"Translating: line {progress + 1}", end="\r")
+
+            if args.verbose:
+                print()
+            else:
+                print(f"Translating: line {progress + 1}", end="\r")
 
     out_lang = model.tgt_lang.name
 
