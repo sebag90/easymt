@@ -59,7 +59,8 @@ class Encoder(nn.Module):
         outputs, _ = nn.utils.rnn.pad_packed_sequence(outputs)
 
         if self.bidirectional:
-            # multiply bidirectional RNN outputs
+            # adjust tensor shapes of hidden_state, cell and output
+            # by passing through projections layers
             hidden_state = hidden_state.view(
                 self.layers, input_seq.shape[1], self.hidden_size * 2
             )
