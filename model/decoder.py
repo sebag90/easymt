@@ -79,12 +79,21 @@ class Decoder(nn.Module):
             attention_output = self.attn(rnn_output, encoder_outputs)
             out_input = attention_output
         else:
-            # no attention, pass the rnn output
+            # no attention, pass the rnn output to out layer.
             # context vector is just a placeholder
+            # of size (batch, hidden)
             out_input = rnn_output.squeeze(0)
-            attention_output = None
+            batch_size = input_step.shape[-1]
+            attention_output = torch.zeros(
+                batch_size, self.hidden_size
+            )
 
         # pass through dense layer
         decoder_output = self.out(out_input)
         decoder_output = self.dropout(decoder_output)
+
+        # Output dimensions:
+        # decoder:      (batch, target_vocab)
+        # attention:    (batch, hidden)
+        # hidden, cell: (n layers, batch, hidden)
         return decoder_output, attention_output, hidden, cell
