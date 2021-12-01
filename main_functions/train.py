@@ -135,6 +135,9 @@ class Trainer:
         params.input_feed = eval(
             config["MODEL"]["input_feed"]
         )
+        params.uniform_init = float(
+            config["MODEL"]["uniform_init"]
+        )
 
         if (params.input_feed
                 and params.attention.lower() == "none"):
@@ -215,6 +218,14 @@ class Trainer:
                 epoch_trained=0,
                 history=None
             )
+
+            # initialize parameters uniformly
+            for p in self.model.parameters():
+                p.data.uniform_(
+                    - self.params.uniform_init,
+                    self.params.uniform_init
+                )
+
         print(self.model, flush=True)
         # move model to device
         self.model.to(self.device)
