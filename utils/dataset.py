@@ -1,9 +1,11 @@
 import itertools
 from functools import total_ordering
+import math
 import os
 import pickle
 from pathlib import Path
 import random
+import re
 
 import torch
 
@@ -66,7 +68,7 @@ class DataLoader:
         return list(itertools.zip_longest(*l, fillvalue=fillvalue))
 
     def __len__(self):
-        return len(self.data) // self.batch_size
+        return math.ceil(len(self.data) // self.batch_size)
 
     def __iter__(self):
         for i in range(0, len(self.order), self.batch_size):
@@ -123,12 +125,14 @@ class DataLoader:
 class BatchedData:
     def __init__(self, path):
         self.path = path
-        self.max = max([int(i) for i in os.listdir(path)])
 
         # obtain number of batches in a file
-        with open(Path(f"data/batched/0"), "rb") as infile:
-            batches = pickle.load(infile)
-        self.len = self.max * len(batches)
+        num = re.compile(r"_([0-9]+)")
+        for entry in os.scandir(path):
+            length = re.search(num, entry.name)
+            if length is not None:
+                self.len = int(length.group(1))
+                break
 
     def __len__(self):
         return self.len
@@ -140,8 +144,8 @@ class BatchedData:
         pass
 
     def __iter__(self):
-        for filename in range(self.max + 1):
-            with open(Path(f"data/batched/{filename}"), "rb") as infile:
+        for entry in os.scandir(self.path):
+            with open(Path(f"data/batched/{entry.name}"), "rb") as infile:
                 batches = pickle.load(infile)
 
             # batches is always a list of batches

@@ -54,7 +54,8 @@ def convert_to_byte(args):
 
         if len(batches) == batches_per_file:
             # write batches to file
-            with open(Path(f"data/batched/{start_from}"), "wb") as ofile:
+            to_write = Path(f"data/batched/{start_from}_{len(train_data)}")
+            with open(to_write, "wb") as ofile:
                 pickle.dump(batches, ofile)
 
             # increment name of file and empty batches list
@@ -63,3 +64,10 @@ def convert_to_byte(args):
 
         # print progress
         print(f"Saving batch: {i}/{len(train_data)}", end="\r")
+
+    # save last incomplete list of batches
+    to_write = Path(f"data/batched/{start_from}_{len(train_data)}")
+    with open(to_write, "wb") as ofile:
+        pickle.dump(batches, ofile)
+
+    print("Batching process complete!")
