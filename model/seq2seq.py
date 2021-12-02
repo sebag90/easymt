@@ -82,7 +82,7 @@ class seq2seq(nn.Module):
         decoder_input = torch.full(
             (1, len_batch),
             sos_index,
-            dtype=torch.int64,
+            dtype=torch.int,
             device=device
         )
         context_vector = torch.zeros(
