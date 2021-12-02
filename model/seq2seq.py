@@ -63,60 +63,21 @@ class seq2seq(nn.Module):
             obj = pickle.load(infile)
             return obj
 
-    @torch.no_grad()
-    def encode(self, batch, lengths, device):
+    def encode(self, input_var, lengths, device):
         """
         encode a batch of sentences for translation
         (batch size = 1)
         """
         # prepare input sentence
-        batch = batch.to(device)
-
-        # pass through encoder
-        encoded = self.encoder(batch, lengths)
-        encoder_outputs, encoder_hidden, encoder_cell = encoded
-
-        # create first input for 1st step of decoder
-        sos_index = self.src_lang.word2index["SOS"]
-
-        decoder_input = torch.LongTensor(
-            [[sos_index for _ in range(batch.shape[1])]]
-        )
-        context_vector = torch.zeros(
-            (batch.shape[1], self.encoder.hidden_size)
-        )
-        decoder_input = decoder_input.to(device)
-        context_vector = context_vector.to(device)
-
-        # rename encoder output for loop decoding
-        decoder_hidden = encoder_hidden
-        decoder_cell = encoder_cell
-
-        return (
-            decoder_input, context_vector, decoder_hidden,
-            decoder_cell, encoder_outputs
-        )
-
-    def train_batch(
-            self, batch, device, teacher_forcing_ratio, criterion):
-        """
-        calculate and return the error on a mini batch
-        """
-        input_var, lengths, target_var, mask, max_target_len = batch
+        input_var = input_var.to(device)
         len_batch = input_var.shape[1]
 
-        # move batch to device
-        input_var = input_var.to(device)
-        target_var = target_var.to(device)
-        mask = mask.to(device)
-
-        loss = 0
-
         # pass through encoder
-        (encoder_outputs, encoder_hidden,
+        (encoder_outputs,
+         encoder_hidden,
          encoder_cell) = self.encoder(input_var, lengths)
 
-        # encode input sentence
+        # prepare decoder input
         sos_index = self.src_lang.word2index["SOS"]
         decoder_input = torch.full(
             (1, len_batch),
@@ -129,8 +90,31 @@ class seq2seq(nn.Module):
             device=device
         )
 
-        decoder_hidden = encoder_hidden
-        decoder_cell = encoder_cell
+        return (
+            decoder_input, context_vector, encoder_hidden,
+            encoder_cell, encoder_outputs
+        )
+
+    def train_batch(
+            self, batch, device, teacher_forcing_ratio, criterion):
+        """
+        calculate and return the error on a mini batch
+        """
+        input_var, lengths, target_var, mask, max_target_len = batch
+
+        # move batch to device
+        input_var = input_var.to(device)
+        target_var = target_var.to(device)
+        mask = mask.to(device)
+
+        loss = 0
+
+        # encode input sentence
+        (decoder_input,
+         context_vector,
+         decoder_hidden,
+         decoder_cell,
+         encoder_outputs) = self.encode(input_var, lengths, device)
 
         for t in range(max_target_len):
             # decide if teacher for next word
@@ -149,11 +133,13 @@ class seq2seq(nn.Module):
                 encoder_outputs
             )
 
+            # compute loss
             step_loss = criterion(
                 decoder_output, target_var[t], mask[t]
             )
             loss += step_loss
 
+            # choose next word
             if use_teacher_forcing:
                 # next word is current target
                 decoder_input = target_var[t].view(1, -1)
