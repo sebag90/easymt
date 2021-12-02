@@ -7,16 +7,16 @@ class Language:
     def __init__(self, name):
         self.name = name
         self.word2index = {
-            "SOS": 1,
-            "EOS": 2,
-            "UNK": 3
+            "<sos>": 1,
+            "<eos>": 2,
+            "<unk>": 3
         }
         self.index2word = {
-            1: "SOS",
-            2: "EOS",
-            3: "UNK"
+            1: "<sos>",
+            2: "<eos>",
+            3: "<unk>"
         }
-        self.n_words = 4  # exclude SOS, EOS, UNK and PAD
+        self.n_words = 4  # exclude <sos>, <eos>, <unk> and <pad>
 
     def __repr__(self):
         return f"Language({self.name})"
@@ -44,17 +44,17 @@ class Language:
         """
         convert a sentence of words into a
         sequence of indeces from the language
-        if word is unknown use UNK vector
+        if word is unknown use <unk> vector
         """
-        sentence = sentence.strip()
-        unk = self.word2index["UNK"]
+        sentence = sentence.strip().split()
+        unk = self.word2index["<unk>"]
         sen = [
             self.word2index[word] if word in self.word2index else unk
-            for word in sentence.split()
+            for word in sentence
         ]
 
-        # append EOS sentence
-        sen.append(self.word2index["EOS"])
+        # append <eos> sentence
+        sen.append(self.word2index["<eos>"])
         return torch.tensor(sen)
 
 

@@ -78,7 +78,7 @@ class seq2seq(nn.Module):
          encoder_cell) = self.encoder(input_var, lengths)
 
         # prepare decoder input
-        sos_index = self.src_lang.word2index["SOS"]
+        sos_index = self.src_lang.word2index["<sos>"]
         decoder_input = torch.full(
             (1, len_batch),
             sos_index,
@@ -173,7 +173,7 @@ class seq2seq(nn.Module):
         complete_hypotheses = list()
         live_hypotheses = list()
 
-        # create empty hypothesis with only SOS token
+        # create empty hypothesis with only <sos> token
         hyp = Hypothesis()
         hyp.update(
             decoder_input, decoder_state, 0
@@ -251,9 +251,9 @@ class seq2seq(nn.Module):
                         token_id, decoder_state, log_prob.item()
                     )
 
-                    # complete hypothesis if decoded EOS
+                    # complete hypothesis if decoded <eos>
                     idx = index.item()
-                    if self.tgt_lang.index2word[idx] == "EOS":
+                    if self.tgt_lang.index2word[idx] == "<eos>":
                         complete_hypotheses.append(new_hyp)
                     else:
                         step_hypotheses.append(new_hyp)
