@@ -150,17 +150,20 @@ class Trainer:
         # loss
         self.criterion = MaskedLoss()
 
-        # optimizers
-        self.optimizer = torch.optim.Adam(
-            self.model.parameters(),
-            lr=self.params.training.learning_rate
-        )
-        # self.optimizer = torch.optim.SGD(
-        #     self.model.parameters(),
-        #     lr=self.params.l_rate
-        # )
+        # optimizer
+        if self.params.training.optimizer.lower() == "adam":
+            self.optimizer = torch.optim.Adam(
+                self.model.parameters(),
+                lr=self.params.training.learning_rate
+            )
 
-        # # scheduler:
+        elif self.params.training.optimizer.upper() == "SGD":
+            self.optimizer = torch.optim.SGD(
+                self.model.parameters(),
+                lr=self.params.training.learning_rate
+            )
+
+        # scheduler:
         self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
             self.optimizer,
             mode="min",
