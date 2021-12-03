@@ -126,7 +126,7 @@ class BatchedData:
     def __init__(self, path):
         self.path = path
         self.len = 0
-        # obtain number of batches in a file from last file
+        # obtain total number of batches from last file
         num = re.compile(r"_([0-9]+)")
         for entry in os.scandir(path):
             length = re.search(num, entry.name)
