@@ -125,14 +125,15 @@ class DataLoader:
 class BatchedData:
     def __init__(self, path):
         self.path = path
-
-        # obtain number of batches in a file
+        self.len = 0
+        # obtain number of batches in a file from last file
         num = re.compile(r"_([0-9]+)")
         for entry in os.scandir(path):
             length = re.search(num, entry.name)
             if length is not None:
-                self.len = int(length.group(1))
-                break
+                n = int(length.group(1))
+                if n >= self.len:
+                    self.len = n
 
     def __len__(self):
         return self.len
