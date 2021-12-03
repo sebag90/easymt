@@ -1,5 +1,6 @@
 import multiprocessing as mp
 import os
+from pathlib import Path
 import re
 from shutil import copyfile
 
@@ -61,19 +62,25 @@ class PreprocessPipeline:
         return f"data/{self.name}.tok.{language}"
 
     def train_truecase(self, language):
-        command = (
-            f"perl preprocessing-tools/train-truecaser.perl "
-            f"-corpus data/{self.name}.tok.{language}"
-            f" -model data/truecasing.{language}.model"
-        )
+        # create folder to store truecase model
+        folder = Path("data/truecasing_models")
+        os.makedirs(folder, exist_ok=True)
 
-        os.system(command)
-        return f"data/truecasing.{language}.model"
+        # if model does not exists, train a new one
+        model = Path(f"{folder}/model.{language}")
+        if not os.path.isfile(model):
+            command = (
+                f"perl preprocessing-tools/train-truecaser.perl "
+                f"-corpus data/{self.name}.tok.{language}"
+                f" -model {model}"
+            )
+
+            os.system(command)
 
     def true_case(self, language):
         command = (
             f"perl preprocessing-tools/truecase.perl -model "
-            f"data/truecasing.{language}.model"
+            f"data/truecasing_models/model.{language}"
             f" <  data/{self.name}.tok.{language} "
             f"> data/{self.name}.true.{language}"
         )
@@ -82,18 +89,24 @@ class PreprocessPipeline:
         return f"data/{self.name}.true.{language}"
 
     def learn_bpe(self, language):
-        command = (
-            f"subword-nmt learn-bpe -s {self.bpe} "
-            f"< data/{self.name}.true.{language} "
-            f"> data/bpe.{language}.codes"
-        )
+        # create folder to store truecase model
+        folder = Path("data/subword_models")
+        os.makedirs(folder, exist_ok=True)
 
-        os.system(command)
-        return f"data/bpe.{language}.codes"
+        # if model does not exists train a new one
+        model = Path(f"{folder}/model.{self.bpe}.{language}")
+        if not os.path.isfile(model):
+            command = (
+                f"subword-nmt learn-bpe -s {self.bpe} "
+                f"< data/{self.name}.true.{language} "
+                f"> {model}"
+            )
+
+            os.system(command)
 
     def bpe_splitting(self, language):
         command = (
-            f"subword-nmt apply-bpe -c data/bpe.{language}.codes"
+            f"subword-nmt apply-bpe -c data/subword_models/model.{self.bpe}.{language}"
             f" < data/{self.name}.true.{language} > "
             f"data/{self.name}.bpe.{language}")
 
@@ -135,10 +148,8 @@ class PreprocessPipeline:
 
         last = to_remove.pop()
 
-        if self.single_file:
-            os.rename(last, f"data/to_translate.{language}")
-        else:
-            os.rename(last, f"data/train.{language}")
+        # rename last file
+        os.rename(last, f"data/{self.name}_processed.{language}")
 
         return to_remove
 
@@ -157,33 +168,35 @@ class PreprocessPipeline:
         print("Preprocessing complete")
 
         for file in to_remove:
-            os.remove(file)
+            if file is not None:
+                os.remove(file)
 
 
 def preprocess(args):
     config = Parameters.from_config(args.path)
 
     if not args.single:
-        remover = PreprocessPipeline(
+        pipeline = PreprocessPipeline(
             config.dataset.name,
             config.dataset.source,
             config.dataset.target,
             config.dataset.subword_split
         )
-        remover.multi()
+        pipeline.multi()
     else:
         name = args.single.split(os.sep)[-1]
         name = re.match(r"(.*)\.", name).group(1)
 
         copyfile(args.single, f"data/clean.{config.dataset.source}")
-        remover = PreprocessPipeline(
+        pipeline = PreprocessPipeline(
             name,
             config.dataset.source,
             config.dataset.target,
             config.dataset.subword_split,
             single_file=True
         )
-        to_remove = remover.single(config.dataset.source)
+        to_remove = pipeline.single(config.dataset.source)
         to_remove.append(f"data/clean.{config.dataset.source}")
         for file in to_remove:
-            os.remove(file)
+            if file is not None:
+                os.remove(file)
