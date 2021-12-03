@@ -39,7 +39,8 @@ class PreprocessPipeline:
 
         # execute command
         command = (
-            f"perl {script} {infile} {self.l1} {self.l2} {ofile} 1 {self.max_len}"
+            f"perl {script} {infile} {self.l1} "
+            f"{self.l2} {ofile} 1 {self.max_len}"
         )
         os.system(command)
 
