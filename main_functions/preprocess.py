@@ -9,11 +9,12 @@ from utils.parameters import Parameters
 
 class PreprocessPipeline:
 
-    def __init__(self, filename, l1, l2, bpe, single_file=False):
+    def __init__(self, filename, l1, l2, bpe, max_len, single_file=False):
         self.name = filename
         self.l1 = l1
         self.l2 = l2
         self.bpe = bpe
+        self.max_len = max_len
         self.single_file = single_file
         self.cpu = os.cpu_count()
 
@@ -33,7 +34,7 @@ class PreprocessPipeline:
     def clean(self):
         command = (
             f"perl preprocessing-tools/clean_corpus.perl "
-            f"data/dexmled {self.l1} {self.l2} clean 1 50"
+            f"data/dexmled {self.l1} {self.l2} clean 1 {self.max_len}"
         )
         os.system(command)
         os.rename(f"clean.{self.l1}", f"data/clean.{self.l1}")
@@ -176,14 +177,18 @@ def preprocess(args):
     config = Parameters.from_config(args.path)
 
     if not args.single:
+        # process 2 languages in parallel
         pipeline = PreprocessPipeline(
             config.dataset.name,
             config.dataset.source,
             config.dataset.target,
-            config.dataset.subword_split
+            config.dataset.subword_split,
+            config.model.max_length
         )
         pipeline.multi()
+
     else:
+        # process one single file
         name = args.single.split(os.sep)[-1]
         name = re.match(r"(.*)\.", name).group(1)
 
@@ -193,6 +198,7 @@ def preprocess(args):
             config.dataset.source,
             config.dataset.target,
             config.dataset.subword_split,
+            config.model.max_length,
             single_file=True
         )
         to_remove = pipeline.single(config.dataset.source)
