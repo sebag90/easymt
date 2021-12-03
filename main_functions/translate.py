@@ -72,3 +72,4 @@ def translate(args):
     )
 
     os.remove("raw.txt")
+    print("Translating: complete")

@@ -37,3 +37,5 @@ def split_file(args):
 
         l1file.close()
         l2file.close()
+
+    print("Splitting document: complete")

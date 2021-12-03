@@ -1,4 +1,3 @@
-import configparser
 import datetime
 import math
 import os
@@ -13,9 +12,9 @@ from model.decoder import Decoder
 from model.seq2seq import seq2seq
 from model.loss import MaskedLoss
 
-from utils.errors import InvalidArgument
 from utils.lang import Language
 from utils.dataset import DataLoader, BatchedData
+from utils.parameters import Parameters
 
 
 class Memory:
@@ -48,21 +47,13 @@ class Memory:
         self._print_counter = 0
 
 
-class Parameters():
-    """
-    empty class to store parameters
-    from the configuration file
-    """
-    def __init__(self):
-        pass
-
-
 class Trainer:
     def __init__(self, args):
         self.resume = args.resume
         self.batched = args.batched
         self.steps = 0
-        self.read_configuration(args.path)
+        self.params = Parameters.from_config(args.path)
+
         # pick device
         self.device = torch.device(
             "cuda" if torch.cuda.is_available() else "cpu"
@@ -70,91 +61,14 @@ class Trainer:
         cpu = os.cpu_count()
         torch.set_num_threads(cpu)
 
-    def read_configuration(self, path):
-        """
-        read parameters from the configuration file
-        and save it in object self.params
-        """
-        # argument parser
-        config = configparser.ConfigParser()
-        config.read(path)
-
-        # create empty class to store parameters
-        params = Parameters()
-
-        # read configuration
-        params.filename = config["DATASET"]["name"]
-        params.src_lang = config["DATASET"]["source"]
-        params.tgt_lang = config["DATASET"]["target"]
-        params.attention = config["MODEL"]["attention"]
-        params.p_every = int(
-            config["TRAINING"]["print_every"]
-        )
-        params.epochs = int(
-            config["TRAINING"]["epochs"]
-        )
-        params.max_len = int(
-            config["MODEL"]["max_length"]
-        )
-        params.batch_size = int(
-            config["TRAINING"]["batch_size"]
-        )
-        params.bpe = int(
-            config["DATASET"]["subword_split"]
-        )
-        params.save_every = int(
-            config["TRAINING"]["save_every"]
-        )
-        params.teacher_forcing_ratio = float(
-            config["TRAINING"]["teacher_ratio"]
-        )
-        params.hidden_size = int(
-            config["MODEL"]["hidden_size"]
-        )
-        params.word_vec_size = int(
-            config["MODEL"]["word_vec_size"]
-        )
-        params.l_rate = float(
-            config["TRAINING"]["learning_rate"]
-        )
-        params.layers = int(
-            config["MODEL"]["layers"]
-        )
-        params.bidirectional = eval(
-            config["MODEL"]["bidirectional"]
-        )
-        params.dropout = float(
-            config["MODEL"]["dropout"]
-        )
-        params.teacher = eval(
-            config["TRAINING"]["teacher"]
-        )
-        params.valid_steps = int(
-            config["TRAINING"]["valid_steps"]
-        )
-        params.input_feed = eval(
-            config["MODEL"]["input_feed"]
-        )
-        params.uniform_init = float(
-            config["MODEL"]["uniform_init"]
-        )
-
-        if (params.input_feed
-                and params.attention.lower() == "none"):
-            raise InvalidArgument(
-                "Input feed needs attention"
-            )
-
-        self.params = params
-
     def read_data(self):
         """
         read and prepare train and eval dataset
         """
         if self.resume is None:
             # create language objects
-            self.src_language = Language(self.params.src_lang)
-            self.tgt_language = Language(self.params.tgt_lang)
+            self.src_language = Language(self.params.dataset.source)
+            self.tgt_language = Language(self.params.dataset.target)
             # read vocabulary from file
             self.src_language.read_vocabulary(
                 Path(f"data/vocab.{self.src_language.name}")
@@ -172,7 +86,7 @@ class Trainer:
         # load eval dataset
         self.eval_data = DataLoader.from_files(
             "eval", self.src_language, self.tgt_language,
-            self.params.max_len, self.params.batch_size
+            self.params.model.max_length, self.params.training.batch_size
         )
 
         # load train dataset
@@ -182,7 +96,7 @@ class Trainer:
         else:
             self.train_data = DataLoader.from_files(
                 "train", self.src_language, self.tgt_language,
-                self.params.max_len, self.params.batch_size
+                self.params.model.max_length, self.params.training.batch_size
             )
 
     def create_model(self):
@@ -192,20 +106,20 @@ class Trainer:
         if self.resume is None:
             encoder = Encoder(
                 self.src_language.n_words,
-                self.params.word_vec_size,
-                self.params.hidden_size,
-                self.params.layers,
-                self.params.dropout,
-                self.params.bidirectional
+                self.params.model.word_vec_size,
+                self.params.model.hidden_size,
+                self.params.model.layers,
+                self.params.model.dropout,
+                self.params.model.bidirectional
             )
             decoder = Decoder(
-                self.params.attention,
-                self.params.word_vec_size,
-                self.params.hidden_size,
+                self.params.model.attention,
+                self.params.model.word_vec_size,
+                self.params.model.hidden_size,
                 self.tgt_language.n_words,
-                self.params.layers,
-                self.params.dropout,
-                self.params.input_feed
+                self.params.model.layers,
+                self.params.model.dropout,
+                self.params.model.input_feed
             )
 
             self.model = seq2seq(
@@ -213,8 +127,8 @@ class Trainer:
                 decoder,
                 self.src_language,
                 self.tgt_language,
-                self.params.max_len,
-                self.params.bpe,
+                self.params.model.max_length,
+                self.params.dataset.subword_split,
                 epoch_trained=0,
                 history=None
             )
@@ -222,8 +136,8 @@ class Trainer:
             # initialize parameters uniformly
             for p in self.model.parameters():
                 p.data.uniform_(
-                    - self.params.uniform_init,
-                    self.params.uniform_init
+                    - self.params.model.uniform_init,
+                    self.params.model.uniform_init
                 )
 
         print(self.model, flush=True)
@@ -239,7 +153,7 @@ class Trainer:
         # optimizers
         self.optimizer = torch.optim.Adam(
             self.model.parameters(),
-            lr=self.params.l_rate
+            lr=self.params.training.learning_rate
         )
         # self.optimizer = torch.optim.SGD(
         #     self.model.parameters(),
@@ -292,7 +206,7 @@ class Trainer:
         main function of the train loop
         """
         t_init = time.time()
-        for epoch in range(self.params.epochs):
+        for epoch in range(self.params.training.epochs):
             # initialize variables for monitoring
             loss_memory = Memory()
 
@@ -310,7 +224,7 @@ class Trainer:
                 loss = self.model.train_batch(
                     batch,
                     self.device,
-                    self.params.teacher_forcing_ratio,
+                    self.params.training.teacher_ratio,
                     self.criterion
                 )
                 loss_memory.add(loss.item())
@@ -326,7 +240,7 @@ class Trainer:
                 self.steps += 1
 
                 # print every x batches
-                if (i % self.params.p_every == 0
+                if (i % self.params.training.print_every == 0
                         and i != 0):
                     t_1 = time.time()
                     ts = int(t_1 - t_init)
@@ -335,7 +249,7 @@ class Trainer:
                     lr = self.optimizer.param_groups[0]['lr']
                     print_time = datetime.timedelta(seconds=ts)
                     to_print = (
-                        f"Epoch: {epoch + 1}/{self.params.epochs} "
+                        f"Epoch: {epoch + 1}/{self.params.training.epochs} "
                         f"[{i}/{len(self.train_data)}] | "
                         f"lr: {lr} | "
                         f"Loss: {round((print_loss), 5):.5f} | "
@@ -353,7 +267,7 @@ class Trainer:
                     loss_memory.print_reset()
 
                 # validation step
-                if self.steps % self.params.valid_steps == 0:
+                if self.steps % self.params.training.valid_steps == 0:
                     eval_loss = self.evaluate()
                     self.scheduler.step(eval_loss)
                     print("-"*len(to_print), flush=True)
@@ -371,9 +285,10 @@ class Trainer:
 
             print(f"Epoch loss:\t{epoch_loss}", flush=True)
             self.model.epoch_trained += 1
-            if self.params.epochs != 1 and epoch + 1 != self.params.epochs:
-                if self.params.save_every != 0:
-                    if epoch % (self.params.save_every - 1) == 0:
+            if (self.params.training.epochs != 1 and
+                    epoch + 1 != self.params.training.epochs):
+                if self.params.training.save_every != 0:
+                    if epoch % (self.params.training.save_every - 1) == 0:
                         # important! move back to GPU after saving
                         self.save_model()
                         self.model.to(self.device)

@@ -1,22 +1,16 @@
-import configparser
-
 from utils.lang import Vocab
+from utils.parameters import Parameters
 
 
 def build_vocab(args):
-    config = configparser.ConfigParser()
-    config.read(args.path)
-    src = config["DATASET"]["source"]
-    tgt = config["DATASET"]["target"]
-    min_freq = int(config["DATASET"]["min_freq"])
-    max_len = int(config["MODEL"]["max_length"])
+    config = Parameters.from_config(args.path)
     n_sample = int(args.n_sample)
 
-    voc1 = Vocab(src, min_freq)
-    voc2 = Vocab(tgt, min_freq)
+    voc1 = Vocab(config.dataset.source, config.dataset.min_freq)
+    voc2 = Vocab(config.dataset.target, config.dataset.min_freq)
 
-    l1_file = f"data/train.{src}"
-    l2_file = f"data/train.{tgt}"
+    l1_file = f"data/train.{config.dataset.source}"
+    l2_file = f"data/train.{config.dataset.target}"
 
     with open(l1_file, "r", encoding="utf-8") as srcvoc, \
             open(l2_file, "r", encoding="utf-8") as tgtvoc:
@@ -26,11 +20,11 @@ def build_vocab(args):
             l2 = l2.strip()
 
             # enforce max len
-            if len(l1.split()) and len(l2.split()) <= max_len:
+            if len(l1.split()) and len(l2.split()) <= config.model.max_length:
                 voc1.add_sentence(l1)
                 voc2.add_sentence(l2)
 
-            print(f"Building vocabulary -- line: {i + 1}", end="\r")
+            print(f"Building vocabulary: line: {i + 1}", end="\r")
 
             if n_sample != 0:
                 if i > n_sample:
@@ -38,3 +32,5 @@ def build_vocab(args):
 
     voc1.save_voc()
     voc2.save_voc()
+
+    print("Building vocabulary: complete")

@@ -1,4 +1,3 @@
-import configparser
 import os
 from pathlib import Path
 import pickle
@@ -6,25 +5,17 @@ import re
 
 from utils.lang import Language
 from utils.dataset import DataLoader
+from utils.parameters import Parameters
 
 
 def convert_to_byte(args):
     # read data from configuration file
-    config = configparser.ConfigParser()
-    config.read(args.path)
+    config = Parameters.from_config(args.path)
     batches_per_file = args.n
-    src = config["DATASET"]["source"]
-    tgt = config["DATASET"]["target"]
-    max_len = int(
-        config["MODEL"]["max_length"]
-    )
-    batch_size = int(
-        config["TRAINING"]["batch_size"]
-    )
 
     # create language objects
-    src_language = Language(src)
-    tgt_language = Language(tgt)
+    src_language = Language(config.dataset.source)
+    tgt_language = Language(config.dataset.target)
 
     # read vocabulary from file
     src_language.read_vocabulary(
@@ -37,7 +28,7 @@ def convert_to_byte(args):
     # load entire dataset
     train_data = DataLoader.from_files(
         "train", src_language, tgt_language,
-        max_len, batch_size
+        config.model.max_length, config.training.batch_size
     )
 
     # create output folder to save batched files
@@ -85,11 +76,11 @@ def convert_to_byte(args):
             batches = list()
 
         # print progress
-        print(f"Saving batch: {i}/{len(train_data)}", end="\r")
+        print(f"Converting to byte: {i}/{len(train_data)}", end="\r")
 
     # save last incomplete list of batches
     to_write = Path(f"data/batched/{start_from}_{total_len}")
     with open(to_write, "wb") as ofile:
         pickle.dump(batches, ofile)
 
-    print("Batching process complete!")
+    print("Converting to byte: complete")

@@ -1,8 +1,9 @@
-import configparser
 import multiprocessing as mp
 import os
 import re
 from shutil import copyfile
+
+from utils.parameters import Parameters
 
 
 class PreprocessPipeline:
@@ -160,27 +161,29 @@ class PreprocessPipeline:
 
 
 def preprocess(args):
-    config = configparser.ConfigParser()
-    config.read(args.path)
-    filename = config["DATASET"]["name"]
-    src_lang = config["DATASET"]["source"]
-    tgt_lang = config["DATASET"]["target"]
-    bpe = int(config["DATASET"]["subword_split"])
+    config = Parameters.from_config(args.path)
 
     if not args.single:
         remover = PreprocessPipeline(
-            filename, src_lang, tgt_lang, bpe
+            config.dataset.name,
+            config.dataset.source,
+            config.dataset.target,
+            config.dataset.subword_split
         )
         remover.multi()
     else:
         name = args.single.split(os.sep)[-1]
         name = re.match(r"(.*)\.", name).group(1)
 
-        copyfile(args.single, f"data/clean.{src_lang}")
+        copyfile(args.single, f"data/clean.{config.dataset.source}")
         remover = PreprocessPipeline(
-            name, src_lang, tgt_lang, bpe, single_file=True
+            name,
+            config.dataset.source,
+            config.dataset.target,
+            config.dataset.subword_split,
+            single_file=True
         )
-        to_remove = remover.single(src_lang)
-        to_remove.append(f"data/clean.{src_lang}")
+        to_remove = remover.single(config.dataset.source)
+        to_remove.append(f"data/clean.{config.dataset.source}")
         for file in to_remove:
             os.remove(file)
