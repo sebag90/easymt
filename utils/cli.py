@@ -30,6 +30,43 @@ def get_arguments():
         help="only preprocess this file"
     )
 
+    # split dataset
+    split_dataset = subparsers.add_parser(
+        "split-dataset",
+        help="split a file in train, eval and test files"
+    )
+    split_dataset.add_argument(
+        "l1", metavar="CORPUS L1",
+        action="store",
+        help="L1 corpus"
+    )
+    split_dataset.add_argument(
+        "l2", metavar="CORPUS L2",
+        action="store",
+        help="L2 corpus"
+    )
+    split_required = split_dataset.add_argument_group(
+        "required named arguments"
+    )
+    split_required.add_argument(
+        "--train", metavar="N_train",
+        action="store",
+        help="number of lines for train data",
+        required=True
+    )
+    split_required.add_argument(
+        "--eval", metavar="N_eval",
+        action="store",
+        help="number of lines for evaluation data",
+        required=True
+    )
+    split_required.add_argument(
+        "--test", metavar="N_test",
+        action="store",
+        help="number of lines for test data",
+        required=True
+    )
+
     # build vocab
     vocab = subparsers.add_parser(
         "build-vocab",
