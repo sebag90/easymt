@@ -16,33 +16,25 @@ def main():
     if args:
         subparser = args.subparser
 
-        # chose functions
-        if subparser == "split":
-            split_file(args)
+        functions = {
+            "split": split_file,
+            "train": train,
+            "preprocess": preprocess,
+            "build-vocab": build_vocab,
+            "translate": translate,
+            "evaluate": evaluate,
+            "convert-to-byte": convert_to_byte,
+            "split-dataset": split_dataset,
+            "normalize": normalize
+        }
 
-        elif subparser == "train":
-            train(args)
+        if subparser not in functions.keys():
+            raise ValueError(
+                "Invalid option"
+            )
 
-        elif subparser == "preprocess":
-            preprocess(args)
-
-        elif subparser == "build-vocab":
-            build_vocab(args)
-
-        elif subparser == "translate":
-            translate(args)
-
-        elif subparser == "evaluate":
-            evaluate(args)
-
-        elif subparser == "convert-to-byte":
-            convert_to_byte(args)
-
-        elif subparser == "split-dataset":
-            split_dataset(args)
-
-        elif subparser == "normalize":
-            normalize(args)
+        fn = functions[subparser]
+        fn(args)
 
 
 if __name__ == "__main__":
