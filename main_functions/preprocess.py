@@ -9,13 +9,15 @@ from utils.parameters import Parameters
 
 class PreprocessPipeline:
 
-    def __init__(self, filename, l1, l2, bpe, max_len, single_file=False):
+    def __init__(
+            self, filename, l1, l2, bpe, max_len, keep, single_file=False):
         self.name = filename
         self.l1 = l1
         self.l2 = l2
         self.bpe = bpe
         self.max_len = max_len
         self.single_file = single_file
+        self.keep = keep
         self.cpu = os.cpu_count() / 2
 
     def dexml(self):
@@ -192,9 +194,10 @@ class PreprocessPipeline:
 
         print("Preprocessing complete")
 
-        for file in to_remove:
-            if file is not None:
-                os.remove(file)
+        if not self.keep:
+            for file in to_remove:
+                if file is not None:
+                    os.remove(file)
 
 
 def preprocess(args):
@@ -218,7 +221,8 @@ def preprocess(args):
             config.dataset.source,
             config.dataset.target,
             config.dataset.subword_split,
-            config.model.max_length
+            config.model.max_length,
+            args.keep
         )
         pipeline.multi()
 
@@ -238,10 +242,13 @@ def preprocess(args):
             config.dataset.target,
             config.dataset.subword_split,
             config.model.max_length,
+            args.keep,
             single_file=True
         )
         to_remove = pipeline.single(config.dataset.source)
         to_remove.append(f"data/clean.{config.dataset.source}")
-        for file in to_remove:
-            if file is not None:
-                os.remove(file)
+
+        if not args.keep:
+            for file in to_remove:
+                if file is not None:
+                    os.remove(file)

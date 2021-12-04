@@ -8,6 +8,7 @@ from main_functions.translate import translate
 from main_functions.evaluate import evaluate
 from main_functions.convert_to_byte import convert_to_byte
 from main_functions.split_dataset import split_dataset
+from main_functions.normalize import normalize
 
 
 def main():
@@ -39,6 +40,10 @@ def main():
 
         elif subparser == "split-dataset":
             split_dataset(args)
+
+        elif subparser == "normalize":
+            normalize(args)
+
 
 if __name__ == "__main__":
     main()

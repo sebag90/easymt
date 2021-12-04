@@ -29,6 +29,10 @@ def get_arguments():
         "--single", action="store",
         help="only preprocess this file"
     )
+    preprocess.add_argument(
+        "--keep", action="store_true",
+        help="do not delete files after each step"
+    )
 
     # split dataset
     split_dataset = subparsers.add_parser(
@@ -156,6 +160,19 @@ def get_arguments():
     evaluate.add_argument(
         "translation", action="store",
         help="path to translated document"
+    )
+
+    normalize = subparsers.add_parser(
+        "normalize",
+        help="Undo preprocessing to normalize text"
+    )
+    normalize.add_argument(
+        "file", metavar="FILE",
+        help="file to process"
+    )
+    normalize.add_argument(
+        "--subword", action="store_true",
+        help="Subword splitting was applied"
     )
 
     args = parser.parse_args()
