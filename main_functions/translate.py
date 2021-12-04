@@ -26,8 +26,9 @@ def translate(args):
     print(model)
 
     # start translating
+    outputfile = Path(f"data/translated.{model.tgt_lang.name}")
     with open(inputfile, "r", encoding="utf-8") as infile, \
-            open("raw.txt", "w", encoding="utf-8") as outfile:
+            open(outputfile, "w", encoding="utf-8") as outfile:
         for progress, line in enumerate(infile):
             line = line.strip()
             hypotheses = model.beam_search(line, beam_size, device)
@@ -57,19 +58,4 @@ def translate(args):
             else:
                 print(f"Translating: line {progress + 1}", end="\r")
 
-    out_lang = model.tgt_lang.name
-
-    if model.bpe != 0:
-        # undo bpe splitting
-        os.rename("raw.txt", "temp.txt")
-        os.system(f"sed -r 's/(@@ )|(@@ ?$)//g' < temp.txt > raw.txt")
-        os.remove("temp.txt")
-
-    # detokenize
-    os.system(
-        f"perl preprocessing-tools/detokenizer.perl -u -l {out_lang} "
-        f"< raw.txt > translated.{out_lang}"
-    )
-
-    os.remove("raw.txt")
     print("Translating: complete")

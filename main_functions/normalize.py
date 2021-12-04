@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+import re
 import shutil
 
 from utils.utils import name_suffix_from_file
@@ -12,7 +13,14 @@ def normalize(args):
 
     if args.subword is True:
         # undo bpe splitting
-        os.system(f"sed -r 's/(@@ )|(@@ ?$)//g' < {args.file}> data/temp.txt")
+        tempfile = Path("data/temp.txt")
+
+        with open(Path(args.file), "r", encoding="utf-8") as infile, \
+                open(tempfile, "w", encoding="utf-8") as ofile:
+            for line in infile:
+                to_write = re.sub(r"@@ ", "", line)
+                ofile.write(to_write)
+
     else:
         shutil.copyfile(Path(args.file), "data/temp.txt")
 
