@@ -2,6 +2,8 @@ import subprocess
 import os
 from pathlib import Path
 
+from utils.errors import UntrainedModel
+
 
 class SubwordSplitter:
     def __init__(self, language, bpe):
@@ -32,7 +34,7 @@ class SubwordSplitter:
                 stdin=pipe.stdout
             ).decode("UTF-8")
         else:
-            raise ValueError("Truecaser not trained")
+            raise UntrainedModel("SubwordSplitter not trained")
 
     def train(self, filename):
         if not os.path.isfile(self.model):
