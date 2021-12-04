@@ -24,7 +24,7 @@ def build_vocab(args):
                 voc1.add_sentence(l1)
                 voc2.add_sentence(l2)
 
-            print(f"Building vocabulary: line: {i + 1}", end="\r")
+            print(f"Building vocabulary: line {i + 1}", end="\r")
 
             if n_sample != 0:
                 if i > n_sample:
