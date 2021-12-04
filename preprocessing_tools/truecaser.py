@@ -16,6 +16,9 @@ class Truecaser:
             self.model
         ]
 
+    def __repr__(self):
+        return f"Truecaser({self.language})"
+
     def __call__(self, line):
         if os.path.isfile(self.model):
             pipe = subprocess.Popen(

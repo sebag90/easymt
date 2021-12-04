@@ -11,6 +11,9 @@ class PunctNormalizer:
             language
         ]
 
+    def __repr__(self):
+        return f"PunctNormalizer({self.language})"
+
     def __call__(self, line):
         pipe = subprocess.Popen(
             ["echo", line],

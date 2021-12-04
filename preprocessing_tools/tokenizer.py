@@ -15,6 +15,9 @@ class Tokenizer:
             "-threads",
             str(int(os.cpu_count() / 2))
         ]
+    
+    def __repr__(self):
+        return f"Tokenizer({self.language})"
 
     def __call__(self, line):
         pipe = subprocess.Popen(

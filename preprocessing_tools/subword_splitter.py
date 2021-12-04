@@ -16,6 +16,9 @@ class SubwordSplitter:
             "-c",
             self.model
         ]
+    
+    def __repr__(self):
+        return f"SubwordSplitter({self.language}, {self.bpe})"
 
     @property
     def trained(self):

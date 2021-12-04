@@ -13,6 +13,9 @@ class Detokenizer:
             language
         ]
 
+    def __repr__(self):
+        return f"Detokenizer({self.language})"
+
     def __call__(self, line):
         pipe = subprocess.Popen(
             ["echo", line],
