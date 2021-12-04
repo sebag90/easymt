@@ -81,5 +81,6 @@ def split_dataset(args):
 
             print(f"Splitting dataset: line {i}", end="\r")
 
+    print(" "*100, end="\r")
     print("Splitting dataset: complete")
 
