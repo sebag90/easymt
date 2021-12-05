@@ -137,3 +137,4 @@ pretrained_models
 # translated files
 translated.*
 raw.txt
+.vscode

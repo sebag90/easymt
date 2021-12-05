@@ -13,7 +13,7 @@ def get_arguments():
     split.add_argument(
         "path", metavar="PATH", action="store",
         help=(
-            "Path to the TSV file"
+            "path to the TSV file"
         )
     )
 
@@ -44,16 +44,17 @@ def get_arguments():
     )
     preprocess.add_argument(
         "file", metavar="FILE", action="store",
-        help="Path to the configuration file"
+        help="path to the configuration file"
     )
     preprocess.add_argument(
-        "--language", action="store",
-        help="Language of the file",
+        "--language", metavar="LANG",
+        action="store",
+        help="language of the file",
         required=True
     )
     preprocess.add_argument(
         "--bpe", action="store",
-        help="Number of BPE splittings",
+        help="number of BPE splittings",
         required=True, type=int
     )
 
@@ -100,8 +101,12 @@ def get_arguments():
         help="build a vocabulary from files"
     )
     vocab.add_argument(
-        "path", metavar="PATH", action="store",
-        help="Path to the configuration file"
+        "file1", metavar="PATH", action="store",
+        help="path to file 1"
+    )
+    vocab.add_argument(
+        "file2", metavar="PATH", action="store",
+        help="path to file 2"
     )
     vocab.add_argument(
         "--n_sample", metavar="N", action="store",
@@ -111,6 +116,14 @@ def get_arguments():
         ),
         default=0
     )
+    vocab.add_argument(
+        "--min_freq", metavar="N", type=int,
+        help=(
+            "minimum frequency for a token to be included"
+            " (default: %(default)s)"
+        ),
+        default=2
+    )
 
     # convert to byte
     byte = subparsers.add_parser(
@@ -119,7 +132,7 @@ def get_arguments():
     )
     byte.add_argument(
         "path", metavar="PATH", action="store",
-        help="Path to the configuration file"
+        help="path to the configuration file"
     )
     byte.add_argument(
         "--n", metavar="N", action="store",
@@ -136,7 +149,7 @@ def get_arguments():
     )
     train.add_argument(
         "path", metavar="PATH", action="store",
-        help="Path to the configuration file"
+        help="path to the configuration file"
     )
     train.add_argument(
         "--resume", action="store",
@@ -163,11 +176,25 @@ def get_arguments():
     translate.add_argument(
         "--beam", metavar="N", action="store",
         default=5,
-        help="Size of search beam (default: %(default)s)"
+        help="size of search beam (default: %(default)s)"
     )
     translate.add_argument(
         "--verbose", action="store_true",
         help="print all candidates for each line"
+    )
+
+    # normalize
+    normalize = subparsers.add_parser(
+        "normalize",
+        help="undo preprocessing to normalize text"
+    )
+    normalize.add_argument(
+        "file", metavar="FILE",
+        help="file to process"
+    )
+    normalize.add_argument(
+        "--subword", action="store_true",
+        help="subword splitting was applied"
     )
 
     # evaluate
@@ -185,18 +212,6 @@ def get_arguments():
         help="path to translated document"
     )
 
-    normalize = subparsers.add_parser(
-        "normalize",
-        help="Undo preprocessing to normalize text"
-    )
-    normalize.add_argument(
-        "file", metavar="FILE",
-        help="file to process"
-    )
-    normalize.add_argument(
-        "--subword", action="store_true",
-        help="Subword splitting was applied"
-    )
 
     args = parser.parse_args()
     if args.subparser not in subparsers.choices.keys():

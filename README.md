@@ -1,130 +1,72 @@
 # Neural Machine Translation with Attention
 WORK IN PROGRESS
 ## Description
-Implementation of a sequence to sequence model with attention for machine translation.
+Easymt is a small framework for neural machine translation.
 ![alt text](imgs/mt.png)
 
+
+## Quickstart
+
+
 ## Synopsis
-Easynmt has 5 functions:
-```
-usage: easymt.py [-h] {split,preprocess,build-vocab,train,translate,evaluate} ...
-
-positional arguments:
-  {split,preprocess,build-vocab,train,translate,evaluate}
-    split               preprocess a TSV file
-    preprocess          preprocess a corpus
-    build-vocab         build a vocabulary from files
-    train               train a new model
-    translate           translate a file
-    evaluate            compute BLEU score
-
-optional arguments:
-  -h, --help            show this help message and exit
-```
+Easymt has 9 functions:
 
 ### Split
-preprocess a TSV separated file containing aligned sentences in 2 languages
+Preprocess a TSV separated file containing aligned sentences in 2 languages. The Script will produce one file for each language. The files will be automatically saved in the ``` data/``` directory and will have the same name as the original file. The two languages will be saved as ```.l1``` and ```.l2``` as endings.
 
-```
-usage: easymt.py split [-h] PATH
+```python easymt.py split PATH/TO/FILE```
 
-positional arguments:
-  PATH        Path to the TSV file
+### Clean
+This step will remove xml tags from the corpus and pass it through the [clean data script from the moses project](https://github.com/moses-smt/mosesdecoder/blob/master/scripts/training/clean-corpus-n.perl). The data cleaner script will also enforce a maximum length for the training sentences (default: 50)
 
-optional arguments:
-  -h, --help  show this help message and exit
-```
-
-```
-$ python mt.py split PATH/TO/TSV-FILE
-```
-
+```python easymt.py clean PATH/TO/FILE1 PATH/TO/FILE2 --len N```
 
 ### Preprocess
 
-```
-usage: easymt.py preprocess [-h] [--single SINGLE] PATH
-
-positional arguments:
-  PATH             Path to the configuration file
-
-optional arguments:
-  -h, --help       show this help message and exit
-  --single SINGLE  only preprocess this file
-```
-
-Preprocess a dataset (both languages), this includes:
-* remove xml tags
-* normalization
-* tokenization
+Preprocess a dataset by:
+* normalizing punctuation
+* tokenizing the text
 * truecasing
-* bpe splitting
+* spplying subword encoding
 
+```python easymt.py clean PATH/TO/FILE1 --language LANG --bpe N```
 
-By default this step will take advantage of concurrency to process the two languages
-at the same time.
-With the ```--single``` option it is possible to pass as an argument a single file
-which will be processed. This is useful to prepare a document to be translated.
-The source language in the configuration file will be considered the language of
-the document.
+### Split data set
+Given the number of lines for the train, evaluation and test data set, this script will take two files as input and extract the desired amount  of lines to create the data sets. Files will be saved in the ```data/````directory.
 
-```
-$ python mt.py split config.ini
-```
-
-```
-$ python mt.py split config.ini --single PATH/TO/FINGLE/FILE
-```
+```python easymt.py clean PATH/TO/FILE1 PATH/TO/FILE2 --train N --eval N --test N```
 
 ### Build Vocabulary
-```
-usage: easymt.py build-vocab [-h] [--n_sample N] PATH
+This script will go over 2 files and create 2 vocabulary files for the model.
+It is possible to restrict the number of lines and/or the minimum frequency for a token to be included in the vocabulary. The ending of the file (es. ```.en``` will be used as language of the file)
 
-positional arguments:
-  PATH          Path to the configuration file
+```python easymt.py clean PATH/TO/FILE1 PATH/TO/FILE2 --n_sample N --min_freq N ```
 
-optional arguments:
-  -h, --help    show this help message and exit
-  --n_sample N  number of lines used to build vocabulary (0 = full corpus - default: 0)
-```
+### Convert to byte
+This function will read the entire train data set and chunk it into byte encoded files to reduce memory usage during training. By default, each file will contain 100 batches. 
+
+```python easymt.py convert-to-byte PATH/TO/CONFIG.INI```
 
 ### Train
 Train a sequence to sequence model for machine translation. At the end of training both the encoder and the decoder are saved in a seq2seq-object that can be used for translation.  
 By default the training process uses the concept of teacher forcing with a possibility of 50%. This means that at each step the decoder is either fed the previous prediction or the real target word to predict the next word. This is done to speed up training. To disable this option use the ```--no-teacher``` flag.
+Training can be resumed with the ```--resume``` flag by giving as input the path to a previously saved seq2seq model.
+If the dataset was converted to bytes, use the ```--batched``` option.
 
-```
-usage: easymt.py train [-h] [--resume RESUME] PATH
-
-positional arguments:
-  PATH             Path to the configuration file
-
-optional arguments:
-  -h, --help       show this help message and exit
-  --resume RESUME  path to model to resume training
-```
-
-```
-$ python mt.py train config.ini
-```
-```
-$ python mt.py train config.ini --no-flag
-```
+```python easymt.py train PATH/TO/CONFIG.INI```
 
 ### Translate
-Translate a file using a pretrained model. The file must be preprocessed using the [preprocess](#preprocess) function with the ```--single``` option.
+Text files will be translated using beam search (the size of the beam can be given as argument, default:5).
 
-```
-usage: easymt.py translate [-h] [--beam N] FILE MODEL
+```python easymt.py translate PATH/TO/FILE.TXT PATH/TO/MODEL --beam N```
 
-positional arguments:
-  FILE        path to file to translate
-  MODEL       path to model
+### Normalize
+Detokenize a translated file. If ```--subword````is used, the script will also undo subword splitting.
 
-optional arguments:
-  -h, --help  show this help message and exit
-  --beam N    Size of search beam (default: 5)
-```
+```python easymt.py normalize PATH/TO/REFERENCE```
 
-```
-$ python mt.py translate PATH/TO/DOCUMENT PATH/TO/MODEL
-```
+
+#### Evaluate
+Compute BLEU score based on a reference translation.
+
+```python easymt.py evaluate PATH/TO/REFERENCE PATH/TO/TRANSLATION```

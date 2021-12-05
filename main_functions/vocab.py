@@ -4,31 +4,32 @@ reads a file and creates a vocuabulary file
 order. Minimum frequency can be enforced.
 """
 
+from pathlib import Path
+
 from utils.lang import Vocab
-from utils.parameters import Parameters
+from utils.errors import FileError
+from utils.utils import name_suffix_from_file, count_lines
 
 
 def build_vocab(args):
-    config = Parameters.from_config(args.path)
     n_sample = int(args.n_sample)
+    l1_file = Path(f"{args.file1}")
+    l2_file = Path(f"{args.file2}")
 
-    voc1 = Vocab(config.dataset.source, config.dataset.min_freq)
-    voc2 = Vocab(config.dataset.target, config.dataset.min_freq)
+    # get suffixes from filenames
+    name1, suff1 = name_suffix_from_file(args.file1)
+    name2, suff2 = name_suffix_from_file(args.file2)
 
-    l1_file = f"data/train.{config.dataset.source}"
-    l2_file = f"data/train.{config.dataset.target}"
+    # instantiate vocab objects
+    voc1 = Vocab(suff1, args.min_freq)
+    voc2 = Vocab(suff2, args.min_freq)
 
     with open(l1_file, "r", encoding="utf-8") as srcvoc, \
             open(l2_file, "r", encoding="utf-8") as tgtvoc:
         for i, (l1, l2) in enumerate(zip(srcvoc, tgtvoc)):
-
-            l1 = l1.strip()
-            l2 = l2.strip()
-
-            # enforce max len
-            if len(l1.split()) and len(l2.split()) <= config.model.max_length:
-                voc1.add_sentence(l1)
-                voc2.add_sentence(l2)
+            # add line to vocabs
+            voc1.add_sentence(l1.strip())
+            voc2.add_sentence(l2.strip())
 
             print(f"Building vocabulary: line {i + 1}", end="\r")
 
