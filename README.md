@@ -66,7 +66,7 @@ Detokenize a translated file. If ```--subword````is used, the script will also u
 ```python easymt.py normalize PATH/TO/REFERENCE```
 
 
-#### Evaluate
+### Evaluate
 Compute BLEU score based on a reference translation.
 
 ```python easymt.py evaluate PATH/TO/REFERENCE PATH/TO/TRANSLATION```
