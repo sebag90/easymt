@@ -26,7 +26,7 @@ class Truecaser:
     def __call__(self, line):
         if os.path.isfile(self.model):
             result = subprocess.run(
-                self.args, input=str.encode(line),
+                self.args, input=str.encode(f"{line}\n"),
                 capture_output=True
             )
 
@@ -51,4 +51,4 @@ class Truecaser:
 if __name__ == "__main__":
     t = Truecaser("en")
     t.train("../data/train.en")
-    print(t('And this is it'))
+    print(t('Right-wing populists triumph in Austria , have total of 29 percent '))

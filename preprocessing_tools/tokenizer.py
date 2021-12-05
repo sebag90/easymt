@@ -21,7 +21,7 @@ class Tokenizer:
 
     def __call__(self, line):
         result = subprocess.run(
-            self.args, input=str.encode(line),
+            self.args, input=str.encode(f"{line}\n"),
             capture_output=True
         )
 

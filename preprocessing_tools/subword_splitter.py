@@ -27,7 +27,7 @@ class SubwordSplitter:
     def __call__(self, line):
         if os.path.isfile(self.model):
             result = subprocess.run(
-                self.args, input=str.encode(line),
+                self.args, input=str.encode(f"{line}\n"),
                 capture_output=True
             )
 

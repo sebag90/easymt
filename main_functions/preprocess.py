@@ -33,7 +33,7 @@ class Pipeline:
         with open(input_name, "r", encoding="utf-8") as infile,\
                 open(output_name, "w", encoding="utf-8") as ofile:
             for i, line in enumerate(infile):
-                line = processor(line.strip())
+                line = processor(line)
                 ofile.write(f"{line}\n")
                 print(f"Preprocessing: line {i}", end="\r")
 
@@ -69,7 +69,6 @@ class Pipeline:
         with open(Path(self.filename), "r", encoding="utf-8") as infile,\
                 open(Path(f"data/temp.txt"), "w", encoding="utf-8") as ofile:
             for i, line in enumerate(infile):
-                line = line.strip()
 
                 for processor in pipe:
                     line = processor(line)
