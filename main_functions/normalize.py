@@ -33,4 +33,5 @@ def normalize(args):
 
             print(f"Normalizing: line {i}", end="\r")
 
+    print(" "*100, end="\t")
     print("Normalizing: complete")
