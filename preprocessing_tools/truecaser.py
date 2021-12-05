@@ -19,24 +19,27 @@ class Truecaser:
     def __repr__(self):
         return f"Truecaser({self.language})"
 
+    @property
+    def trained(self):
+        return os.path.isfile(self.model)
+
     def __call__(self, line):
         if os.path.isfile(self.model):
-            pipe = subprocess.Popen(
-                ["echo", line],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT
+            result = subprocess.run(
+                self.args, input=str.encode(line),
+                capture_output=True
             )
 
-            return subprocess.check_output(
-                self.args,
-                stdin=pipe.stdout
-            ).decode("UTF-8")
+            return result.stdout.decode("UTF-8").strip()
         else:
             raise UntrainedModel("Truecaser not trained")
 
     def train(self, filename):
         if not os.path.isfile(self.model):
-            script = Path(f"perl_scripts/train-truecaser.perl")
+            os.makedirs(Path("data/truecasing_models"), exist_ok=True)
+            script = Path(
+                f"preprocessing_tools/perl_scripts/train-truecaser.perl"
+            )
             print("Training truecasing model")
             # execute command
             command = (

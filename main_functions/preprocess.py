@@ -1,254 +1,102 @@
-import multiprocessing as mp
 import os
 from pathlib import Path
-import re
-from shutil import copyfile
+import time
+import datetime
 
-from utils.parameters import Parameters
+from preprocessing_tools.tokenizer import Tokenizer
+from preprocessing_tools.truecaser import Truecaser
+from preprocessing_tools.punct_normalizer import PunctNormalizer
+from preprocessing_tools.subword_splitter import SubwordSplitter
 
 
-class PreprocessPipeline:
+class Pipeline:
+    def __init__(self, filename, language, bpe):
+        self.tokenizer = Tokenizer(language)
+        self.truecaser = Truecaser(language)
+        self.normalizer = PunctNormalizer(language)
+        self.subword_splitter = SubwordSplitter(language, bpe)
+        self.filename = filename
 
-    def __init__(
-            self, filename, l1, l2, bpe, max_len, keep, single_file=False):
-        self.name = filename
-        self.l1 = l1
-        self.l2 = l2
-        self.bpe = bpe
-        self.max_len = max_len
-        self.single_file = single_file
-        self.keep = keep
-        self.cpu = os.cpu_count() / 2
+    def apply_trainable(self, processor):
+        # train processor on last produced text file
+        processor.train(Path(f"data/temp.txt"))
 
-    def dexml(self):
-        script = Path(f"preprocessing-tools/de-xml.perl")
-        infile = Path(f"data/{self.name}")
-        ofile = Path(f"data/dexmled")
-
-        # execute command
-        command = (
-            f"perl {script} {infile} {self.l1} {self.l2} {ofile}"
+        # rename temp --> step_input
+        os.rename(
+            Path(f"data/temp.txt"), Path(f"data/step_input.txt")
         )
-        os.system(command)
 
-        # return files to be deleted
-        return f"data/dexmled.{self.l1}", f"data/dexmled.{self.l2}"
+        # output is going to be temp.txt again
+        input_name = Path(f"data/step_input.txt")
+        output_name = Path(f"data/temp.txt")
 
-    def clean(self):
-        script = Path(f"preprocessing-tools/clean_corpus.perl")
-        infile = Path(f"data/dexmled")
-        ofile = Path(f"data/clean")
+        with open(input_name, "r", encoding="utf-8") as infile,\
+                open(output_name, "w", encoding="utf-8") as ofile:
+            for i, line in enumerate(infile):
+                line = processor(line.strip())
+                ofile.write(f"{line}\n")
+                print(f"Preprocessing: line {i}", end="\r")
 
-        # execute command
-        command = (
-            f"perl {script} {infile} {self.l1} "
-            f"{self.l2} {ofile} 1 {self.max_len}"
-        )
-        os.system(command)
+        # remove step input
+        os.remove(Path(f"data/step_input.txt"))
 
-        # return files to be deleted
-        return f"data/clean.{self.l1}", f"data/clean.{self.l2}"
+    def run(self):
+        pipe = [
+            self.normalizer,
+            self.tokenizer,
+        ]
+        trainable = [
+            self.truecaser,
+            self.subword_splitter
+        ]
 
-    def normalize(self, language):
-        script = Path(f"preprocessing-tools/normalize-punctuation.perl")
-        infile = Path(f"data/clean.{language}")
-        ofile = Path(f"data/{self.name}.norm.{language}")
+        to_train = list()
 
-        # execute command
-        command = (
-            f"perl {script} -l {language} < {infile} > {ofile}"
-        )
-        os.system(command)
+        # collect trained processors
+        for processor in trainable:
+            if processor.trained:
+                pipe.append(processor)
+            else:
+                to_train.append(processor)
 
-        # return files to be deleted
-        return f"data/{self.name}.norm.{language}"
+        pipe_string = " --> ".join([str(i) for i in pipe])
+        complete = " --> ".join([str(i) for i in pipe + to_train])
+        print(f"Pipe: {complete}\n")
+        t_0 = time.time()
 
-    def tokenize(self, language):
-        script = Path(f"preprocessing-tools/tokenizer.perl")
-        infile = Path(f"data/{self.name}.norm.{language}")
-        ofile = Path(f"data/{self.name}.tok.{language}")
+        print(f"Applying: {pipe_string}")
+        # applied untrainable and trained processors
+        with open(Path(self.filename), "r", encoding="utf-8") as infile,\
+                open(Path(f"data/temp.txt"), "w", encoding="utf-8") as ofile:
+            for i, line in enumerate(infile):
+                line = line.strip()
 
-        # execute command
-        command = (
-            f"perl {script} -l {language} -no-escape -threads {self.cpu} "
-            f"< {infile} > {ofile}"
-        )
-        os.system(command)
+                for processor in pipe:
+                    line = processor(line)
 
-        # return files to be deleted
-        return f"data/{self.name}.tok.{language}"
+                ofile.write(f"{line}\n")
+                print(f"Preprocessing: line {i}", end="\r")
 
-    def train_truecase(self, language):
-        # create folder to store truecase model
-        folder = Path("data/truecasing_models")
-        os.makedirs(folder, exist_ok=True)
+        print(" " * 100, end="\r")
+        t_1 = time.time()
+        ts = int(t_1 - t_0)
+        print(f"Timestamp: {datetime.timedelta(seconds=ts)}\n")
 
-        # if model does not exists, train a new one
-        model = Path(f"{folder}/model.{language}")
-        if not os.path.isfile(model):
-            script = Path(f"preprocessing-tools/train-truecaser.perl")
-            infile = Path(f"data/{self.name}.tok.{language}")
+        # train and apply untrained processors
+        for processor in to_train:
+            print(f"Applying: {processor}")
+            self.apply_trainable(processor)
 
-            # execute command
-            command = (
-                f"perl {script} -corpus {infile} -model {model}"
-            )
-            os.system(command)
+            t_1 = time.time()
+            ts = int(t_1 - t_0)
+            print(" " * 100, end="\r")
+            print(f"Timestamp: {datetime.timedelta(seconds=ts)}\n")
 
-    def true_case(self, language):
-        script = Path(f"preprocessing-tools/truecase.perl")
-        model = Path(f"data/truecasing_models/model.{language}")
-        infile = Path(f"data/{self.name}.tok.{language}")
-        ofile = Path(f"data/{self.name}.true.{language}")
-
-        # execute command
-        command = (
-            f"perl {script} -model {model} < {infile} > {ofile}"
-        )
-        os.system(command)
-
-        # return files to be deleted
-        return f"data/{self.name}.true.{language}"
-
-    def learn_bpe(self, language):
-        # create folder to store truecase model
-        folder = Path("data/subword_models")
-        os.makedirs(folder, exist_ok=True)
-
-        # if model does not exists train a new one
-        model = Path(f"{folder}/model.{self.bpe}.{language}")
-        if not os.path.isfile(model):
-            infile = Path(f"data/{self.name}.true.{language}")
-
-            # execute command
-            command = (
-                f"subword-nmt learn-bpe -s {self.bpe} < {infile} > {model}"
-            )
-            os.system(command)
-
-    def bpe_splitting(self, language):
-        model = Path(f"data/subword_models/model.{self.bpe}.{language}")
-        infile = Path(f"data/{self.name}.true.{language}")
-        ofile = Path(f"data/{self.name}.bpe.{language}")
-
-        # execute command
-        command = (
-            f"subword-nmt apply-bpe -c {model} < {infile} > {ofile}"
-        )
-        os.system(command)
-
-        # return files to be deleted
-        return f"data/{self.name}.bpe.{language}"
-
-    def clean_join(self):
-        to_remove = []
-
-        # clean corpus
-        print("Removing xml tags")
-        l1, l2 = self.dexml()
-        to_remove.append(l1)
-        to_remove.append(l2)
-
-        print("Cleaning corpus")
-        l1, l2 = self.clean()
-        to_remove.append(l1)
-        to_remove.append(l2)
-
-        return to_remove
-
-    def single(self, language):
-        to_remove = []
-        print("Normalizing")
-        to_remove.append(self.normalize(language))
-
-        print("Tokenizing")
-        to_remove.append(self.tokenize(language))
-
-        print("Truecasing")
-        to_remove.append(self.train_truecase(language))
-        to_remove.append(self.true_case(language))
-
-        if self.bpe > 0:
-            print("Applying subword-splitting")
-            to_remove.append(self.learn_bpe(language))
-            to_remove.append(self.bpe_splitting(language))
-
-        last = to_remove.pop()
-
-        # rename last file
-        os.rename(last, f"data/{self.name}_processed.{language}")
-
-        return to_remove
-
-    def multi(self):
-
-        to_remove = self.clean_join()
-
-        languages = [self.l1, self.l2]
-
-        with mp.Pool() as pool:
-            lists = pool.map(self.single, languages)
-
-        for l in lists:
-            to_remove += l
-
-        print("Preprocessing complete")
-
-        if not self.keep:
-            for file in to_remove:
-                if file is not None:
-                    os.remove(file)
+        # rename last output file
+        os.rename(Path(f"data/temp.txt"), Path(f"{self.filename}_processed"))
 
 
 def preprocess(args):
-    config = Parameters.from_config(args.path)
-
-    # MULTI
-    if not args.single:
-        # make sure files exist
-        files = [
-            Path(f"data/{config.dataset.name}.{config.dataset.source}"),
-            Path(f"data/{config.dataset.name}.{config.dataset.target}")
-        ]
-
-        for filename in files:
-            if not os.path.exists(filename):
-                raise FileNotFoundError(f"Missing File: {filename}")
-
-        # process 2 languages in parallel
-        pipeline = PreprocessPipeline(
-            config.dataset.name,
-            config.dataset.source,
-            config.dataset.target,
-            config.dataset.subword_split,
-            config.model.max_length,
-            args.keep
-        )
-        pipeline.multi()
-
-    # SINGLE
-    else:
-        # make sure file exists
-        if not os.path.isfile(args.single):
-            raise FileNotFoundError(f"Missing File: {args.single}")
-        # process one single file
-        name = args.single.split(os.sep)[-1]
-        name = re.match(r"(.*)\.", name).group(1)
-
-        copyfile(args.single, f"data/clean.{config.dataset.source}")
-        pipeline = PreprocessPipeline(
-            name,
-            config.dataset.source,
-            config.dataset.target,
-            config.dataset.subword_split,
-            config.model.max_length,
-            args.keep,
-            single_file=True
-        )
-        to_remove = pipeline.single(config.dataset.source)
-        to_remove.append(f"data/clean.{config.dataset.source}")
-
-        if not args.keep:
-            for file in to_remove:
-                if file is not None:
-                    os.remove(file)
+    pipe = Pipeline(args.file, args.language, args.bpe)
+    pipe.run()
+    print("Preprocessing: complete")

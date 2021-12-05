@@ -16,7 +16,7 @@ class SubwordSplitter:
             "-c",
             self.model
         ]
-    
+
     def __repr__(self):
         return f"SubwordSplitter({self.language}, {self.bpe})"
 
@@ -26,21 +26,18 @@ class SubwordSplitter:
 
     def __call__(self, line):
         if os.path.isfile(self.model):
-            pipe = subprocess.Popen(
-                ["echo", line],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT
+            result = subprocess.run(
+                self.args, input=str.encode(line),
+                capture_output=True
             )
 
-            return subprocess.check_output(
-                self.args,
-                stdin=pipe.stdout
-            ).decode("UTF-8")
+            return result.stdout.decode("UTF-8").strip()
         else:
             raise UntrainedModel("SubwordSplitter not trained")
 
     def train(self, filename):
         if not os.path.isfile(self.model):
+            os.makedirs(Path("data/subword_models"), exist_ok=True)
             print("Training subword model")
             # execute command
             command = (

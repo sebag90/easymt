@@ -15,16 +15,12 @@ class PunctNormalizer:
         return f"PunctNormalizer({self.language})"
 
     def __call__(self, line):
-        pipe = subprocess.Popen(
-            ["echo", line],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT
+        result = subprocess.run(
+            self.args, input=str.encode(line),
+            capture_output=True
         )
 
-        return subprocess.check_output(
-            self.args,
-            stdin=pipe.stdout
-        ).decode("UTF-8")
+        return result.stdout.decode("UTF-8").strip()
 
 
 if __name__ == "__main__":

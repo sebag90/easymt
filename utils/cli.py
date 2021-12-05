@@ -22,16 +22,18 @@ def get_arguments():
         "preprocess", help="preprocess a corpus"
     )
     preprocess.add_argument(
-        "path", metavar="PATH", action="store",
+        "file", metavar="FILE", action="store",
         help="Path to the configuration file"
     )
     preprocess.add_argument(
-        "--single", action="store",
-        help="only preprocess this file"
+        "--language", action="store",
+        help="Language of the file",
+        required=True
     )
     preprocess.add_argument(
-        "--keep", action="store_true",
-        help="do not delete files after each step"
+        "--bpe", action="store",
+        help="Number of BPE splittings",
+        required=True, type=int
     )
 
     # split dataset
