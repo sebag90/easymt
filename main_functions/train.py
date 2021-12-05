@@ -1,3 +1,7 @@
+"""
+train a model from scratch or resume training
+"""
+
 import datetime
 import math
 import os

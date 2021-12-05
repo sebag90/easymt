@@ -1,3 +1,7 @@
+"""
+compute BLEU score using a reference translation
+"""
+
 from distutils.spawn import find_executable
 import os
 from pathlib import Path

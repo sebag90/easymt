@@ -1,3 +1,8 @@
+"""
+split a TSV document containing 2 languages
+into 2 documents containing each a single language
+"""
+
 from pathlib import Path
 import re
 import os

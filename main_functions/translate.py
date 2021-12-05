@@ -1,3 +1,7 @@
+"""
+translate a text file with a pretrained model
+"""
+
 from pathlib import Path
 import os
 

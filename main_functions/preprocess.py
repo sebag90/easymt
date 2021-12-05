@@ -1,3 +1,12 @@
+"""
+The preprocessing step prepares clean data to be used
+for machine translation. The pipeline will:
+    - normalize punctuation
+    - tokenize
+    - truecase
+    - apply subword splitting (optional)
+"""
+
 import os
 from pathlib import Path
 import time

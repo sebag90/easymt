@@ -1,3 +1,11 @@
+"""
+Train dataset will be converted to to bytes.
+Each file contains N batches (already converted to indeces).
+N can be modified. This is useful to reduce memory
+requirements during training since files are loaded
+sequentially.
+"""
+
 import os
 from pathlib import Path
 import pickle

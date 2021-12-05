@@ -1,3 +1,8 @@
+"""
+The normalizing function revert tokenization
+and remove subword splitting if needed
+"""
+
 import os
 from pathlib import Path
 import re
@@ -16,10 +21,14 @@ def normalize(args):
     with open(Path(args.file), "r", encoding="utf-8") as infile, \
             open(ofile, "w", encoding="utf-8") as ofile:
         for i, line in enumerate(infile):
+            # undo subword splitting
             if args.subword is True:
                 line = re.sub(r"@@ ", "", line)
 
+            # detokenize
             to_write = detok(line)
+
+            # write output
             ofile.write(f"{to_write}\n")
 
             print(f"Normalizing: line {i}", end="\r")

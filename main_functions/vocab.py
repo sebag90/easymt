@@ -1,3 +1,9 @@
+"""
+reads a file and creates a vocuabulary file
+(TSV: word count). Words are listed in descending
+order. Minimum frequency can be enforced.
+"""
+
 from utils.lang import Vocab
 from utils.parameters import Parameters
 
