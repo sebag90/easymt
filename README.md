@@ -23,7 +23,7 @@ This step will remove xml tags from the corpus and pass it through the [clean da
 
 ### Preprocess
 
-Preprocess a dataset by:
+Preprocess a data set by:
 * normalizing punctuation
 * tokenizing the text
 * truecasing
@@ -51,7 +51,7 @@ This function will read the entire train data set and chunk it into byte encoded
 Train a sequence to sequence model for machine translation. At the end of training both the encoder and the decoder are saved in a seq2seq-object that can be used for translation.  
 By default the training process uses the concept of teacher forcing with a possibility of 50%. This means that at each step the decoder is either fed the previous prediction or the real target word to predict the next word. This is done to speed up training. To disable this option use the ```--no-teacher``` flag.
 Training can be resumed with the ```--resume``` flag by giving as input the path to a previously saved seq2seq model.
-If the dataset was converted to bytes, use the ```--batched``` option.
+If the data set was converted to bytes, use the ```--batched``` option.
 
 ```python easymt.py train PATH/TO/CONFIG.INI```
 
