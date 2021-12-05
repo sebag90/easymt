@@ -1,33 +1,27 @@
 import os
 from pathlib import Path
 import re
-import shutil
 
 from utils.utils import name_suffix_from_file
+from preprocessing_tools.detokenizer import Detokenizer
 
 
 def normalize(args):
-
     full_name = args.file.split(os.sep)[-1]
     name, suffix = name_suffix_from_file(full_name)
 
-    if args.subword is True:
-        # undo bpe splitting
-        tempfile = Path("data/temp.txt")
-
-        with open(Path(args.file), "r", encoding="utf-8") as infile, \
-                open(tempfile, "w", encoding="utf-8") as ofile:
-            for line in infile:
-                to_write = re.sub(r"@@ ", "", line)
-                ofile.write(to_write)
-
-    else:
-        shutil.copyfile(Path(args.file), "data/temp.txt")
-
-    # detokenize
-    script = Path(f"preprocessing-tools/detokenizer.perl")
-    infile = Path(f"data/temp.txt")
+    detok = Detokenizer(suffix)
     ofile = Path(f"data/{name}.normalized.{suffix}")
-    os.system(
-        f"perl {script} -u -l {suffix} < {infile} > {ofile}"
-    )
+
+    with open(Path(args.file), "r", encoding="utf-8") as infile, \
+            open(ofile, "w", encoding="utf-8") as ofile:
+        for i, line in enumerate(infile):
+            if args.subword is True:
+                line = re.sub(r"@@ ", "", line)
+
+            to_write = detok(line)
+            ofile.write(f"{to_write}\n")
+
+            print(f"Normalizing: line {i}", end="\r")
+
+    print("Normalizing: complete")

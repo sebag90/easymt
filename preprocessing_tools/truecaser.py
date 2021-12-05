@@ -51,4 +51,6 @@ class Truecaser:
 if __name__ == "__main__":
     t = Truecaser("en")
     t.train("../data/train.en")
-    print(t('Right-wing populists triumph in Austria , have total of 29 percent '))
+    print(
+        t('Right-wing populists triumph in Austria , have total of 29 percent')
+    )
