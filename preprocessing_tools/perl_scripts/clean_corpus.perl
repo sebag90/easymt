@@ -34,74 +34,39 @@ GetOptions(
   "max-word-length|mwl=s" => \$max_word_length
 ) or exit(1);
 
-if (scalar(@ARGV) < 6 || $help) {
+if (scalar(@ARGV) < 2 || $help) {
     print "syntax: clean-corpus-n.perl [-ratio n] corpus l1 l2 clean-corpus min max [lines retained file]\n";
     exit;
 }
 
-my $corpus = $ARGV[0];
-my $l1 = $ARGV[1];
-my $l2 = $ARGV[2];
-my $out = $ARGV[3];
-my $min = $ARGV[4];
-my $max = $ARGV[5];
+my $min = $ARGV[0];
+my $max = $ARGV[1];
+
 
 my $linesRetainedFile = "";
-if (scalar(@ARGV) > 6) {
+if (scalar(@ARGV) > 2) {
 	$linesRetainedFile = $ARGV[6];
 	open(LINES_RETAINED,">$linesRetainedFile") or die "Can't write $linesRetainedFile";
 }
 
-print STDERR "clean-corpus.perl: processing $corpus.$l1 & .$l2 to $out, cutoff $min-$max, ratio $ratio\n";
-
-my $opn = undef;
-my $l1input = "$corpus.$l1";
-if (-e $l1input) {
-  $opn = $l1input;
-} elsif (-e $l1input.".gz") {
-  $opn = "gunzip -c $l1input.gz |";
-} else {
-    die "Error: $l1input does not exist";
-}
-open(F,$opn) or die "Can't open '$opn'";
-$opn = undef;
-my $l2input = "$corpus.$l2";
-if (-e $l2input) {
-  $opn = $l2input;
-} elsif (-e $l2input.".gz") {
-  $opn = "gunzip -c $l2input.gz |";
-} else  {
- die "Error: $l2input does not exist";
-}
-
-open(E,$opn) or die "Can't open '$opn'";
-
-open(FO,">$out.$l1") or die "Can't write $out.$l1";
-open(EO,">$out.$l2") or die "Can't write $out.$l2";
-
-# necessary for proper lowercasing
-my $binmode;
-if ($enc eq "utf8") {
-  $binmode = ":utf8";
-} else {
-  $binmode = ":encoding($enc)";
-}
-binmode(F, $binmode);
-binmode(E, $binmode);
-binmode(FO, $binmode);
-binmode(EO, $binmode);
+#print STDERR "clean-corpus.perl: processing $corpus.$l1 & .$l2 to $out, cutoff $min-$max, ratio $ratio\n";
+binmode(STDIN, ":utf8");
+binmode(STDOUT, ":utf8");
 
 my $innr = 0;
 my $outnr = 0;
 my $factored_flag;
-while(my $f = <F>) {
+while(<STDIN>) {
+  chomp;
+  my @spl = split('\t', $_);
+  my $f = (@spl)[0];
+  my $e = (@spl)[1];
+ 
   $innr++;
   print STDERR "." if $innr % 10000 == 0;
   print STDERR "($innr)" if $innr % 100000 == 0;
-  my $e = <E>;
-  die "$corpus.$l2 is too short!" if !defined $e;
-  chomp($e);
-  chomp($f);
+
+
   if ($innr == 1) {
     $factored_flag = ($e =~ /\|/ || $f =~ /\|/);
   }
@@ -137,29 +102,23 @@ while(my $f = <F>) {
   next if $f =~ /[^\s\|]{$max_word_length_plus_one}/;
 
   # An extra check: none of the factors can be blank!
-  die "There is a blank factor in $corpus.$l1 on line $innr: $f"
+  die "There is a blank factor in : $f"
     if $f =~ /[ \|]\|/;
-  die "There is a blank factor in $corpus.$l2 on line $innr: $e"
+  die "There is a blank factor in : $e"
     if $e =~ /[ \|]\|/;
 
   $outnr++;
-  print FO $f."\n";
-  print EO $e."\n";
+  print $f."\t".$e."\n";
+ # print EO $e."\n";
 
   if ($linesRetainedFile ne "") {
 	print LINES_RETAINED $innr."\n";
   }
 }
 
-if ($linesRetainedFile ne "") {
-  close LINES_RETAINED;
-}
 
-print STDERR "\n";
-my $e = <E>;
-die "$corpus.$l2 is too long!" if defined $e;
 
-print STDERR "Input sentences: $innr  Output sentences:  $outnr\n";
+#print STDERR "Input sentences: $innr  Output sentences:  $outnr\n";
 
 sub word_count {
   my ($line) = @_;

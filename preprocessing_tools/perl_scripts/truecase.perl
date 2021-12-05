@@ -41,7 +41,7 @@ my %SENTENCE_END = ("."=>1,":"=>1,"?"=>1,"!"=>1);
 my %DELAYED_SENTENCE_START = ("("=>1,"["=>1,"\""=>1,"'"=>1,"&apos;"=>1,"&quot;"=>1,"&#91;"=>1,"&#93;"=>1);
 
 while(<STDIN>) {
-  chop;
+  chomp;
   my ($WORD,$MARKUP) = split_xml($_);
   my $sentence_start = 1;
   for(my $i=0;$i<=$#$WORD;$i++) {

@@ -9,6 +9,7 @@ from main_functions.evaluate import evaluate
 from main_functions.convert_to_byte import convert_to_byte
 from main_functions.split_dataset import split_dataset
 from main_functions.normalize import normalize
+from main_functions.clean import clean
 
 
 def main():
@@ -18,14 +19,15 @@ def main():
 
         functions = {
             "split": split_file,
-            "train": train,
+            "clean": clean,
             "preprocess": preprocess,
-            "build-vocab": build_vocab,
-            "translate": translate,
-            "evaluate": evaluate,
-            "convert-to-byte": convert_to_byte,
             "split-dataset": split_dataset,
-            "normalize": normalize
+            "build-vocab": build_vocab,
+            "convert-to-byte": convert_to_byte,
+            "train": train,
+            "translate": translate,
+            "normalize": normalize,
+            "evaluate": evaluate
         }
 
         if subparser not in functions.keys():

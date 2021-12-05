@@ -28,9 +28,9 @@ def evaluate(args):
         )
 
     # calculate BLEU with perl script
+    script = Path("preprocessing_tools/perl_scripts/multi-bleu-detok.perl")
     os.system(
-        "perl preprocessing-tools/multi-bleu-detok.perl "
-        f" {args.reference} < {args.translation}"
+        f"perl {script} {args.reference} < {args.translation}"
     )
 
     # if sacrebleu is installed, run it on files

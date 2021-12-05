@@ -17,6 +17,27 @@ def get_arguments():
         )
     )
 
+    # clean 2 files
+    clean = subparsers.add_parser(
+        "clean", help="clean 2 files"
+    )
+    clean.add_argument(
+        "file1", metavar="FILE1",
+        action="store",
+        help="file 1"
+    )
+    clean.add_argument(
+        "file2", metavar="FILE2",
+        action="store",
+        help="file 2"
+    )
+    clean.add_argument(
+        "--len", action="store",
+        help="maximum file length (default: %(default)s)",
+        required=True, default=50,
+        type=int
+    )
+
     # preprocess
     preprocess = subparsers.add_parser(
         "preprocess", help="preprocess a corpus"
