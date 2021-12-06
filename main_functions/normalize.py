@@ -23,7 +23,7 @@ def normalize(args):
         for i, line in enumerate(infile):
             # undo subword splitting
             if args.subword is True:
-                line = re.sub(r"@@ ", "", line)
+                line = re.sub(r"@@( |$)", "", line)
 
             # detokenize
             to_write = detok(line)
