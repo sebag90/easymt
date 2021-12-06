@@ -133,8 +133,7 @@ class Trainer:
                 self.tgt_language,
                 self.params.model.max_length,
                 self.params.dataset.subword_split,
-                epoch_trained=0,
-                history=None
+                epoch_trained=0
             )
 
             # initialize parameters uniformly
@@ -220,9 +219,6 @@ class Trainer:
             # shuffle data
             self.train_data.create_order()
 
-            # add history element
-            self.model.history[self.model.epoch_trained + 1] = list()
-
             # start training loop over batches
             for i, batch in enumerate(self.train_data):
                 self.optimizer.zero_grad()
@@ -265,10 +261,6 @@ class Trainer:
                     )
 
                     print(to_print, flush=True)
-
-                    # add loss to history
-                    idx = self.model.epoch_trained + 1
-                    self.model.history[idx].append(print_loss)
 
                     # reset loss
                     loss_memory.print_reset()

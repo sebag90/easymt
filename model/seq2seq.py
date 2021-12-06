@@ -29,9 +29,6 @@ class seq2seq(nn.Module):
         self.max_len = max_len
         self.bpe = bpe
         self.epoch_trained = epoch_trained
-        if history is None:
-            history = dict()
-        self.history = history
 
     def __repr__(self):
         obj_str = (
