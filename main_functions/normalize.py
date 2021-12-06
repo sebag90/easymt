@@ -18,12 +18,14 @@ def normalize(args):
     detok = Detokenizer(suffix)
     ofile = Path(f"data/{name}.normalized.{suffix}")
 
+    subword_regex = re.compile(r"@@( |$)")
+
     with open(Path(args.file), "r", encoding="utf-8") as infile, \
             open(ofile, "w", encoding="utf-8") as ofile:
         for i, line in enumerate(infile):
             # undo subword splitting
             if args.subword is True:
-                line = re.sub(r"@@( |$)", "", line)
+                line = re.sub(subword_regex, "", line)
 
             # detokenize
             to_write = detok(line)
