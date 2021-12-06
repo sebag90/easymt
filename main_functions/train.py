@@ -169,7 +169,8 @@ class Trainer:
         self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
             self.optimizer,
             mode="min",
-            factor=0.5
+            factor=self.params.training.lr_reducing_factor,
+            patience=self.params.training.patience
         )
 
     def save_model(self):
