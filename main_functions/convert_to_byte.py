@@ -22,8 +22,8 @@ def convert_to_byte(args):
     batches_per_file = args.n
 
     # create language objects
-    src_language = Language(config.dataset.source)
-    tgt_language = Language(config.dataset.target)
+    src_language = Language(config.model.source)
+    tgt_language = Language(config.model.target)
 
     # read vocabulary from file
     src_language.read_vocabulary(
