@@ -71,8 +71,8 @@ class Trainer:
         """
         if self.resume is None:
             # create language objects
-            self.src_language = Language(self.params.dataset.source)
-            self.tgt_language = Language(self.params.dataset.target)
+            self.src_language = Language(self.params.model.source)
+            self.tgt_language = Language(self.params.model.target)
             # read vocabulary from file
             self.src_language.read_vocabulary(
                 Path(f"data/vocab.{self.src_language.name}")
@@ -132,7 +132,6 @@ class Trainer:
                 self.src_language,
                 self.tgt_language,
                 self.params.model.max_length,
-                self.params.dataset.subword_split,
                 epoch_trained=0
             )
 

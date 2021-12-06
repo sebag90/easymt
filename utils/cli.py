@@ -212,7 +212,6 @@ def get_arguments():
         help="path to translated document"
     )
 
-
     args = parser.parse_args()
     if args.subparser not in subparsers.choices.keys():
         parser.print_help()

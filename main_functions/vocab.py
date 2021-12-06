@@ -7,8 +7,7 @@ order. Minimum frequency can be enforced.
 from pathlib import Path
 
 from utils.lang import Vocab
-from utils.errors import FileError
-from utils.utils import name_suffix_from_file, count_lines
+from utils.utils import name_suffix_from_file
 
 
 def build_vocab(args):

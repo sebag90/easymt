@@ -18,16 +18,13 @@ class seq2seq(nn.Module):
             src_lang,
             tgt_lang,
             max_len,
-            bpe,
-            epoch_trained=0,
-            history=None):
+            epoch_trained=0):
         super().__init__()
         self.encoder = encoder
         self.decoder = decoder
         self.src_lang = src_lang
         self.tgt_lang = tgt_lang
         self.max_len = max_len
-        self.bpe = bpe
         self.epoch_trained = epoch_trained
 
     def __repr__(self):
