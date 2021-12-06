@@ -14,7 +14,7 @@ def translate(args):
     inputfile = Path(args.file)
     model = seq2seq.load(Path(args.model))
     beam_size = int(args.beam)
-    breakpoint()
+
     # pick device
     device = torch.device(
         "cuda" if torch.cuda.is_available() else "cpu"
