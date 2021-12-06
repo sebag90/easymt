@@ -91,4 +91,5 @@ def convert_to_byte(args):
     with open(to_write, "wb") as ofile:
         pickle.dump(batches, ofile)
 
+    print(" " * 100, end="\r")
     print("Converting to byte: complete")
