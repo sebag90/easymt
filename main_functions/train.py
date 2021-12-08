@@ -180,11 +180,11 @@ class Trainer:
         # move model to cpu
         self.model.to("cpu")
 
-        print("saving model...", flush=True)
-
         # save model
         os.makedirs("pretrained_models", exist_ok=True)
         self.model.save("pretrained_models/")
+
+        print("Model saved", flush=True)
 
     @torch.no_grad()
     def evaluate(self):
