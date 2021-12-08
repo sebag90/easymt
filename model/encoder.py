@@ -8,7 +8,7 @@ class Encoder(nn.Module):
             word_vec_size,
             hidden_size,
             layers,
-            dropout=0.1,
+            rnn_dropout=0.3,
             bidirectional=True):
         super().__init__()
         # properties
@@ -26,7 +26,7 @@ class Encoder(nn.Module):
             word_vec_size,
             hidden_size,
             num_layers=layers,
-            dropout=(0 if layers == 1 else dropout),
+            dropout=rnn_dropout,
             bidirectional=bidirectional
         )
 

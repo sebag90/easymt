@@ -12,7 +12,8 @@ class Decoder(nn.Module):
             hidden_size,
             output_size,
             layers,
-            dropout=0.1,
+            rnn_dropout=0.3,
+            attn_dropout=0.1,
             input_feed=True):
         super().__init__()
 
@@ -21,7 +22,6 @@ class Decoder(nn.Module):
         self.hidden_size = hidden_size
         self.output_size = output_size
         self.layers = layers
-        self.dropout_p = dropout
         self.input_feed = input_feed
 
         if input_feed:
@@ -39,9 +39,9 @@ class Decoder(nn.Module):
             rnn_input_size,
             hidden_size,
             num_layers=layers,
-            dropout=(0 if layers == 1 else dropout)
+            dropout=rnn_dropout
         )
-        self.dropout = nn.Dropout(dropout)
+        self.dropout = nn.Dropout(attn_dropout)
         self.out = nn.Linear(hidden_size, output_size)
 
         # Choose attention model

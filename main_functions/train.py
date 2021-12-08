@@ -113,7 +113,7 @@ class Trainer:
                 self.params.model.word_vec_size,
                 self.params.model.hidden_size,
                 self.params.model.layers,
-                self.params.model.dropout,
+                self.params.model.rnn_dropout,
                 self.params.model.bidirectional
             )
             decoder = Decoder(
@@ -122,7 +122,8 @@ class Trainer:
                 self.params.model.hidden_size,
                 self.tgt_language.n_words,
                 self.params.model.layers,
-                self.params.model.dropout,
+                self.params.model.rnn_dropout,
+                self.params.model.attn_dropout,
                 self.params.model.input_feed
             )
 
