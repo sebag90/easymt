@@ -198,7 +198,7 @@ class Trainer:
             loss = self.model.train_batch(
                 batch,
                 self.device,
-                0,
+                1,
                 self.criterion
             )
 
