@@ -28,9 +28,16 @@ class seq2seq(nn.Module):
         self.epoch_trained = epoch_trained
 
     def __repr__(self):
+        # count trainable parameters
+        parameters = sum(
+            p.numel() for p in self.parameters() if p.requires_grad
+        )
+
+        # create print string
         obj_str = (
-            f"Seq2Seq: {self.src_lang.name} --> {self.tgt_lang.name} "
-            f"[{self.epoch_trained} epoch(s)]\n"
+            f"Seq2Seq({self.src_lang.name} > {self.tgt_lang.name}, "
+            f"epochs: {self.epoch_trained}, "
+            f"parameters: {parameters:,})\n"
             f"{self.encoder}\n"
             f"{self.decoder}"
         )
