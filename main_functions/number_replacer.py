@@ -1,6 +1,8 @@
 from pathlib import Path
 import re
 
+from utils.utils import name_suffix_from_file
+
 
 def replace_numbers(args):
     reference = Path(args.reference)
@@ -9,7 +11,8 @@ def replace_numbers(args):
     # compile overly complicated number regex
     number = re.compile(r"\b\d[\d,'.]*\b")
 
-    ofile = open(Path("data/translation.numbered"), "w")
+    name, suffix = name_suffix_from_file(args.translation)
+    ofile = open(Path(f"{name}.numbered.{suffix}"), "w")
 
     with open(reference, "r", encoding="utf-8") as r_file, \
             open(translation, "r", encoding="utf-8") as t_file:
