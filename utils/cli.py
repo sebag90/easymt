@@ -44,9 +44,12 @@ def get_arguments():
     )
     preprocess.add_argument(
         "file", metavar="FILE", action="store",
-        help="path to the configuration file"
+        help="path to the text file"
     )
-    preprocess.add_argument(
+    pre_required = preprocess.add_argument_group(
+        "required named arguments"
+    )
+    pre_required.add_argument(
         "--language", metavar="LANG",
         action="store",
         help="language of the file",
@@ -55,7 +58,7 @@ def get_arguments():
     preprocess.add_argument(
         "--bpe", action="store",
         help="number of BPE splittings",
-        required=True, type=int
+        type=int
     )
 
     # split dataset

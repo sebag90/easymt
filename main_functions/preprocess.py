@@ -17,59 +17,79 @@ from preprocessing_tools.truecaser import Truecaser
 from preprocessing_tools.punct_normalizer import PunctNormalizer
 from preprocessing_tools.subword_splitter import SubwordSplitter
 
+from utils.utils import name_suffix_from_file
+
+
+class LowerCaser:
+    trained = False
+
+    def __repr__(self):
+        return "Lowercaser"
+
+    def __call__(self, line):
+        return line.lower().strip()
+
+    def train(self, path):
+        pass
+
 
 class Pipeline:
     def __init__(self, filename, language, bpe):
-        self.tokenizer = Tokenizer(language)
-        self.truecaser = Truecaser(language)
-        self.normalizer = PunctNormalizer(language)
-        self.subword_splitter = SubwordSplitter(language, bpe)
         self.filename = filename
+
+        self.pipe = [
+            PunctNormalizer(language),
+            Tokenizer(language)
+        ]
+
+        self.trainable = [
+            Truecaser(language),
+            LowerCaser()  # must be applied after training Truecaser
+        ]
+
+        # add bpe splitter to trainable processors
+        if bpe is not None:
+            self.trainable.append(
+                SubwordSplitter(language, bpe)
+            )
 
     def apply_trainable(self, processor):
         # train processor on last produced text file
         processor.train(Path(f"data/temp.txt"))
 
-        # rename temp --> step_input
-        os.rename(
-            Path(f"data/temp.txt"), Path(f"data/step_input.txt")
-        )
+        # do not apply truecaser
+        if not isinstance(processor, Truecaser):
+            # rename temp --> step_input
+            os.rename(
+                Path(f"data/temp.txt"), Path(f"data/step_input.txt")
+            )
 
-        # output is going to be temp.txt again
-        input_name = Path(f"data/step_input.txt")
-        output_name = Path(f"data/temp.txt")
+            # output is going to be temp.txt again
+            input_name = Path(f"data/step_input.txt")
+            output_name = Path(f"data/temp.txt")
 
-        with open(input_name, "r", encoding="utf-8") as infile,\
-                open(output_name, "w", encoding="utf-8") as ofile:
-            for i, line in enumerate(infile):
-                line = processor(line)
-                ofile.write(f"{line}\n")
-                print(f"Preprocessing: line {i}", end="\r")
+            with open(input_name, "r", encoding="utf-8") as infile,\
+                    open(output_name, "w", encoding="utf-8") as ofile:
+                for i, line in enumerate(infile):
+                    line = processor(line)
+                    ofile.write(f"{line}\n")
+                    print(f"Preprocessing: line {i}", end="\r")
 
-        # remove step input
-        os.remove(Path(f"data/step_input.txt"))
+            # remove step input
+            os.remove(Path(f"data/step_input.txt"))
 
     def run(self):
-        pipe = [
-            self.normalizer,
-            self.tokenizer,
-        ]
-        trainable = [
-            self.truecaser,
-            self.subword_splitter
-        ]
-
         to_train = list()
 
         # collect trained processors
-        for processor in trainable:
+        for processor in self.trainable:
             if processor.trained:
-                pipe.append(processor)
+                self.pipe.append(processor)
             else:
                 to_train.append(processor)
 
-        pipe_string = " --> ".join([str(i) for i in pipe])
-        complete = " --> ".join([str(i) for i in pipe + to_train])
+        pipe_string = " > ".join([str(i) for i in self.pipe])
+        complete = " > ".join([str(i) for i in self.pipe + to_train])
         print(f"Pipe: {complete}\n")
         t_0 = time.time()
 
@@ -79,8 +99,9 @@ class Pipeline:
                 open(Path(f"data/temp.txt"), "w", encoding="utf-8") as ofile:
             for i, line in enumerate(infile):
 
-                for processor in pipe:
-                    line = processor(line)
+                for processor in self.pipe:
+                    if not isinstance(processor, Truecaser):
+                        line = processor(line)
 
                 ofile.write(f"{line}\n")
                 print(f"Preprocessing: line {i}", end="\r")
@@ -100,8 +121,9 @@ class Pipeline:
             print(" " * 100, end="\r")
             print(f"Timestamp: {datetime.timedelta(seconds=ts)}\n")
 
+        name, suffix = name_suffix_from_file(self.filename)
         # rename last output file
-        os.rename(Path(f"data/temp.txt"), Path(f"{self.filename}_processed"))
+        os.rename(Path(f"data/temp.txt"), Path(f"{name}_processed.{suffix}"))
 
 
 def preprocess(args):

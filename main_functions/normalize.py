@@ -9,12 +9,14 @@ import re
 
 from utils.utils import name_suffix_from_file
 from preprocessing_tools.detokenizer import Detokenizer
+from preprocessing_tools.truecaser import Truecaser
 
 
 def normalize(args):
     full_name = args.file.split(os.sep)[-1]
     name, suffix = name_suffix_from_file(full_name)
 
+    truecaser = Truecaser(suffix)
     detok = Detokenizer(suffix)
     ofile = Path(f"data/{name}.normalized.{suffix}")
 
@@ -26,6 +28,9 @@ def normalize(args):
             # undo subword splitting
             if args.subword is True:
                 line = re.sub(subword_regex, "", line)
+
+            # truecase
+            line = truecaser(line)
 
             # detokenize
             to_write = detok(line)
