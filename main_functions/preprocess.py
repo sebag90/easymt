@@ -123,7 +123,7 @@ class Pipeline:
 
         name, suffix = name_suffix_from_file(self.filename)
         # rename last output file
-        os.rename(Path(f"data/temp.txt"), Path(f"{name}_processed.{suffix}"))
+        os.rename(Path(f"data/temp.txt"), Path(f"{name}.processed.{suffix}"))
 
 
 def preprocess(args):
