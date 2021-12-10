@@ -39,5 +39,5 @@ def build_vocab(args):
     voc1.save_voc()
     voc2.save_voc()
 
-    print(" "*100, end="\r")
+    print(" "*50, end="\r")
     print("Building vocabulary: complete")

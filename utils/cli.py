@@ -60,6 +60,10 @@ def get_arguments():
         help="number of BPE splittings",
         type=int
     )
+    preprocess.add_argument(
+        "--remove-nums", action="store_true",
+        help="convert all numbers to <num>"
+    )
 
     # split dataset
     split_dataset = subparsers.add_parser(
@@ -211,6 +215,22 @@ def get_arguments():
     )
 
     evaluate.add_argument(
+        "translation", action="store",
+        help="path to translated document"
+    )
+
+    # replace numbers
+    replace_nums = subparsers.add_parser(
+        "replace-nums",
+        help="replace <num> tokens in tokenized file"
+    )
+
+    replace_nums.add_argument(
+        "reference", action="store",
+        help="path to reference translation"
+    )
+
+    replace_nums.add_argument(
         "translation", action="store",
         help="path to translated document"
     )

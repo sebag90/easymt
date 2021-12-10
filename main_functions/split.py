@@ -36,11 +36,12 @@ def split_file(args):
             if i % 5000 == 0:
                 line_count += 5000
                 print(
-                    f"Splitting document: {line_count} lines processed",
+                    f"Splitting document: line {line_count}",
                     end="\r"
                 )
 
         l1file.close()
         l2file.close()
 
+    print(" " * 50)
     print("Splitting document: complete")

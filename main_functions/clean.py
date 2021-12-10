@@ -54,5 +54,5 @@ def clean(args):
     ofile1.close()
     ofile2.close()
 
-    print(" "*100, end="\r")
+    print(" "*50, end="\r")
     print("Cleaning: complete")

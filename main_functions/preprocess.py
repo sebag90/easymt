@@ -7,10 +7,11 @@ for machine translation. The pipeline will:
     - apply subword splitting (optional)
 """
 
+import datetime
 import os
 from pathlib import Path
+import re
 import time
-import datetime
 
 from preprocessing_tools.tokenizer import Tokenizer
 from preprocessing_tools.truecaser import Truecaser
@@ -33,14 +34,31 @@ class LowerCaser:
         pass
 
 
+class NumNormalizer:
+    num_token = "<num>"
+    number = re.compile(r"\b\d[\d,'.]*\b")
+
+    def __call__(self, line):
+        clean = re.sub(self.number, self.num_token, line)
+        return clean.strip()
+
+    def __repr__(self):
+        return "NumNormalizer"
+
+
 class Pipeline:
-    def __init__(self, filename, language, bpe):
+    def __init__(self, filename, language, bpe, remove_nums):
         self.filename = filename
 
         self.pipe = [
             PunctNormalizer(language),
             Tokenizer(language)
         ]
+
+        if remove_nums is not None:
+            self.pipe.append(
+                NumNormalizer()
+            )
 
         self.trainable = [
             Truecaser(language),
@@ -106,7 +124,7 @@ class Pipeline:
                 ofile.write(f"{line}\n")
                 print(f"Preprocessing: line {i}", end="\r")
 
-        print(" " * 100, end="\r")
+        print(" " * 50, end="\r")
         t_1 = time.time()
         ts = int(t_1 - t_0)
         print(f"Timestamp: {datetime.timedelta(seconds=ts)}\n")
@@ -118,7 +136,7 @@ class Pipeline:
 
             t_1 = time.time()
             ts = int(t_1 - t_0)
-            print(" " * 100, end="\r")
+            print(" " * 50, end="\r")
             print(f"Timestamp: {datetime.timedelta(seconds=ts)}\n")
 
         name, suffix = name_suffix_from_file(self.filename)
@@ -127,6 +145,6 @@ class Pipeline:
 
 
 def preprocess(args):
-    pipe = Pipeline(args.file, args.language, args.bpe)
+    pipe = Pipeline(args.file, args.language, args.bpe, args.remove_nums)
     pipe.run()
     print("Preprocessing: complete")

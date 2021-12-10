@@ -10,6 +10,7 @@ from main_functions.convert_to_byte import convert_to_byte
 from main_functions.split_dataset import split_dataset
 from main_functions.normalize import normalize
 from main_functions.clean import clean
+from main_functions.number_replacer import replace_numbers
 
 
 def main():
@@ -27,7 +28,8 @@ def main():
             "train": train,
             "translate": translate,
             "normalize": normalize,
-            "evaluate": evaluate
+            "evaluate": evaluate,
+            "replace-nums": replace_numbers
         }
 
         if subparser not in functions.keys():

@@ -62,5 +62,5 @@ def translate(args):
             else:
                 print(f"Translating: line {progress + 1}", end="\r")
 
-    print(" " * 100, end="\r")
+    print(" " * 50, end="\r")
     print("Translating: complete")
