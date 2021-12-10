@@ -34,21 +34,23 @@ class LowerCaser:
         pass
 
 
-class NumNormalizer:
+class NumReplacer:
     num_token = "<num>"
-    number = re.compile(r"\b\d[\d,'.]*\b")
+    number = re.compile(r"(?<=\s)\d[\d,'.]*\b")
 
     def __call__(self, line):
         clean = re.sub(self.number, self.num_token, line)
         return clean.strip()
 
     def __repr__(self):
-        return "NumNormalizer"
+        return "NumReplacer"
 
 
 class Pipeline:
     def __init__(self, filename, language, bpe, remove_nums):
         self.filename = filename
+        self.temp_file = Path(f"data/temp.{language}")
+        self.language = language
 
         self.pipe = [
             PunctNormalizer(language),
@@ -57,7 +59,7 @@ class Pipeline:
 
         if remove_nums is not None:
             self.pipe.append(
-                NumNormalizer()
+                NumReplacer()
             )
 
         self.trainable = [
@@ -73,18 +75,18 @@ class Pipeline:
 
     def apply_trainable(self, processor):
         # train processor on last produced text file
-        processor.train(Path(f"data/temp.txt"))
+        processor.train(self.temp_file)
 
         # do not apply truecaser
         if not isinstance(processor, Truecaser):
             # rename temp --> step_input
             os.rename(
-                Path(f"data/temp.txt"), Path(f"data/step_input.txt")
+                self.temp_file, Path(f"data/step_input.{self.language}")
             )
 
             # output is going to be temp.txt again
-            input_name = Path(f"data/step_input.txt")
-            output_name = Path(f"data/temp.txt")
+            input_name = Path(f"data/step_input.{self.language}")
+            output_name = self.temp_file
 
             with open(input_name, "r", encoding="utf-8") as infile,\
                     open(output_name, "w", encoding="utf-8") as ofile:
@@ -94,7 +96,7 @@ class Pipeline:
                     print(f"Preprocessing: line {i}", end="\r")
 
             # remove step input
-            os.remove(Path(f"data/step_input.txt"))
+            os.remove(Path(f"data/step_input.{self.language}"))
 
     def run(self):
         to_train = list()
@@ -114,7 +116,7 @@ class Pipeline:
         print(f"Applying: {pipe_string}")
         # applied untrainable and trained processors
         with open(Path(self.filename), "r", encoding="utf-8") as infile,\
-                open(Path(f"data/temp.txt"), "w", encoding="utf-8") as ofile:
+                open(self.temp_file, "w", encoding="utf-8") as ofile:
             for i, line in enumerate(infile):
 
                 for processor in self.pipe:
@@ -141,7 +143,7 @@ class Pipeline:
 
         name, suffix = name_suffix_from_file(self.filename)
         # rename last output file
-        os.rename(Path(f"data/temp.txt"), Path(f"{name}.processed.{suffix}"))
+        os.rename(self.temp_file, Path(f"{name}.processed.{suffix}"))
 
 
 def preprocess(args):

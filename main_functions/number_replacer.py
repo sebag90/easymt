@@ -9,7 +9,7 @@ def replace_numbers(args):
     translation = Path(args.translation)
 
     # compile overly complicated number regex
-    number = re.compile(r"\b\d[\d,'.]*\b")
+    number = re.compile(r"(?<=\s)\d[\d,'.]*\b")
 
     name, suffix = name_suffix_from_file(args.translation)
     ofile = open(Path(f"{name}.numbered.{suffix}"), "w")
@@ -29,7 +29,11 @@ def replace_numbers(args):
                     i = 0
                     for token in line_t.split():
                         if "<num>" in token:
-                            sen.append(original_numbers[i])
+                            # replace <num> with real number
+                            numbered = token.replace(
+                                "<num>", original_numbers[i]
+                            )
+                            sen.append(numbered)
                             i += 1
                         else:
                             sen.append(token)
