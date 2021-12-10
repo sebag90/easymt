@@ -28,23 +28,15 @@ class Memory:
     """
     def __init__(self):
         self._print_loss = 0
-        self._epoch_loss = 0
-        self._epoch_counter = 0
         self._print_counter = 0
 
     @property
     def print_loss(self):
         return self._print_loss / self._print_counter
 
-    @property
-    def epoch_loss(self):
-        return self._epoch_loss / self._epoch_counter
-
     def add(self, loss):
         self._print_loss += loss
-        self._epoch_loss += loss
         self._print_counter += 1
-        self._epoch_counter += 1
 
     def print_reset(self):
         self._print_loss = 0
@@ -132,8 +124,7 @@ class Trainer:
                 decoder,
                 self.src_language,
                 self.tgt_language,
-                self.params.model.max_length,
-                epoch_trained=0
+                self.params.model.max_length
             )
 
             # initialize parameters uniformly
@@ -213,7 +204,8 @@ class Trainer:
         main function of the train loop
         """
         t_init = time.time()
-        for epoch in range(self.params.training.epochs):
+        training = True
+        while training:
             # initialize variables for monitoring
             loss_memory = Memory()
 
@@ -221,7 +213,7 @@ class Trainer:
             self.train_data.create_order()
 
             # start training loop over batches
-            for i, batch in enumerate(self.train_data):
+            for batch in self.train_data:
                 self.optimizer.zero_grad()
 
                 # process batch
@@ -242,10 +234,10 @@ class Trainer:
                 # optimizer step
                 self.optimizer.step()
                 self.steps += 1
+                self.model.steps += 1
 
-                # print every x batches
-                if (i % self.params.training.print_every == 0
-                        and i != 0):
+                # print every x steps
+                if self.steps % self.params.training.print_every == 0:
                     t_1 = time.time()
                     ts = int(t_1 - t_init)
                     print_loss = loss_memory.print_loss
@@ -253,8 +245,7 @@ class Trainer:
                     lr = self.optimizer.param_groups[0]['lr']
                     print_time = datetime.timedelta(seconds=ts)
                     to_print = (
-                        f"Epoch: {epoch + 1}/{self.params.training.epochs} "
-                        f"[{i}/{len(self.train_data)}] | "
+                        f"Step: {self.steps}/{self.params.training.steps} | "
                         f"lr: {lr} | "
                         f"Loss: {round((print_loss), 5):.5f} | "
                         f"ppl: {round(ppl, 5):.5f} | "
@@ -277,22 +268,17 @@ class Trainer:
                     )
                     print("-"*len(to_print), flush=True)
 
-            # calculate epoch loss
-            print("-"*len(to_print), flush=True)
-            epoch_loss = round(
-                loss_memory.epoch_loss, 5
-            )
-
-            print(f"Epoch loss:\t{epoch_loss}", flush=True)
-            self.model.epoch_trained += 1
-            if (self.params.training.epochs != 1 and
-                    epoch + 1 != self.params.training.epochs):
+                # save model
                 if self.params.training.save_every != 0:
-                    if epoch % (self.params.training.save_every - 1) == 0:
+                    if self.steps % self.params.training.save_every == 0:
                         # important! move back to GPU after saving
                         self.save_model()
                         self.model.to(self.device)
-            print("-"*len(to_print), flush=True)
+
+                # check if end of training
+                if self.steps == self.params.training.steps:
+                    training = False
+                    break
 
         # calculate and print total time for training
         t_end = time.time()

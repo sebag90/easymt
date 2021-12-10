@@ -17,15 +17,14 @@ class seq2seq(nn.Module):
             decoder,
             src_lang,
             tgt_lang,
-            max_len,
-            epoch_trained=0):
+            max_len):
         super().__init__()
         self.encoder = encoder
         self.decoder = decoder
         self.src_lang = src_lang
         self.tgt_lang = tgt_lang
         self.max_len = max_len
-        self.epoch_trained = epoch_trained
+        self.steps = 0
 
     def __repr__(self):
         # count trainable parameters
@@ -36,7 +35,7 @@ class seq2seq(nn.Module):
         # create print string
         obj_str = (
             f"Seq2Seq({self.src_lang.name} > {self.tgt_lang.name}, "
-            f"epochs: {self.epoch_trained}, "
+            f"steps: {self.steps:,}, "
             f"parameters: {parameters:,})\n"
             f"{self.encoder}\n"
             f"{self.decoder}"
@@ -49,8 +48,8 @@ class seq2seq(nn.Module):
         """
         l1 = self.src_lang.name
         l2 = self.tgt_lang.name
-        ep = self.epoch_trained
-        path = Path(f"{outputpath}/{l1}-{l2}-ep{ep}.pt")
+        st = self.steps
+        path = Path(f"{outputpath}/{l1}-{l2}_{st}.pt")
 
         with open(path, "wb") as ofile:
             pickle.dump(self, ofile)

@@ -22,7 +22,7 @@ from utils.utils import name_suffix_from_file
 
 
 class LowerCaser:
-    def __init__(self, trained=False)
+    def __init__(self, trained=False):
         self.trained = trained
 
     def __repr__(self):
