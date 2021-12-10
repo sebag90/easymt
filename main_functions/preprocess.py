@@ -145,6 +145,6 @@ class Pipeline:
 
 
 def preprocess(args):
-    pipe = Pipeline(args.file, args.language, args.bpe, args.remove_nums)
+    pipe = Pipeline(args.file, args.language, args.bpe, args.replace_nums)
     pipe.run()
     print("Preprocessing: complete")

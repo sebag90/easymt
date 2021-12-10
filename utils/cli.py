@@ -61,7 +61,7 @@ def get_arguments():
         type=int
     )
     preprocess.add_argument(
-        "--remove-nums", action="store_true",
+        "--replace-nums", action="store_true",
         help="convert all numbers to <num>"
     )
 
