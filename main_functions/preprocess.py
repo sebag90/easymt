@@ -22,7 +22,8 @@ from utils.utils import name_suffix_from_file
 
 
 class LowerCaser:
-    trained = False
+    def __init__(self, trained=False)
+        self.trained = trained
 
     def __repr__(self):
         return "Lowercaser"
@@ -62,9 +63,12 @@ class Pipeline:
                 NumReplacer()
             )
 
+        tr = Truecaser(language) 
+        lc = LowerCaser(tr.trained)
+
         self.trainable = [
-            Truecaser(language),
-            LowerCaser()  # must be applied after training Truecaser
+            tr,
+            lc  # must be applied after training Truecaser
         ]
 
         # add bpe splitter to trainable processors
