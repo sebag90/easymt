@@ -9,3 +9,4 @@ dependencies:
   - pip:
     - subword-nmt
     - sacrebleu
+    - sacremoses
