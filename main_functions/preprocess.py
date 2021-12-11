@@ -58,12 +58,12 @@ class Pipeline:
             Tokenizer(language)
         ]
 
-        if remove_nums is not None:
+        if remove_nums is True:
             self.pipe.append(
                 NumReplacer()
             )
 
-        tr = Truecaser(language) 
+        tr = Truecaser(language)
         lc = LowerCaser(tr.trained)
 
         self.trainable = [

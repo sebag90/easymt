@@ -1,6 +1,8 @@
-import subprocess
 import os
 from pathlib import Path
+
+from subword_nmt.learn_bpe import learn_bpe
+from subword_nmt.apply_bpe import BPE
 
 from utils.errors import UntrainedModel
 
@@ -10,12 +12,9 @@ class SubwordSplitter:
         self.language = language
         self.bpe = bpe
         self.model = Path(f"data/subword_models/model.{bpe}.{language}")
-        self.args = [
-            "subword-nmt",
-            "apply-bpe",
-            "-c",
-            self.model
-        ]
+        if self.trained:
+            with open(self.model, "r", encoding="utf-8") as modfile:
+                self.splitter = BPE(modfile)
 
     def __repr__(self):
         return f"SubwordSplitter({self.language}, {self.bpe})"
@@ -26,12 +25,7 @@ class SubwordSplitter:
 
     def __call__(self, line):
         if os.path.isfile(self.model):
-            result = subprocess.run(
-                self.args, input=str.encode(f"{line}\n"),
-                capture_output=True
-            )
-
-            return result.stdout.decode("UTF-8").strip()
+            return self.splitter.process_line(line).strip()
         else:
             raise UntrainedModel("SubwordSplitter not trained")
 
@@ -39,13 +33,15 @@ class SubwordSplitter:
         if not os.path.isfile(self.model):
             os.makedirs(Path("data/subword_models"), exist_ok=True)
             print("Training subword model")
-            # execute command
-            command = (
-                f"subword-nmt learn-bpe -s {self.bpe} "
-                f"< {filename} "
-                f"> {self.model}"
-            )
-            os.system(command)
+
+            # train and save model
+            with open(filename, "r", encoding="utf-8") as infile, \
+                    open(self.model, "w", encoding="utf-8") as ofile:
+                learn_bpe(infile, ofile, self.bpe)
+
+            # load model
+            with open(self.model, "r", encoding="utf-8") as modfile:
+                self.splitter = BPE(modfile)
 
 
 if __name__ == "__main__":

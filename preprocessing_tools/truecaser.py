@@ -1,20 +1,20 @@
-import subprocess
 import os
 from pathlib import Path
 
 from utils.errors import UntrainedModel
+
+from sacremoses import MosesTruecaser
 
 
 class Truecaser:
     def __init__(self, language):
         self.language = language
         self.model = Path(f"data/truecasing_models/model.{language}")
-        self.args = [
-            "perl",
-            "preprocessing_tools/perl_scripts/truecase.perl",
-            "--model",
-            self.model
-        ]
+
+        if self.trained:
+            self.truecaser = MosesTruecaser(self.model)
+        else:
+            self.truecaser = MosesTruecaser()
 
     def __repr__(self):
         return f"Truecaser({self.language})"
@@ -25,32 +25,20 @@ class Truecaser:
 
     def __call__(self, line):
         if os.path.isfile(self.model):
-            result = subprocess.run(
-                self.args, input=str.encode(f"{line}\n"),
-                capture_output=True
-            )
-
-            return result.stdout.decode("UTF-8").strip()
+            return self.truecaser.truecase(line).strip()
         else:
             raise UntrainedModel("Truecaser not trained")
 
     def train(self, filename):
         if not os.path.isfile(self.model):
             os.makedirs(Path("data/truecasing_models"), exist_ok=True)
-            script = Path(
-                f"preprocessing_tools/perl_scripts/train-truecaser.perl"
+            self.truecaser.train_from_file(
+                filename, save_to=self.model
             )
-            print("Training truecasing model")
-            # execute command
-            command = (
-                f"perl {script} -corpus {filename} -model {self.model}"
-            )
-            os.system(command)
 
 
 if __name__ == "__main__":
     t = Truecaser("en")
     t.train("data/train.en")
-    print(
-        t('ben austria france salzburg are countries')
-    )
+    print(t('ben austria france salzburg are countries'))
+    print(t('ben austria france salzburg are countries'))

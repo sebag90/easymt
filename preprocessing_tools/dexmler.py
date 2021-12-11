@@ -1,29 +1,42 @@
-import subprocess
+import re
 
 
 class Dexmler:
-    def __init__(self):
-        self.args = [
-            "perl",
-            "preprocessing_tools/perl_scripts/de-xml.perl",
-        ]
+    xml_tags = re.compile(r"<.+?>")
+    spaces = re.compile(r"\s+")
 
     def __repr__(self):
-        return f"Cleaner({self.language})"
+        return f"Dexmler"
 
     def __call__(self, line1, line2):
-        result = subprocess.run(
-            self.args, input=str.encode(f"{line1}\t{line2}\n"),
-            capture_output=True
-        )
+        if line1.strip() == "" or line2.strip() == "":
+            return ("", "")
 
-        strings = result.stdout.decode("UTF-8").strip().split("\t")
-        if len(strings) == 2:
-            return strings
-        else:
-            return ["", ""]
+        tags_1 = re.findall(self.xml_tags, line1)
+        tags_2 = re.findall(self.xml_tags, line2)
+
+        if len(tags_1) != len(tags_2):
+            return ("", "")
+
+        # remove xml tags
+        cleaned1 = re.sub(self.xml_tags, "", line1)
+        cleaned2 = re.sub(self.xml_tags, "", line2)
+
+        # remove extra spaces
+        norm_spaces1 = re.sub(self.spaces, " ", cleaned1)
+        norm_spaces2 = re.sub(self.spaces, " ", cleaned2)
+
+        return (norm_spaces1.strip(), norm_spaces2.strip())
 
 
 if __name__ == "__main__":
     t = Dexmler()
     print(t("<tag>good", "<tag>bien"))
+    print(t(
+        "<this it> is some </b> nasty text <\5> xml-makrup </bien>",
+        "<this it> is some </b> nasty text <\5> xml-makrup </bene>"
+    ))
+    print(t(
+        "<this it> is some </b> nasty text xml-makrup ",
+        "<this it> is some </b> nasty text xml-makrup "
+    ))

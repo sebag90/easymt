@@ -1,28 +1,13 @@
-import subprocess
+from sacremoses import MosesPunctNormalizer
 
 
 class PunctNormalizer:
     def __init__(self, language):
         self.language = language
-        self.args = [
-            "perl",
-            "preprocessing_tools/perl_scripts/normalize-punctuation.perl",
-            "-l",
-            language
-        ]
+        self.normalizer = MosesPunctNormalizer(lang=language)
 
     def __repr__(self):
         return f"PunctNormalizer({self.language})"
 
     def __call__(self, line):
-        result = subprocess.run(
-            self.args, input=str.encode(f"{line}\n"),
-            capture_output=True
-        )
-
-        return result.stdout.decode("UTF-8").strip()
-
-
-if __name__ == "__main__":
-    t = PunctNormalizer("de")
-    print(t('!  "sco", ----- "sco,",  !'))
+        return self.normalizer.normalize(line).strip()
