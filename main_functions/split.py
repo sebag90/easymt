@@ -10,11 +10,9 @@ import os
 
 def split_file(args):
     path = Path(args.path)
-    filename = args.path.split(os.sep)[-1]
-    filename = re.match(r".+(?=\.\w+$)", filename).group()
 
-    file1 = Path(f"data/{filename}.l1")
-    file2 = Path(f"data/{filename}.l2")
+    file1 = Path(f"{path}.l1")
+    file2 = Path(f"{path}.l2")
 
     if os.path.exists(file1):
         os.remove(file1)
