@@ -34,20 +34,17 @@ def get_arguments():
     clean.add_argument(
         "--max-len", action="store",
         help="maximum sentence length (default: %(default)s)",
-        required=True, default=70,
-        type=int
+        default=70, type=int
     )
     clean.add_argument(
         "--min-len", action="store",
         help="minimum sentence length (default: %(default)s)",
-        required=True, default=1,
-        type=int
+        default=1, type=int
     )
     clean.add_argument(
         "--ratio", action="store",
         help="maximum ratio between length of sources (default: %(default)s)",
-        required=True, default=9,
-        type=int
+        default=9, type=int
     )
 
     # preprocess
