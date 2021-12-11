@@ -32,9 +32,21 @@ def get_arguments():
         help="file 2"
     )
     clean.add_argument(
-        "--len", action="store",
-        help="maximum file length (default: %(default)s)",
-        required=True, default=50,
+        "--max-len", action="store",
+        help="maximum sentence length (default: %(default)s)",
+        required=True, default=60,
+        type=int
+    )
+    clean.add_argument(
+        "--min-len", action="store",
+        help="minimum sentence length (default: %(default)s)",
+        required=True, default=1,
+        type=int
+    )
+    clean.add_argument(
+        "--ratio", action="store",
+        help="maximum ratio between length of sources (default: %(default)s)",
+        required=True, default=9,
         type=int
     )
 

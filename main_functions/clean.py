@@ -11,10 +11,13 @@ def clean(args):
     # get arguments
     file_1 = Path(args.file1)
     file_2 = Path(args.file2)
-    max_len = args.len
 
     dexmler = Dexmler()
-    cleaner = Cleaner(1, max_len)
+    cleaner = Cleaner(
+        min_len=args.min_len,
+        max_len=args.max_len,
+        ratio=args.ratio
+    )
 
     # make sure files have same number of lines
     len_f1 = count_lines(file_1)

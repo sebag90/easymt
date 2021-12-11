@@ -2,9 +2,9 @@ import re
 
 
 class Cleaner:
-    def __init__(self, n_min=1, n_max=50, ratio=9):
-        self.n_min = n_min
-        self.n_max = n_max
+    def __init__(self, min_len=1, max_len=70, ratio=9):
+        self.min_len = min_len
+        self.max_len = max_len
         self.ratio = ratio
         self.spaces = re.compile(r"\s+")
 
@@ -24,11 +24,11 @@ class Cleaner:
         toks_2 = line2.split()
 
         # enforce max length
-        if len(toks_1) > self.n_max or len(toks_2) > self.n_max:
+        if len(toks_1) > self.max_len or len(toks_2) > self.max_len:
             return ("", "")
 
         # enforce min length
-        if len(toks_1) < self.n_min or len(toks_2) < self.n_min:
+        if len(toks_1) < self.min_len or len(toks_2) < self.min_len:
             return ("", "")
 
         # enforce length raio between sentences

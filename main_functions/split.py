@@ -4,7 +4,6 @@ into 2 documents containing each a single language
 """
 
 from pathlib import Path
-import re
 import os
 
 
