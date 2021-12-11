@@ -34,7 +34,7 @@ def get_arguments():
     clean.add_argument(
         "--max-len", action="store",
         help="maximum sentence length (default: %(default)s)",
-        required=True, default=60,
+        required=True, default=70,
         type=int
     )
     clean.add_argument(
