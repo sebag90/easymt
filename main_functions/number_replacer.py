@@ -23,20 +23,20 @@ def replace_numbers(args):
             # get <num> placeholders from translation
             place_holder = re.findall(r"<num>", line_t)
 
-            if len(original_numbers) > 0:
-                if len(original_numbers) == len(place_holder):
-                    sen = list()
-                    i = 0
-                    for token in line_t.split():
-                        if "<num>" in token:
-                            # replace <num> with real number
-                            numbered = token.replace(
-                                "<num>", original_numbers[i]
-                            )
-                            sen.append(numbered)
-                            i += 1
-                        else:
-                            sen.append(token)
+            if (len(original_numbers) > 0 and
+                    len(original_numbers) == len(place_holder)):
+                sen = list()
+                i = 0
+                for token in line_t.split():
+                    if "<num>" in token:
+                        # replace <num> with real number
+                        numbered = token.replace(
+                            "<num>", original_numbers[i]
+                        )
+                        sen.append(numbered)
+                        i += 1
+                    else:
+                        sen.append(token)
 
             else:
                 # no numbers or numbers don't match

@@ -3,7 +3,6 @@ compute BLEU score using a reference translation
 """
 
 from distutils.spawn import find_executable
-import os
 from pathlib import Path
 import subprocess
 
@@ -27,19 +26,17 @@ def evaluate(args):
             "Translation and reference must have the same length"
         )
 
-    # calculate BLEU with perl script
-    script = Path("preprocessing_tools/perl_scripts/multi-bleu-detok.perl")
-    os.system(
-        f"perl {script} {args.reference} < {args.translation}"
-    )
-
     # if sacrebleu is installed, run it on files
-    sacrebleu_exists = find_executable("sacrebleu")
-    if sacrebleu_exists is not None:
-        print("\nSacreBLEU:")
+    sacrebleu = find_executable("sacrebleu")
+    if sacrebleu is not None:
+        print("SacreBLEU:")
         command = (
-            f"sacrebleu {args.reference} -i {args.translation}"
+            f"{sacrebleu} {args.reference} -i {args.translation}"
         )
+
+        if args.lc is True:
+            command += " -lc"
+
         result = subprocess.check_output(command, shell=True)
         result = eval(result)
         for key, value in result.items():

@@ -227,10 +227,14 @@ def get_arguments():
         "translation", action="store",
         help="path to translated document"
     )
+    evaluate.add_argument(
+        "-lc", action="store_true",
+        help="compute BLEU on lowercased text"
+    )
 
     # replace numbers
     replace_nums = subparsers.add_parser(
-        "replace-nums",
+        "replace-numbers",
         help="replace <num> tokens in tokenized file"
     )
 

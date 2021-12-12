@@ -29,7 +29,7 @@ def main():
             "translate": translate,
             "normalize": normalize,
             "evaluate": evaluate,
-            "replace-nums": replace_numbers
+            "replace-numbers": replace_numbers
         }
 
         if subparser not in functions.keys():

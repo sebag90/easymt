@@ -25,7 +25,9 @@ class Truecaser:
 
     def __call__(self, line):
         if os.path.isfile(self.model):
-            return self.truecaser.truecase(line).strip()
+            toks = self.truecaser.truecase(line)
+            string = " ".join(toks)
+            return string.strip()
         else:
             raise UntrainedModel("Truecaser not trained")
 
