@@ -9,6 +9,8 @@ import torch
 
 from model.seq2seq import seq2seq
 
+from utils.utils import name_suffix_from_file
+
 
 def translate(args):
     inputfile = Path(args.file)
@@ -29,8 +31,10 @@ def translate(args):
     # print model
     print(model)
 
+    name, suffix = name_suffix_from_file(str(inputfile))
+
     # start translating
-    outputfile = Path(f"data/translated.{model.tgt_lang.name}")
+    outputfile = Path(f"{name}.translated.{suffix}")
     with open(inputfile, "r", encoding="utf-8") as infile, \
             open(outputfile, "w", encoding="utf-8") as outfile:
         for progress, line in enumerate(infile):
