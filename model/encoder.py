@@ -9,12 +9,15 @@ class Encoder(nn.Module):
             hidden_size,
             layers,
             rnn_dropout=0.3,
-            bidirectional=True):
+            bidirectional=True,
+            decoder_layers=None):
         super().__init__()
         # properties
         self.hidden_size = hidden_size
         self.layers = layers
         self.bidirectional = bidirectional
+        self.decoder_layers = decoder_layers
+        self.layer_adaptaion = False
 
         # layers
         self.embedding = nn.Embedding(
@@ -32,16 +35,30 @@ class Encoder(nn.Module):
 
         # projection layers if bidirectional
         if bidirectional:
-            self.hidden_projection = nn.Linear(
+            self.hidden_direction_projection = nn.Linear(
                 hidden_size * 2, hidden_size,
                 bias=False
             )
-            self.cell_projection = nn.Linear(
+            self.cell_direction_projection = nn.Linear(
                 hidden_size * 2, hidden_size,
                 bias=False
             )
-            self.output = nn.Linear(
+            self.output_direction_projection = nn.Linear(
                 hidden_size * 2, hidden_size,
+                bias=False
+            )
+
+        # projection layers if encoder and decoder
+        # do not have the same number of layers
+        if decoder_layers is not None and decoder_layers != layers:
+            self.layer_adaptaion = True
+            self.hidden_layer_projection = nn.Linear(
+                hidden_size * layers, hidden_size,
+                bias=False
+            )
+
+            self.cell_layer_projection = nn.Linear(
+                hidden_size * layers, hidden_size,
                 bias=False
             )
 
@@ -60,19 +77,36 @@ class Encoder(nn.Module):
 
         if self.bidirectional:
             # adjust tensor shapes of hidden_state, cell and output
-            # by passing through projections layers
+            # if encoder is bidirectional
             hidden_state = hidden_state.view(
                 self.layers, input_seq.shape[1], self.hidden_size * 2
             )
 
-            hidden_state = self.hidden_projection(hidden_state)
+            hidden_state = self.hidden_direction_projection(hidden_state)
 
             state_cell = state_cell.view(
                 self.layers, input_seq.shape[1], self.hidden_size * 2
             )
-            state_cell = self.cell_projection(state_cell)
+            state_cell = self.cell_direction_projection(state_cell)
 
-            outputs = self.output(outputs)
+            outputs = self.output_direction_projection(outputs)
+
+        if self.layer_adaptaion:
+            # adjust tensor shapes of hidden_state, cell and output
+            # if encoder and decoder have different number of layers
+            hidden_state = hidden_state.view(
+                self.decoder_layers,
+                input_seq.shape[1],
+                self.hidden_size * self.layers
+            )
+            hidden_state = self.hidden_layer_projection(hidden_state)
+
+            state_cell = state_cell.view(
+                self.decoder_layers,
+                input_seq.shape[1],
+                self.hidden_size * self.layers
+            )
+            state_cell = self.cell_layer_projection(state_cell)
 
         # Output dimensions:
         # output:       (length, batch, hidden_size)
