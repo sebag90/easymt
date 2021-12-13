@@ -7,7 +7,7 @@ class Projector(nn.Module):
     encoder if:
         - encoder is bidirectional
         - encoder and decoder have different number of layers
-    
+
     if none of the previous conditions apply, the projector
     simply returns the tensors without touching them
     """
