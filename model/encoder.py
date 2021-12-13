@@ -130,7 +130,7 @@ class Encoder(nn.Module):
             word_vec_size,
             hidden_size,
             num_layers=layers,
-            dropout=rnn_dropout,
+            dropout=(rnn_dropout if layers > 1 else 0),
             bidirectional=bidirectional
         )
 

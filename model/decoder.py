@@ -39,7 +39,7 @@ class Decoder(nn.Module):
             rnn_input_size,
             hidden_size,
             num_layers=layers,
-            dropout=rnn_dropout
+            dropout=(rnn_dropout if layers > 1 else 0)
         )
         self.dropout = nn.Dropout(attn_dropout)
         self.out = nn.Linear(hidden_size, output_size)
