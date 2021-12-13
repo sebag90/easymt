@@ -47,15 +47,13 @@ class Trainer:
     def __init__(self, args):
         self.resume = args.resume
         self.batched = args.batched
-        self.steps = 0
         self.params = Parameters.from_config(args.path)
 
         # pick device
         self.device = torch.device(
             "cuda" if torch.cuda.is_available() else "cpu"
         )
-        cpu = os.cpu_count()
-        torch.set_num_threads(cpu)
+        torch.set_num_threads(os.cpu_count())
 
     def read_data(self):
         """
@@ -206,6 +204,7 @@ class Trainer:
         """
         t_init = time.time()
         training = True
+        steps = 0
         while training:
             # initialize variables for monitoring
             loss_memory = Memory()
@@ -234,11 +233,11 @@ class Trainer:
 
                 # optimizer step
                 self.optimizer.step()
-                self.steps += 1
+                steps += 1
                 self.model.steps += 1
 
                 # print every x steps
-                if self.steps % self.params.training.print_every == 0:
+                if steps % self.params.training.print_every == 0:
                     t_1 = time.time()
                     ts = int(t_1 - t_init)
                     print_loss = loss_memory.print_loss
@@ -246,7 +245,7 @@ class Trainer:
                     lr = self.optimizer.param_groups[0]['lr']
                     print_time = datetime.timedelta(seconds=ts)
                     to_print = (
-                        f"Step: {self.steps}/{self.params.training.steps} | "
+                        f"Step: {steps}/{self.params.training.steps} | "
                         f"lr: {lr} | "
                         f"Loss: {round((print_loss), 5):.5f} | "
                         f"ppl: {round(ppl, 5):.5f} | "
@@ -259,7 +258,7 @@ class Trainer:
                     loss_memory.print_reset()
 
                 # validation step
-                if self.steps % self.params.training.valid_steps == 0:
+                if steps % self.params.training.valid_steps == 0:
                     eval_loss = self.evaluate()
                     self.scheduler.step(eval_loss)
                     print("-"*len(to_print), flush=True)
@@ -271,13 +270,13 @@ class Trainer:
 
                 # save model
                 if self.params.training.save_every != 0:
-                    if self.steps % self.params.training.save_every == 0:
+                    if steps % self.params.training.save_every == 0:
                         # important! move back to GPU after saving
                         self.save_model()
                         self.model.to(self.device)
 
                 # check if end of training
-                if self.steps == self.params.training.steps:
+                if steps == self.params.training.steps:
                     training = False
                     break
 
