@@ -2,6 +2,15 @@ import torch.nn as nn
 
 
 class Projector(nn.Module):
+    """
+    The projector adjust the shape of the output of the
+    encoder if:
+        - encoder is bidirectional
+        - encoder and decoder have different number of layers
+    
+    if none of the previous conditions apply, the projector
+    simply returns the tensors without touching them
+    """
     def __init__(
             self,
             bidirectional,
@@ -139,9 +148,11 @@ class Encoder(nn.Module):
 
         # Forward pass through RNN
         outputs, (hidden_state, state_cell) = self.rnn(packed)
+
         # Unpack padding
         outputs, _ = nn.utils.rnn.pad_packed_sequence(outputs)
 
+        # pass through projector
         outputs, hidden_state, state_cell = self.projector(
             outputs, hidden_state, state_cell, input_seq.shape[1]
         )
