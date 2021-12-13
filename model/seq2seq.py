@@ -34,8 +34,8 @@ class seq2seq(nn.Module):
 
         # create print string
         obj_str = (
-            f"Seq2Seq({self.src_lang.name} > {self.tgt_lang.name}, "
-            f"steps: {self.steps:,}, "
+            f"Seq2Seq({self.src_lang.name} > {self.tgt_lang.name} | "
+            f"steps: {self.steps:,} | "
             f"parameters: {parameters:,})\n"
             f"{self.encoder}\n"
             f"{self.decoder}"
