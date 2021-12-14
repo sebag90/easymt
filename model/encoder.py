@@ -104,15 +104,14 @@ class Projector(nn.Module):
 
 
 class Encoder(nn.Module):
-    def __init__(
-            self,
-            vocab_size,
-            word_vec_size,
-            hidden_size,
-            layers,
-            rnn_dropout=0.3,
-            bidirectional=True,
-            decoder_layers=None):
+    def __init__(self,
+                 vocab_size,
+                 word_vec_size,
+                 hidden_size,
+                 layers,
+                 rnn_dropout=0.3,
+                 bidirectional=True,
+                 decoder_layers=None):
         super().__init__()
         # properties
         self.hidden_size = hidden_size
