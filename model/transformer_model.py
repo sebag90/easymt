@@ -1,3 +1,6 @@
+from pathlib import Path
+import pickle
+
 import torch.nn as nn
 
 from model.transformer_modules import (
@@ -16,7 +19,7 @@ class TransformerEncoder(nn.Module):
                  vocab_size,
                  word_vec_size,
                  max_len):
-        super().__init()
+        super().__init__()
         self.embedding = nn.Embedding(
             vocab_size,
             word_vec_size,
@@ -37,12 +40,12 @@ class TransformerEncoder(nn.Module):
 
         self.norm = LayerNormalizer(n_embed)
 
-    def forward(self, x):
+    def forward(self, x, mask):
         x = self.embedding(x)
         x = self.positional_encoding(x)
 
         for layer in self.layers:
-            x = layer(x)
+            x = layer(x, mask)
 
         return self.norm(x)
 
@@ -58,7 +61,7 @@ class TransformerDecoder(nn.Module):
                  vocab_size,
                  word_vec_size,
                  max_len):
-        super().__init()
+        super().__init__()
         self.embedding = nn.Embedding(
             vocab_size,
             word_vec_size,
@@ -93,37 +96,75 @@ class TransformerDecoder(nn.Module):
 
 
 class Transformer(nn.Module):
-    def __init__(self,
-                 n_embed,
-                 n_head,
-                 dim_ff,
-                 attn_dropout,
-                 residual_dropout,
-                 encoder_layers,
-                 decoder_layers,
-                 vocab_size,
-                 word_vec_size,
-                 max_len):
-        super().__init()
-        self.encoder = TransformerEncoder(
-            n_embed,
-            n_head,
-            dim_ff,
-            attn_dropout,
-            residual_dropout,
-            encoder_layers,
-            vocab_size,
-            word_vec_size,
-            max_len
+    def __init__(
+            self,
+            encoder,
+            decoder,
+            src_lang,
+            tgt_lang,
+            max_len):
+        super().__init__()
+        self.encoder = encoder
+        self.decoder = decoder
+        self.src_lang = src_lang
+        self.tgt_lang = tgt_lang
+        self.max_len = max_len
+        self.steps = 0
+
+    def __repr__(self):
+        # count trainable parameters
+        parameters = sum(
+            p.numel() for p in self.parameters() if p.requires_grad
         )
-        self.decoder = TransformerDecoder(
-            n_embed,
-            n_head,
-            dim_ff,
-            attn_dropout,
-            residual_dropout,
-            decoder_layers,
-            vocab_size,
-            word_vec_size,
-            max_len
+
+        # create print string
+        obj_str = (
+            f"Seq2Seq({self.src_lang.name} > {self.tgt_lang.name} | "
+            f"steps: {self.steps:,} | "
+            f"parameters: {parameters:,})\n"
+            f"{self.encoder}\n"
+            f"{self.decoder}"
         )
+        return obj_str
+
+    def save(self, outputpath):
+        """
+        save model to a pickle file
+        """
+        l1 = self.src_lang.name
+        l2 = self.tgt_lang.name
+        st = self.steps
+        path = Path(f"{outputpath}/{l1}-{l2}_{st}.pt")
+
+        with open(path, "wb") as ofile:
+            pickle.dump(self, ofile)
+
+    @classmethod
+    def load(cls, inputpath):
+        """
+        load model from pickle file
+        """
+        with open(inputpath, "rb") as infile:
+            obj = pickle.load(infile)
+            return obj
+
+
+if __name__ == "__main__":
+    from utils.lang import Language
+    from utils.dataset import BatchedData
+    
+    encoder = TransformerEncoder(256, 4, 512, 0.2, 0.1, 3, 40000, 256, 200)
+    decoder = TransformerDecoder(256, 4, 512, 0.2, 0.1, 2, 40000, 256, 200)
+    l1 = Language("en")
+    l2 = Language("it")
+
+    data = BatchedData(Path("data/batched"))
+
+    transformer = Transformer(encoder, decoder, l1, l2, 200)
+    
+    for batch in data:
+        input_var, lengths, target_var, mask, max_target_len = batch
+        e_mask = (input_var != 0).unsqueeze(1)
+        breakpoint()
+        encoded = encoder(input_var, e_mask)
+        breakpoint()
