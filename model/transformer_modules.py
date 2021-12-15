@@ -72,10 +72,10 @@ class MultiHeadAttention(nn.Module):
                 "Number of heads must be a multiple of "
                 "embedding dimension"
             )
-        self.head = n_head
-        self.key = nn.Linear(n_embed, n_head)
-        self.query = nn.Linear(n_embed, n_head)
-        self.value = nn.Linear(n_embed, n_head)
+        self.n_head = n_head
+        self.key = nn.Linear(n_embed, n_embed)
+        self.query = nn.Linear(n_embed, n_embed)
+        self.value = nn.Linear(n_embed, n_embed)
 
         # dropout
         self.dropout = nn.Dropout(residual_dropout)
@@ -88,7 +88,6 @@ class MultiHeadAttention(nn.Module):
 
     def forward(self, k, q, v, mask=None):
         B, T, C = k.shape
-
         # obtain key, query and value tensors
         k = self.key(k).view(
             B, T, self.n_head, C // self.n_head
@@ -119,7 +118,7 @@ class SelfAttention(nn.Module):
         attn_scores = attn_scores / math.sqrt(k.size(-1))
 
         if mask is not None:
-            mask = mask.unqueeze(1)
+            mask = mask.unsqueeze(1)
             attn_scores = attn_scores.masked_fill(mask == 0, float("-inf"))
 
         attn_scores = F.softmax(attn_scores, dim=-1)
@@ -134,7 +133,7 @@ class FeedForward(nn.Module):
         super().__init__()
         self.linear_1 = nn.Linear(n_embed, dim_ff)
         self.linear_2 = nn.Linear(dim_ff, n_embed)
-        self.relu = nn.Relu()
+        self.relu = nn.ReLU()
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x):
@@ -170,7 +169,7 @@ class PositionalEncoding(nn.Module):
 
                 weigth[position, i] = value
 
-        self.weight = weigth
+        self.weight = weigth.unsqueeze(1)
         self.weight.requires_grad = False
 
     def forward(self, x):
