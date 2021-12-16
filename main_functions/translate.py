@@ -34,7 +34,7 @@ def translate(args):
     name, suffix = name_suffix_from_file(str(inputfile))
 
     # start translating
-    outputfile = Path(f"{name}.translated.{suffix}")
+    outputfile = Path(f"{name}.{model.tgt_lang.name}")
     with open(inputfile, "r", encoding="utf-8") as infile, \
             open(outputfile, "w", encoding="utf-8") as outfile:
         for progress, line in enumerate(infile):
