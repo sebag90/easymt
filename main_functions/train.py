@@ -17,7 +17,7 @@ from model.seq2seq import seq2seq
 from model.loss import MaskedLoss
 
 from utils.lang import Language
-from utils.dataset import DataLoader, BatchedData
+from utils.dataset import DataLoader, BatchedData, RNNDataTransformer
 from utils.parameters import Parameters
 
 
@@ -183,11 +183,13 @@ class Trainer:
         evaluate the model on the evaluation data set
         """
         self.model.eval()
+        data_converter = RNNDataTransformer()
 
         losses = list()
         for batch in self.eval_data:
+            rnn_input_batch = data_converter(*batch)
             loss = self.model.train_batch(
-                batch,
+                rnn_input_batch,
                 self.device,
                 1,
                 self.criterion
@@ -205,6 +207,7 @@ class Trainer:
         t_init = time.time()
         training = True
         steps = 0
+        data_converter = RNNDataTransformer()
         while training:
             # initialize variables for monitoring
             loss_memory = Memory()
@@ -216,9 +219,11 @@ class Trainer:
             for batch in self.train_data:
                 self.optimizer.zero_grad()
 
+                rnn_input_batch = data_converter(*batch)
+
                 # process batch
                 loss = self.model.train_batch(
-                    batch,
+                    rnn_input_batch,
                     self.device,
                     self.params.training.teacher_ratio,
                     self.criterion

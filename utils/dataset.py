@@ -1,4 +1,3 @@
-import itertools
 from functools import total_ordering
 import math
 import os
@@ -64,32 +63,15 @@ class DataLoader:
             shuffled = random.sample(to_add, len(to_add))
             self.order += shuffled
 
-    def zeroPadding(self, l, fillvalue=0):
-        return list(itertools.zip_longest(*l, fillvalue=fillvalue))
-
     def __len__(self):
         return math.ceil(len(self.data) // self.batch_size)
 
     def __iter__(self):
         for i in range(0, len(self.order), self.batch_size):
             batch_idx = self.order[i:i + self.batch_size]
-
-            # prepare source data
             src = [self.data[i].src for i in batch_idx]
-            src_len = torch.tensor([len(indexes) for indexes in src])
-            padlist = self.zeroPadding(src)
-            src_pad = torch.tensor(padlist)
-
-            # prepare target data
             tgt = [self.data[i].tgt for i in batch_idx]
-            max_tgt_len = max([len(indexes) for indexes in tgt])
-            padlist = self.zeroPadding(tgt)
-            tgt_pad = torch.tensor(padlist)
-            mask = tgt_pad.clone()
-            mask[mask != 0] = 1
-            mask = mask.bool()
-
-            yield src_pad, src_len, tgt_pad, mask, max_tgt_len
+            yield src, tgt
 
     @classmethod
     def from_files(cls, name, src_language, tgt_language, max_len, batch_size):
@@ -152,3 +134,21 @@ class BatchedData:
             # batches is always a list of batches
             for batch in batches:
                 yield batch
+
+
+class RNNDataTransformer:
+    def __call__(self, src, tgt):
+        # prepare source data
+        src_len = torch.tensor([len(indexes) for indexes in src])
+        src_pad = torch.nn.utils.rnn.pad_sequence(src)
+
+        # prepare target data
+        max_tgt_len = max([len(indexes) for indexes in tgt])
+        tgt_pad = torch.nn.utils.rnn.pad_sequence(tgt)
+
+        # prepare mask
+        mask = tgt_pad.clone()
+        mask[mask != 0] = 1
+        mask = mask.bool()
+
+        return src_pad, src_len, tgt_pad, mask, max_tgt_len

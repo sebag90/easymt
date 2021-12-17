@@ -6,7 +6,7 @@ class Dexmler:
     spaces = re.compile(r"\s+")
 
     def __repr__(self):
-        return f"Dexmler"
+        return "Dexmler"
 
     def __call__(self, line1, line2):
         if line1.strip() == "" or line2.strip() == "":

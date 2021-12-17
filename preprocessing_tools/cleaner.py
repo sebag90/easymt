@@ -9,7 +9,7 @@ class Cleaner:
         self.spaces = re.compile(r"\s+")
 
     def __repr__(self):
-        return f"Cleaner"
+        return "Cleaner"
 
     def __call__(self, line1, line2):
         line1 = line1.strip()
