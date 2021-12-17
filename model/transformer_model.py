@@ -164,7 +164,13 @@ if __name__ == "__main__":
     
     for batch in data:
         input_var, lengths, target_var, mask, max_target_len = batch
+        input_var = input_var.transpose(1, 0)
+        target_var = target_var.transpose(1, 0)
+        import torch
+
+        input_var = torch.nn.ZeroPad2d((-1, 201 - input_var.shape[1]))(input_var)
+        target_var = torch.nn.ZeroPad2d((-1, 201 - target_var.shape[1]))(target_var)
+
         e_mask = (input_var != 0).unsqueeze(1)
-        breakpoint()
         encoded = encoder(input_var, e_mask)
         breakpoint()
