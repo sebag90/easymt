@@ -171,6 +171,7 @@ class PositionalEncoding(nn.Module):
 
         self.weight = weight
         self.weight.requires_grad = False
+        self.register_buffer('weight', weight)
 
     def forward(self, x):
         to_apply = self.weight.repeat(
