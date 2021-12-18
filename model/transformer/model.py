@@ -62,11 +62,11 @@ class Transformer(nn.Module):
         input_var, decoder_input, target_var, e_mask, d_mask = batch
 
         # move tensors to device
-        input_var.to(device)
-        decoder_input.to(device)
-        target_var.to(device)
-        e_mask.to(device)
-        d_mask.to(device)
+        input_var = input_var.to(device)
+        decoder_input = decoder_input.to(device)
+        target_var = target_var.to(device)
+        e_mask = e_mask.to(device)
+        d_mask = d_mask.to(device)
 
         # pass through encoder and decoder
         encoded = self.encoder(input_var, e_mask)
