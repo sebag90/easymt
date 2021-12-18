@@ -67,8 +67,6 @@ class Transformer(nn.Module):
         e_mask.to(device)
         d_mask.to(device)
 
-        print(device)
-
         encoded = self.encoder(input_var, e_mask)
         decoded = self.decoder(decoder_input, encoded, e_mask, d_mask)
         loss = criterion(decoded.view(-1, decoded.size(-1)), target_var.view(-1))

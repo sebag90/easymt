@@ -193,6 +193,7 @@ class Trainer:
         t_init = time.time()
         training = True
         steps = 0
+        self.model.to(self.device)
 
         while training:
             # initialize variables for monitoring
