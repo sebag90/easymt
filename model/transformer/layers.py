@@ -157,7 +157,7 @@ class PositionalEncoding(nn.Module):
     def __init__(self, max_len, n_embed, dropout):
         super().__init__()
         self.dropout = nn.Dropout(dropout)
-        weight = torch.zeros(max_len, n_embed)
+        wm = torch.zeros(max_len, n_embed)
 
         for position in range(max_len):
             for i in range(n_embed):
@@ -167,11 +167,11 @@ class PositionalEncoding(nn.Module):
                 else:
                     value = math.cos(position / (10000 ** (2 * i / n_embed)))
 
-                weight[position, i] = value
+                wm[position, i] = value
 
-        self.weight = weight
-        self.weight.requires_grad = False
-        self.register_buffer('weight', weight)
+        
+        wm.requires_grad = False
+        self.register_buffer('weight', self.wm)
 
     def forward(self, x):
         to_apply = self.weight.repeat(
