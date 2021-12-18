@@ -1,14 +1,11 @@
-from pathlib import Path
-import pickle
-
 import torch.nn as nn
 
-from model.transformer.transformer_modules import (
+from model.transformer.layers import (
     EncoderLayer, DecoderLayer, PositionalEncoding, LayerNormalizer
 )
 
 
-class TransformerEncoder(nn.Module):
+class Encoder(nn.Module):
     def __init__(self,
                  n_embed,
                  n_head,
@@ -49,7 +46,7 @@ class TransformerEncoder(nn.Module):
         return self.norm(x)
 
 
-class TransformerDecoder(nn.Module):
+class Decoder(nn.Module):
     def __init__(self,
                  n_embed,
                  n_head,
@@ -91,57 +88,3 @@ class TransformerDecoder(nn.Module):
         x = self.norm(x)
         output = self.out(x)
         return output
-
-
-class Transformer(nn.Module):
-    def __init__(
-            self,
-            encoder,
-            decoder,
-            src_lang,
-            tgt_lang,
-            max_len):
-        super().__init__()
-        self.encoder = encoder
-        self.decoder = decoder
-        self.src_lang = src_lang
-        self.tgt_lang = tgt_lang
-        self.max_len = max_len
-        self.steps = 0
-
-    def __repr__(self):
-        # count trainable parameters
-        parameters = sum(
-            p.numel() for p in self.parameters() if p.requires_grad
-        )
-
-        # create print string
-        obj_str = (
-            f"Seq2Seq({self.src_lang.name} > {self.tgt_lang.name} | "
-            f"steps: {self.steps:,} | "
-            f"parameters: {parameters:,})\n"
-            f"{self.encoder}\n"
-            f"{self.decoder}"
-        )
-        return obj_str
-
-    def save(self, outputpath):
-        """
-        save model to a pickle file
-        """
-        l1 = self.src_lang.name
-        l2 = self.tgt_lang.name
-        st = self.steps
-        path = Path(f"{outputpath}/{l1}-{l2}_{st}.pt")
-
-        with open(path, "wb") as ofile:
-            pickle.dump(self, ofile)
-
-    @classmethod
-    def load(cls, inputpath):
-        """
-        load model from pickle file
-        """
-        with open(inputpath, "rb") as infile:
-            obj = pickle.load(infile)
-            return obj

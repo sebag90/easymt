@@ -19,6 +19,7 @@ class seq2seq(nn.Module):
             tgt_lang,
             max_len):
         super().__init__()
+        self.type = "rnn"
         self.encoder = encoder
         self.decoder = decoder
         self.src_lang = src_lang
@@ -49,7 +50,7 @@ class seq2seq(nn.Module):
         l1 = self.src_lang.name
         l2 = self.tgt_lang.name
         st = self.steps
-        path = Path(f"{outputpath}/{l1}-{l2}_{st}.pt")
+        path = Path(f"{outputpath}/{self.type}_{l1}-{l2}_{st}.pt")
 
         with open(path, "wb") as ofile:
             pickle.dump(self, ofile)

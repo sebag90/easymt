@@ -40,8 +40,8 @@ class Parameters:
         # create empty class to store parameters
         params = cls(config)
 
-        if (params.model.input_feed
-                and params.model.attention.lower() == "none"):
+        if (params.rnn.input_feed
+                and params.rnn.attention.lower() == "none"):
             raise InvalidArgument(
                 "Input feed needs attention"
             )

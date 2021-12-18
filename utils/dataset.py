@@ -137,7 +137,7 @@ class BatchedData:
 
 
 class RNNDataTransformer:
-    def __call__(self, src, tgt):
+    def __call__(self, src, tgt, max_len, sos_index_tgt_lang):
         # prepare source data
         src_len = torch.tensor([len(indexes) for indexes in src])
         src_pad = torch.nn.utils.rnn.pad_sequence(src)

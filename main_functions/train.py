@@ -11,13 +11,11 @@ import time
 import torch
 import torch.nn as nn
 
-from model.rnn.encoder import Encoder
-from model.rnn.decoder import Decoder
-from model.rnn.seq2seq import seq2seq
+from model.model_generator import ModelGenerator
 from model.loss import MaskedLoss
 
 from utils.lang import Language
-from utils.dataset import DataLoader, BatchedData, RNNDataTransformer
+from utils.dataset import DataLoader, BatchedData, RNNDataTransformer, TransformerDataconverter
 from utils.parameters import Parameters
 
 
@@ -48,6 +46,7 @@ class Trainer:
         self.resume = args.resume
         self.batched = args.batched
         self.params = Parameters.from_config(args.path)
+        self.model_generator = ModelGenerator(self.params.model.type)
 
         # pick device
         self.device = torch.device(
@@ -73,7 +72,7 @@ class Trainer:
 
         else:
             # load from file
-            self.model = seq2seq.load(Path(self.resume))
+            self.model = self.model_generator.from_file(Path(self.resume))
             self.src_language = self.model.src_lang
             self.tgt_language = self.model.tgt_lang
 
@@ -98,32 +97,10 @@ class Trainer:
         create a model, either from scratch or load it from file
         """
         if self.resume is None:
-            encoder = Encoder(
-                self.src_language.n_words,
-                self.params.model.word_vec_size,
-                self.params.model.hidden_size,
-                self.params.model.encoder_layers,
-                self.params.model.rnn_dropout,
-                self.params.model.bidirectional,
-                self.params.model.decoder_layers
-            )
-            decoder = Decoder(
-                self.params.model.attention,
-                self.params.model.word_vec_size,
-                self.params.model.hidden_size,
-                self.tgt_language.n_words,
-                self.params.model.decoder_layers,
-                self.params.model.rnn_dropout,
-                self.params.model.attn_dropout,
-                self.params.model.input_feed
-            )
-
-            self.model = seq2seq(
-                encoder,
-                decoder,
+            self.model = self.model_generator.generate_model(
+                self.params,
                 self.src_language,
-                self.tgt_language,
-                self.params.model.max_length
+                self.tgt_language
             )
 
             # initialize parameters uniformly
@@ -132,6 +109,12 @@ class Trainer:
                     - self.params.model.uniform_init,
                     self.params.model.uniform_init
                 )
+
+        # define data converter
+        if self.model.type == "rnn":
+            self.data_converter = RNNDataTransformer()
+        elif self.model.type == "transformer":
+            self.data_converter = TransformerDataconverter()
 
         print(self.model, flush=True)
         # move model to device
@@ -183,13 +166,16 @@ class Trainer:
         evaluate the model on the evaluation data set
         """
         self.model.eval()
-        data_converter = RNNDataTransformer()
 
         losses = list()
         for batch in self.eval_data:
-            rnn_input_batch = data_converter(*batch)
+            input_batch = self.data_converter(
+                *batch,
+                self.model.max_len,
+                self.tgt_language.word2index["<sos>"]     
+            )
             loss = self.model.train_batch(
-                rnn_input_batch,
+                input_batch,
                 self.device,
                 1,
                 self.criterion
@@ -207,7 +193,7 @@ class Trainer:
         t_init = time.time()
         training = True
         steps = 0
-        data_converter = RNNDataTransformer()
+
         while training:
             # initialize variables for monitoring
             loss_memory = Memory()
@@ -219,11 +205,15 @@ class Trainer:
             for batch in self.train_data:
                 self.optimizer.zero_grad()
 
-                rnn_input_batch = data_converter(*batch)
+                input_batch = self.data_converter(
+                    *batch,
+                    self.model.max_len,
+                    self.tgt_language.word2index["<sos>"]     
+                )
 
                 # process batch
                 loss = self.model.train_batch(
-                    rnn_input_batch,
+                    input_batch,
                     self.device,
                     self.params.training.teacher_ratio,
                     self.criterion
