@@ -15,7 +15,11 @@ from model.model_generator import ModelGenerator
 from model.loss import MaskedLoss
 
 from utils.lang import Language
-from utils.dataset import DataLoader, BatchedData, RNNDataTransformer, TransformerDataconverter
+from utils.dataset import (
+    DataLoader, BatchedData,
+    RNNDataTransformer,
+    TransformerDataconverter
+)
 from utils.parameters import Parameters
 
 
@@ -172,7 +176,7 @@ class Trainer:
             input_batch = self.data_converter(
                 *batch,
                 self.model.max_len,
-                self.tgt_language.word2index["<sos>"]     
+                self.tgt_language.word2index["<sos>"]
             )
             loss = self.model.train_batch(
                 input_batch,
@@ -209,7 +213,7 @@ class Trainer:
                 input_batch = self.data_converter(
                     *batch,
                     self.model.max_len,
-                    self.tgt_language.word2index["<sos>"]     
+                    self.tgt_language.word2index["<sos>"]
                 )
 
                 # process batch

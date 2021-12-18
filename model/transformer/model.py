@@ -73,5 +73,8 @@ class Transformer(nn.Module):
         decoded = self.decoder(decoder_input, encoded, e_mask, d_mask)
 
         # calculate and return loss
-        loss = criterion(decoded.view(-1, decoded.size(-1)), target_var.view(-1))
+        loss = criterion(
+            decoded.view(-1, decoded.size(-1)),
+            target_var.view(-1)
+        )
         return loss
