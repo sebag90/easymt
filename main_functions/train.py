@@ -11,9 +11,9 @@ import time
 import torch
 import torch.nn as nn
 
-from model.encoder import Encoder
-from model.decoder import Decoder
-from model.seq2seq import seq2seq
+from model.rnn.encoder import Encoder
+from model.rnn.decoder import Decoder
+from model.rnn.seq2seq import seq2seq
 from model.loss import MaskedLoss
 
 from utils.lang import Language

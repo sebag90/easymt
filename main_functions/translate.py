@@ -7,7 +7,7 @@ import os
 
 import torch
 
-from model.seq2seq import seq2seq
+from model.rnn.seq2seq import seq2seq
 
 from utils.utils import name_suffix_from_file
 

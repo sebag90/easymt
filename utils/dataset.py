@@ -147,8 +147,34 @@ class RNNDataTransformer:
         tgt_pad = torch.nn.utils.rnn.pad_sequence(tgt)
 
         # prepare mask
-        mask = tgt_pad.clone()
-        mask[mask != 0] = 1
-        mask = mask.bool()
+        mask = tgt_pad != 0
 
         return src_pad, src_len, tgt_pad, mask, max_tgt_len
+
+
+class TransformerDataconverter:
+    def __call__(self, src, tgt, max_len, sos_index_tgt_lang):
+        src = torch.nn.utils.rnn.pad_sequence(src, batch_first=True)
+        tgt = torch.nn.utils.rnn.pad_sequence(tgt, batch_first=True)
+
+        padder = torch.nn.ZeroPad2d((0, max_len - src.size(1)))
+        src = padder(src)
+
+        padder = torch.nn.ZeroPad2d((0, max_len - tgt.size(1)))
+        target = padder(tgt)
+
+        sos_padder = torch.nn.ConstantPad2d((1, 0, 0, 0), sos_index_tgt_lang)
+        sos_padded = sos_padder(tgt)
+
+        padder = torch.nn.ZeroPad2d((0, max_len - sos_padded.size(1)))
+        decoder_input = padder(sos_padded)
+
+        # create masks
+        e_mask = (src != 0).unsqueeze(1)
+        d_mask = (decoder_input != 0).unsqueeze(1)
+
+        subseq_mask = torch.ones((1, max_len, max_len), dtype=torch.bool)
+        subseq_mask = torch.tril(subseq_mask)
+        d_mask = torch.logical_and(d_mask, subseq_mask)
+
+        return src, decoder_input, target, e_mask, d_mask
