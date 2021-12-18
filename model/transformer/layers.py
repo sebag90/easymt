@@ -173,13 +173,9 @@ class PositionalEncoding(nn.Module):
         self.weight.requires_grad = False
 
     def forward(self, x):
-        # to_apply = self.weight.repeat(
-        #     x.shape[0], 1, 1
-        # ).masked_fill(x == 0, 0)
-        # x += to_apply
-
-
-        x = x + self.weight.repeat(
+        to_apply = self.weight.repeat(
             x.shape[0], 1, 1
         ).masked_fill(x == 0, 0)
+        x += to_apply
+
         return self.dropout(x)
