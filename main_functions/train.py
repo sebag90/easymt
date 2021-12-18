@@ -108,11 +108,12 @@ class Trainer:
             )
 
             # initialize parameters uniformly
-            for p in self.model.parameters():
-                p.data.uniform_(
-                    - self.params.model.uniform_init,
-                    self.params.model.uniform_init
-                )
+            for name, param in self.model.named_parameters():
+                if "embedding" not in name:
+                    param.data.uniform_(
+                        - self.params.model.uniform_init,
+                        self.params.model.uniform_init
+                    )
 
         # define data converter
         if self.model.type == "rnn":
