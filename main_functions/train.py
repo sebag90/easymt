@@ -122,7 +122,7 @@ class Trainer:
 
         print(self.model, flush=True)
         # move model to device
-        self.model().to(self.device)
+        self.model.to(self.device)
 
         # set training mode
         self.model.train()
@@ -156,7 +156,7 @@ class Trainer:
         move model to cpu and save it
         """
         # move model to cpu
-        self.model().to("cpu")
+        self.model.to("cpu")
 
         # save model
         os.makedirs("pretrained_models", exist_ok=True)
@@ -197,7 +197,7 @@ class Trainer:
         t_init = time.time()
         training = True
         steps = 0
-        self.model().to(self.device)
+        self.model.to(self.device)
 
         while training:
             # initialize variables for monitoring
@@ -273,7 +273,7 @@ class Trainer:
                     if steps % self.params.training.save_every == 0:
                         # important! move back to GPU after saving
                         self.save_model()
-                        self.model().to(self.device)
+                        self.model.to(self.device)
 
                 # check if end of training
                 if steps == self.params.training.steps:
