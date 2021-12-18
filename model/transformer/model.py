@@ -61,14 +61,17 @@ class Transformer(nn.Module):
     def train_batch(self, batch, device, teacher_forcing_ratio, criterion):
         input_var, decoder_input, target_var, e_mask, d_mask = batch
 
+        # move tensors to device
         input_var.to(device)
         decoder_input.to(device)
         target_var.to(device)
         e_mask.to(device)
         d_mask.to(device)
-        self.encoder.to(device)
-        self.decoder.to(device)
+
+        # pass through encoder and decoder
         encoded = self.encoder(input_var, e_mask)
         decoded = self.decoder(decoder_input, encoded, e_mask, d_mask)
+
+        # calculate and return loss
         loss = criterion(decoded.view(-1, decoded.size(-1)), target_var.view(-1))
         return loss
