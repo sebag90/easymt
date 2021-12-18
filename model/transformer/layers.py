@@ -169,7 +169,6 @@ class PositionalEncoding(nn.Module):
 
                 wm[position, i] = value
 
-        
         wm.requires_grad = False
         self.register_buffer('weight', wm)
 
