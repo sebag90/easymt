@@ -117,7 +117,6 @@ class Transformer(nn.Module):
             torch.tensor([sos_index]), torch.zeros(1), 0
         )
         live_hypotheses.append(hyp)
-        live_hypotheses.append(hyp)
 
         # begin beam search
         t = 0
