@@ -131,17 +131,16 @@ class SelfAttention(nn.Module):
 class FeedForward(nn.Module):
     def __init__(self, n_embed, dim_ff, dropout):
         super().__init__()
-        self.linear_1 = nn.Linear(n_embed, dim_ff)
-        self.linear_2 = nn.Linear(dim_ff, n_embed)
-        self.relu = nn.ReLU()
-        self.dropout = nn.Dropout(dropout)
+        self.layers = nn.Sequential(
+            nn.Linear(n_embed, dim_ff),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(dim_ff, n_embed),
+            nn.Dropout(dropout)
+        )
 
     def forward(self, x):
-        x = self.linear_1(x)
-        x = self.relu(x)
-        x = self.linear_2(x)
-        x = self.dropout(x)
-        return x
+        return self.layers(x)
 
 
 class LayerNormalizer(nn.Module):
