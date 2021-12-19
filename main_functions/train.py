@@ -17,8 +17,8 @@ from model.loss import MaskedLoss
 from utils.lang import Language
 from utils.dataset import (
     DataLoader, BatchedData,
-    RNNDataTransformer,
-    TransformerDataconverter
+    RNNDataConverter,
+    TransformerDataConverter
 )
 from utils.parameters import Parameters
 
@@ -117,9 +117,9 @@ class Trainer:
 
         # define data converter
         if self.model.type == "rnn":
-            self.data_converter = RNNDataTransformer()
+            self.data_converter = RNNDataConverter()
         elif self.model.type == "transformer":
-            self.data_converter = TransformerDataconverter()
+            self.data_converter = TransformerDataConverter()
 
         print(self.model, flush=True)
         # move model to device

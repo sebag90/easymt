@@ -136,7 +136,7 @@ class BatchedData:
                 yield batch
 
 
-class RNNDataTransformer:
+class RNNDataConverter:
     def __call__(self, src, tgt, max_len, sos_index_tgt_lang):
         # prepare source data
         src_len = torch.tensor([len(indexes) for indexes in src])
@@ -152,7 +152,7 @@ class RNNDataTransformer:
         return src_pad, src_len, tgt_pad, mask, max_tgt_len
 
 
-class TransformerDataconverter:
+class TransformerDataConverter:
     def __call__(self, src, tgt, max_len, sos_index_tgt_lang):
         # create target variables by removing <eos> token
         decoder_input = list()
