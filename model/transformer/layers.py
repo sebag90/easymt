@@ -24,7 +24,7 @@ class DecoderLayer(nn.Module):
 
     def forward(self, x, encoder_output, encoder_mask, decoder_mask):
         masked_attn_input = self.norm1(x)
-        x += self.masked_attn(
+        x = x + self.masked_attn(
             masked_attn_input,
             masked_attn_input,
             masked_attn_input,
@@ -32,15 +32,15 @@ class DecoderLayer(nn.Module):
         )
 
         attn_input = self.norm2(x)
-        x += self.attn(
-            encoder_output,
-            encoder_output,
+        x = x + self.attn(
             attn_input,
+            encoder_output,
+            encoder_output,
             encoder_mask
         )
 
         ff_input = self.norm3(x)
-        x += self.ff(ff_input)
+        x = x + self.ff(ff_input)
         return x
 
 
@@ -58,8 +58,8 @@ class EncoderLayer(nn.Module):
 
     def forward(self, x, mask):
         att_input = self.norm_1(x)
-        x += self.multi_attention(att_input, att_input, att_input, mask)
-        x += self.ff(self.norm_2(x))
+        x = x + self.multi_attention(att_input, att_input, att_input, mask)
+        x = x + self.ff(self.norm_2(x))
         return x
 
 
@@ -72,8 +72,9 @@ class MultiHeadAttention(nn.Module):
                 "embedding dimension"
             )
         self.n_head = n_head
-        self.key = nn.Linear(n_embed, n_embed)
+        self.d_k = n_embed // n_head
         self.query = nn.Linear(n_embed, n_embed)
+        self.key = nn.Linear(n_embed, n_embed)
         self.value = nn.Linear(n_embed, n_embed)
 
         # dropout
@@ -85,23 +86,23 @@ class MultiHeadAttention(nn.Module):
         # projection layer
         self.projection_layer = nn.Linear(n_embed, n_embed)
 
-    def forward(self, k, q, v, mask=None):
-        B, T, C = k.shape
+    def forward(self, q, k, v, mask=None):
+        B, T, C = q.shape
         # obtain key, query and value tensors
         k = self.key(k).view(
-            B, T, self.n_head, C // self.n_head
+            B, -1, self.n_head, self.d_k
         ).transpose(1, 2)
         q = self.key(q).view(
-            B, T, self.n_head, C // self.n_head
+            B, -1, self.n_head, self.d_k
         ).transpose(1, 2)
         v = self.key(v).view(
-            B, T, self.n_head, C // self.n_head
+            B, -1, self.n_head, self.d_k
         ).transpose(1, 2)
 
-        attention_scores = self.attention(k, q, v, mask)
+        attention_scores = self.attention(q, k, v, mask)
 
         attention_scores = attention_scores.transpose(
-            1, 2).contiguous().view(B, T, C)
+            1, 2).contiguous().view(B, -1, self.n_head * self.d_k)
 
         proj = self.projection_layer(attention_scores)
         return self.dropout(proj)
@@ -112,19 +113,19 @@ class SelfAttention(nn.Module):
         super().__init__()
         self.dropout = nn.Dropout(dropout)
 
-    def forward(self, k, q, v, mask=None):
-        attn_scores = torch.matmul(q, k.transpose(-2, -1))
-        attn_scores = attn_scores / math.sqrt(k.size(-1))
+    def forward(self, q, k, v, mask=None):
+        d_k = q.size(-1)
+        scores = torch.matmul(q, k.transpose(-2, -1))
+        scores = scores / math.sqrt(d_k)
 
         if mask is not None:
             mask = mask.unsqueeze(1)
-            attn_scores = attn_scores.masked_fill(mask == 0, float("-inf"))
+            scores = scores.masked_fill(mask == 0, float("-inf"))
 
-        attn_scores = F.softmax(attn_scores, dim=-1)
-        attn_scores = self.dropout(attn_scores)
-        attn_values = torch.matmul(attn_scores, v)
-
-        return attn_values
+        scores = F.softmax(scores, dim=-1)
+        scores = self.dropout(scores)
+        values = torch.matmul(scores, v)
+        return values
 
 
 class FeedForward(nn.Module):
@@ -164,12 +165,12 @@ class PositionalEncoding(nn.Module):
         pos_embedding = torch.zeros((max_len, n_embed))
         pos_embedding[:, 0::2] = torch.sin(pos * den)
         pos_embedding[:, 1::2] = torch.cos(pos * den)
-        pos_embedding = pos_embedding.unsqueeze(-2)
+        pos_embedding = pos_embedding.unsqueeze(0)
 
         pos_embedding.requires_grad = False
         self.register_buffer('weight', pos_embedding)
 
     def forward(self, x):
-        to_apply = self.weight[x.size(0), :].masked_fill(x == 0, 0)
-        x += to_apply
+        to_apply = self.weight[:, :x.size(1)]
+        x = x + to_apply
         return self.dropout(x)
