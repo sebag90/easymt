@@ -24,7 +24,7 @@ class DecoderLayer(nn.Module):
 
     def forward(self, x, encoder_output, encoder_mask, decoder_mask):
         masked_attn_input = self.norm1(x)
-        x = x + self.masked_attn(
+        x += self.masked_attn(
             masked_attn_input,
             masked_attn_input,
             masked_attn_input,
@@ -32,16 +32,15 @@ class DecoderLayer(nn.Module):
         )
 
         attn_input = self.norm2(x)
-        x = x + self.attn(
+        x += self.attn(
+            encoder_output,
+            encoder_output,
             attn_input,
-            encoder_output,
-            encoder_output,
             encoder_mask
         )
 
         ff_input = self.norm3(x)
-        x = x + self.ff(ff_input)
-
+        x += self.ff(ff_input)
         return x
 
 
@@ -59,8 +58,8 @@ class EncoderLayer(nn.Module):
 
     def forward(self, x, mask):
         att_input = self.norm_1(x)
-        x = x + self.multi_attention(att_input, att_input, att_input, mask)
-        x = x + self.ff(self.norm_2(x))
+        x += self.multi_attention(att_input, att_input, att_input, mask)
+        x += self.ff(self.norm_2(x))
         return x
 
 
