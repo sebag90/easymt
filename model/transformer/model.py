@@ -117,6 +117,7 @@ class Transformer(nn.Module):
             torch.tensor([sos_index]), torch.zeros(1), 0
         )
         live_hypotheses.append(hyp)
+        live_hypotheses.append(hyp)
 
         # begin beam search
         t = 0
@@ -137,22 +138,19 @@ class Transformer(nn.Module):
             decoder_input = torch.vstack(step_input)
             encoder_output = torch.cat(encoder_output)
 
-            # pad the input to max len
-            padder = torch.nn.ZeroPad2d(
-                (0, self.max_len - decoder_input.size(1))
-            )
-            decoder_input = padder(decoder_input)
+            # create mask for decoding
+            d_mask = self.create_subsequent_mask(decoder_input.size(1))
 
             # pass through decoder
             decoded = self.decoder(
                 decoder_input, encoder_output, e_mask, d_mask
             )
 
-            # obtain last word logits
-            decoded = (decoded[:, t, :]).squeeze(1)
-
             # softmax to get negative log likelihood to sum scores
             decoder_output = F.log_softmax(decoded, dim=-1)
+
+            # only get the last word for each beam
+            decoder_output = decoder_output[:, -1, :]
 
             # decide k and get best options
             k = beam_size - len(complete_hypotheses)
@@ -165,8 +163,9 @@ class Transformer(nn.Module):
 
                 for log_prob, index in zip(best_probs, best_indeces):
                     # create a new hypothesis for each k alternative
+
                     new_hyp = deepcopy(hypothesis)
-                    token_id = index.unsqueeze(0).unsqueeze(0)
+                    token_id = index
 
                     # update hypothesis with new word and score
                     new_hyp.update(
