@@ -109,7 +109,6 @@ class Trainer:
 
             # initialize parameters uniformly
             for name, param in self.model.named_parameters():
-                print(name)
                 if "embedding" not in name:
                     param.data.uniform_(
                         - self.params.model.uniform_init,
