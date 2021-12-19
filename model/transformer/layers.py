@@ -157,25 +157,21 @@ class PositionalEncoding(nn.Module):
     def __init__(self, max_len, n_embed, dropout):
         super().__init__()
         self.dropout = nn.Dropout(dropout)
-        wm = torch.zeros(max_len, n_embed)
 
-        for position in range(max_len):
-            for i in range(n_embed):
-                # alternate sind and cosine values
-                if i % 2 == 0:
-                    value = math.sin(position / (10000 ** (2 * i / n_embed)))
-                else:
-                    value = math.cos(position / (10000 ** (2 * i / n_embed)))
+        # create sin/cos matrix
+        den = torch.exp(
+            -torch.arange(0, n_embed, 2) * math.log(10000) / n_embed
+        )
+        pos = torch.arange(0, max_len).reshape(max_len, 1)
+        pos_embedding = torch.zeros((max_len, n_embed))
+        pos_embedding[:, 0::2] = torch.sin(pos * den)
+        pos_embedding[:, 1::2] = torch.cos(pos * den)
+        pos_embedding = pos_embedding.unsqueeze(-2)
 
-                wm[position, i] = value
-
-        wm.requires_grad = False
-        self.register_buffer('weight', wm)
+        pos_embedding.requires_grad = False
+        self.register_buffer('weight', pos_embedding)
 
     def forward(self, x):
-        to_apply = self.weight.repeat(
-            x.shape[0], 1, 1
-        ).masked_fill(x == 0, 0)
+        to_apply = self.weight[x.size(0), :].masked_fill(x == 0, 0)
         x += to_apply
-
         return self.dropout(x)

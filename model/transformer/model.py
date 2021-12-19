@@ -148,7 +148,7 @@ class Transformer(nn.Module):
                 decoder_input, encoder_output, e_mask, d_mask
             )
 
-            # obtain last word
+            # obtain last word logits
             decoded = (decoded[:, t, :]).squeeze(1)
 
             # softmax to get negative log likelihood to sum scores

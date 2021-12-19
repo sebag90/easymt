@@ -109,6 +109,7 @@ class Trainer:
 
             # initialize parameters uniformly
             for name, param in self.model.named_parameters():
+                print(name)
                 if "embedding" not in name:
                     param.data.uniform_(
                         - self.params.model.uniform_init,
@@ -133,10 +134,18 @@ class Trainer:
 
         # optimizer
         if self.params.training.optimizer.lower() == "adam":
-            self.optimizer = torch.optim.Adam(
-                self.model.parameters(),
-                lr=self.params.training.learning_rate
-            )
+            if self.model.type == "transformer":
+                self.optimizer = torch.optim.Adam(
+                    self.model.parameters(),
+                    lr=self.params.training.learning_rate,
+                    betas=(0.9, 0.98),
+                    eps=1e-9
+                )
+            else:
+                self.optimizer = torch.optim.Adam(
+                    self.model.parameters(),
+                    lr=self.params.training.learning_rate
+                )
 
         elif self.params.training.optimizer.upper() == "SGD":
             self.optimizer = torch.optim.SGD(
