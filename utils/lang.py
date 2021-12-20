@@ -94,11 +94,14 @@ class Vocab:
 
 @total_ordering
 class Hypothesis:
-    def __init__(self):
+    def __init__(self, to_weight=True, alpha=5):
         self.score = 0
         self.tokens = list()
         self.attention_stack = list()
         self.decoder_state = None
+        self.doubles = dict()
+        self.alpha = alpha
+        self.to_weight = to_weight
 
     def __str__(self):
         return str(self.weigthed_score)
@@ -117,6 +120,24 @@ class Hypothesis:
             decoder_state[0]  # attention vector
         )
 
+        if self.to_weight:
+            self.apply_weighting()
+
+    def apply_weighting(self):
+        """
+        apply some weighting to the hypothesis score:
+          - each repeating pattern in the hypothesis
+            (ex. this pattern repeats, this pattern repeats)
+            will influence the score by alpha * number of repetition
+        """
+        doubles = self.find_subs(self.get_indeces().tolist())
+        if doubles:
+            for key, value in doubles.items():
+                if key not in self.doubles:
+                    self.doubles[key] = value
+                    extra_cost = value * self.alpha
+                    self.score -= extra_cost
+
     @property
     def weigthed_score(self):
         return self.score / len(self.tokens)
@@ -134,3 +155,25 @@ class Hypothesis:
 
     def get_attention(self):
         return torch.cat(self.attention_stack)
+
+    @staticmethod
+    def pattern_match(sublist, complete_list):
+        counter = 0
+        for i in range(len(complete_list) - len(sublist) + 1):
+            if complete_list[i:i+len(sublist)] == sublist:
+                counter += 1
+        return counter
+
+    @staticmethod
+    def find_subs(complete_list):
+        results = dict()
+        for i in range(len(complete_list)):
+            for j in range(len(complete_list)):
+                sub = complete_list[i:j]
+                if len(sub) > 1:
+                    n = Hypothesis.pattern_match(sub, complete_list)
+                    if n > 1:
+                        if tuple(sub) not in results:
+                            results[tuple(sub)] = n
+
+        return results
