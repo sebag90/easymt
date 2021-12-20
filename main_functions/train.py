@@ -13,6 +13,7 @@ import torch.nn as nn
 
 from model.model_generator import ModelGenerator
 from model.loss import MaskedLoss
+from model.optimizers import get_optimizer
 
 from utils.lang import Language
 from utils.dataset import (
@@ -131,34 +132,7 @@ class Trainer:
         # loss
         self.criterion = MaskedLoss()
 
-        # optimizer
-        if self.params.training.optimizer.lower() == "adam":
-            if self.model.type == "transformer":
-                self.optimizer = torch.optim.Adam(
-                    self.model.parameters(),
-                    lr=self.params.training.learning_rate,
-                    betas=(0.9, 0.98),
-                    eps=1e-9
-                )
-            else:
-                self.optimizer = torch.optim.Adam(
-                    self.model.parameters(),
-                    lr=self.params.training.learning_rate
-                )
-
-        elif self.params.training.optimizer.upper() == "SGD":
-            self.optimizer = torch.optim.SGD(
-                self.model.parameters(),
-                lr=self.params.training.learning_rate
-            )
-
-        # scheduler:
-        self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-            self.optimizer,
-            mode="min",
-            factor=self.params.training.lr_reducing_factor,
-            patience=self.params.training.patience
-        )
+        self.optimizer = get_optimizer(self.model, self.params)
 
     def save_model(self):
         """
@@ -251,11 +225,11 @@ class Trainer:
                     ts = int(t_1 - t_init)
                     print_loss = loss_memory.print_loss
                     ppl = math.exp(print_loss)
-                    lr = self.optimizer.param_groups[0]['lr']
+                    lr = self.optimizer.lr
                     print_time = datetime.timedelta(seconds=ts)
                     to_print = (
                         f"Step: {steps}/{self.params.training.steps} | "
-                        f"lr: {lr} | "
+                        f"lr: {round(lr, 5)} | "
                         f"Loss: {round((print_loss), 5):.5f} | "
                         f"ppl: {round(ppl, 5):.5f} | "
                         f"Time: {print_time}"
@@ -269,7 +243,7 @@ class Trainer:
                 # validation step
                 if steps % self.params.training.valid_steps == 0:
                     eval_loss = self.evaluate()
-                    self.scheduler.step(eval_loss)
+                    self.optimizer.scheduler_step(eval_loss)
                     print("-"*len(to_print), flush=True)
                     print(
                         f"Validation loss: {round((eval_loss.item()), 5):.5f}",
