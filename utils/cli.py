@@ -1,7 +1,106 @@
 import argparse
 
 
-def get_arguments():
+def easymt_arguments():
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers(dest="subparser")
+
+    # build vocab
+    vocab = subparsers.add_parser(
+        "build-vocab",
+        help="build a vocabulary from files"
+    )
+    vocab.add_argument(
+        "file1", metavar="PATH", action="store",
+        help="path to file 1"
+    )
+    vocab.add_argument(
+        "file2", metavar="PATH", action="store",
+        help="path to file 2"
+    )
+    vocab.add_argument(
+        "--n_sample", metavar="N", action="store",
+        help=(
+            "number of lines used to build vocabulary"
+            " (0 = full corpus - default: %(default)s)"
+        ),
+        default=0
+    )
+    vocab.add_argument(
+        "--min_freq", metavar="N", type=int,
+        help=(
+            "minimum frequency for a token to be included"
+            " (default: %(default)s)"
+        ),
+        default=2
+    )
+
+    # convert to byte
+    byte = subparsers.add_parser(
+        "convert-to-byte",
+        help="convert train files to byte files"
+    )
+    byte.add_argument(
+        "path", metavar="PATH", action="store",
+        help="path to the configuration file"
+    )
+    byte.add_argument(
+        "--n", metavar="N", action="store",
+        default=100,
+        help=(
+            "number of batches for each file"
+            " (Default: %(default)s)"
+        )
+    )
+
+    # train
+    train = subparsers.add_parser(
+        "train", help="train a new model"
+    )
+    train.add_argument(
+        "path", metavar="PATH", action="store",
+        help="path to the configuration file"
+    )
+    train.add_argument(
+        "--resume", action="store",
+        help="path to model to resume training"
+    )
+    train.add_argument(
+        "--batched", action="store_true",
+        help="train files are already batched"
+    )
+
+    # translate
+    translate = subparsers.add_parser(
+        "translate", help="translate a file"
+    )
+
+    translate.add_argument(
+        "file", metavar="FILE", action="store",
+        help="path to file to translate"
+    )
+    translate.add_argument(
+        "model", metavar="MODEL", action="store",
+        help="path to model"
+    )
+    translate.add_argument(
+        "--beam", metavar="N", action="store",
+        default=5,
+        help="size of search beam (default: %(default)s)"
+    )
+    translate.add_argument(
+        "--verbose", action="store_true",
+        help="print all candidates for each line"
+    )
+
+    args = parser.parse_args()
+    if args.subparser not in subparsers.choices.keys():
+        parser.print_help()
+        return
+    return args
+
+
+def texter_arguments():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest="subparser")
 
@@ -111,94 +210,6 @@ def get_arguments():
         required=True
     )
 
-    # build vocab
-    vocab = subparsers.add_parser(
-        "build-vocab",
-        help="build a vocabulary from files"
-    )
-    vocab.add_argument(
-        "file1", metavar="PATH", action="store",
-        help="path to file 1"
-    )
-    vocab.add_argument(
-        "file2", metavar="PATH", action="store",
-        help="path to file 2"
-    )
-    vocab.add_argument(
-        "--n_sample", metavar="N", action="store",
-        help=(
-            "number of lines used to build vocabulary"
-            " (0 = full corpus - default: %(default)s)"
-        ),
-        default=0
-    )
-    vocab.add_argument(
-        "--min_freq", metavar="N", type=int,
-        help=(
-            "minimum frequency for a token to be included"
-            " (default: %(default)s)"
-        ),
-        default=2
-    )
-
-    # convert to byte
-    byte = subparsers.add_parser(
-        "convert-to-byte",
-        help="convert train files to byte files"
-    )
-    byte.add_argument(
-        "path", metavar="PATH", action="store",
-        help="path to the configuration file"
-    )
-    byte.add_argument(
-        "--n", metavar="N", action="store",
-        default=100,
-        help=(
-            "number of batches for each file"
-            " (Default: %(default)s)"
-        )
-    )
-
-    # train
-    train = subparsers.add_parser(
-        "train", help="train a new model"
-    )
-    train.add_argument(
-        "path", metavar="PATH", action="store",
-        help="path to the configuration file"
-    )
-    train.add_argument(
-        "--resume", action="store",
-        help="path to model to resume training"
-    )
-    train.add_argument(
-        "--batched", action="store_true",
-        help="train files are already batched"
-    )
-
-    # translate
-    translate = subparsers.add_parser(
-        "translate", help="translate a file"
-    )
-
-    translate.add_argument(
-        "file", metavar="FILE", action="store",
-        help="path to file to translate"
-    )
-    translate.add_argument(
-        "model", metavar="MODEL", action="store",
-        help="path to model"
-    )
-    translate.add_argument(
-        "--beam", metavar="N", action="store",
-        default=5,
-        help="size of search beam (default: %(default)s)"
-    )
-    translate.add_argument(
-        "--verbose", action="store_true",
-        help="print all candidates for each line"
-    )
-
     # normalize
     normalize = subparsers.add_parser(
         "normalize",
@@ -211,6 +222,22 @@ def get_arguments():
     normalize.add_argument(
         "--subword", action="store_true",
         help="subword splitting was applied"
+    )
+
+    # replace numbers
+    replace_nums = subparsers.add_parser(
+        "replace-numbers",
+        help="replace <num> tokens in tokenized file"
+    )
+
+    replace_nums.add_argument(
+        "reference", action="store",
+        help="path to reference translation"
+    )
+
+    replace_nums.add_argument(
+        "translation", action="store",
+        help="path to translated document"
     )
 
     # evaluate
@@ -230,22 +257,6 @@ def get_arguments():
     evaluate.add_argument(
         "-lc", action="store_true",
         help="compute BLEU on lowercased text"
-    )
-
-    # replace numbers
-    replace_nums = subparsers.add_parser(
-        "replace-numbers",
-        help="replace <num> tokens in tokenized file"
-    )
-
-    replace_nums.add_argument(
-        "reference", action="store",
-        help="path to reference translation"
-    )
-
-    replace_nums.add_argument(
-        "translation", action="store",
-        help="path to translated document"
     )
 
     args = parser.parse_args()
