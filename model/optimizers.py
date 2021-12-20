@@ -43,6 +43,9 @@ class NoamOpt(Optimizer):
         self._rate = rate
         self.optimizer.step()
 
+    def set_step(self, step):
+        self._step = step
+
     def zero_grad(self):
         self.optimizer.zero_grad()
 
@@ -58,11 +61,12 @@ class NoamOpt(Optimizer):
         """
         if step is None:
             step = self._step
-        return self.factor * (
-            self.model_size ** (-0.5) * min(
-                step ** (-0.5), step * self.warmup ** (-1.5)
-                )
-            )
+
+        # calculate learning rate based on step
+        d_size = self.model_size ** (-0.5)
+        min_factor = min(step ** (-0.5), step * self.warmup ** (-1.5))
+
+        return self.factor * (d_size * min_factor)
 
 
 def get_optimizer(model, params):
@@ -77,6 +81,8 @@ def get_optimizer(model, params):
                 betas=(0.9, 0.98),
                 eps=1e-9)
             )
+
+        opt.set_step(model.steps)
 
         return opt
 
