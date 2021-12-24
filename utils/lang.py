@@ -107,7 +107,7 @@ class Hypothesis:
         return str(self.weigthed_score)
 
     def __repr__(self):
-        return self.__str__()
+        return f"Hypothesis({round(self.weigthed_score, 5)})"
 
     def __lt__(self, other):
         return self.weigthed_score < other.weigthed_score
