@@ -130,7 +130,10 @@ class Trainer:
         self.model.train()
 
         # loss
-        self.criterion = MaskedLoss()
+        self.criterion = MaskedLoss(
+            padding_idx=0,
+            smoothing=self.params.training.label_smoothing
+        )
 
         self.optimizer = get_optimizer(self.model, self.params)
 
