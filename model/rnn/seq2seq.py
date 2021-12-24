@@ -1,5 +1,4 @@
 from copy import deepcopy
-from pathlib import Path
 import random
 
 import torch
@@ -10,13 +9,7 @@ from utils.lang import Hypothesis
 
 
 class seq2seq(nn.Module):
-    def __init__(
-            self,
-            encoder,
-            decoder,
-            src_lang,
-            tgt_lang,
-            max_len):
+    def __init__(self, encoder, decoder, src_lang, tgt_lang, max_len):
         super().__init__()
         self.type = "rnn"
         self.encoder = encoder
@@ -41,17 +34,6 @@ class seq2seq(nn.Module):
             f"{self.decoder}"
         )
         return obj_str
-
-    def save(self, outputpath):
-        """
-        save model to a pickle file
-        """
-        l1 = self.src_lang.name
-        l2 = self.tgt_lang.name
-        st = self.steps
-        path = Path(f"{outputpath}/{self.type}_{l1}-{l2}_{st}.pt")
-
-        torch.save(self, path)
 
     def encode(self, input_var, lengths, device):
         """
@@ -85,8 +67,7 @@ class seq2seq(nn.Module):
             encoder_cell, encoder_outputs
         )
 
-    def train_batch(
-            self, batch, device, teacher_forcing_ratio, criterion):
+    def forward(self, batch, device, teacher_forcing_ratio, criterion):
         """
         calculate and return the error on a mini batch
         """

@@ -1,5 +1,4 @@
 from copy import deepcopy
-from pathlib import Path
 
 import torch
 import torch.nn as nn
@@ -9,13 +8,7 @@ from utils.lang import Hypothesis
 
 
 class Transformer(nn.Module):
-    def __init__(
-            self,
-            encoder,
-            decoder,
-            src_lang,
-            tgt_lang,
-            max_len):
+    def __init__(self, encoder, decoder, src_lang, tgt_lang, max_len):
         super().__init__()
         self.type = "transformer"
         self.encoder = encoder
@@ -41,18 +34,7 @@ class Transformer(nn.Module):
         )
         return obj_str
 
-    def save(self, outputpath):
-        """
-        save model to a pickle file
-        """
-        l1 = self.src_lang.name
-        l2 = self.tgt_lang.name
-        st = self.steps
-        path = Path(f"{outputpath}/{self.type}_{l1}-{l2}_{st}.pt")
-
-        torch.save(self, path)
-
-    def train_batch(self, batch, device, teacher_forcing_ratio, criterion):
+    def forward(self, batch, device, teacher_forcing_ratio, criterion):
         input_var, decoder_input, target_var, e_mask, d_mask = batch
 
         # move tensors to device

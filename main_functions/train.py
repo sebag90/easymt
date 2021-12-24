@@ -180,7 +180,7 @@ class Trainer:
                 self.model.max_len,
                 self.tgt_language.word2index["<sos>"]
             )
-            loss = self.model.train_batch(
+            loss = self.model(
                 input_batch,
                 self.device,
                 1,
@@ -219,7 +219,7 @@ class Trainer:
                 )
 
                 # process batch
-                loss = self.model.train_batch(
+                loss = self.model(
                     input_batch,
                     self.device,
                     self.params.training.teacher_ratio,
