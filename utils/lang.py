@@ -120,8 +120,8 @@ class Hypothesis:
             decoder_state[0]  # attention vector
         )
 
-        if self.to_weight:
-            self.apply_weighting()
+        # if self.to_weight:
+        #     self.apply_weighting()
 
     def apply_weighting(self):
         """

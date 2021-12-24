@@ -1,6 +1,5 @@
 from copy import deepcopy
 from pathlib import Path
-import pickle
 import random
 
 import torch
@@ -52,17 +51,7 @@ class seq2seq(nn.Module):
         st = self.steps
         path = Path(f"{outputpath}/{self.type}_{l1}-{l2}_{st}.pt")
 
-        with open(path, "wb") as ofile:
-            pickle.dump(self, ofile)
-
-    @classmethod
-    def load(cls, inputpath):
-        """
-        load model from pickle file
-        """
-        with open(inputpath, "rb") as infile:
-            obj = pickle.load(infile)
-            return obj
+        torch.save(self, path)
 
     def encode(self, input_var, lengths, device):
         """

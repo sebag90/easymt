@@ -1,5 +1,3 @@
-import pickle
-
 from model.rnn.seq2seq import seq2seq
 from model.transformer.model import Transformer
 
@@ -76,11 +74,3 @@ class ModelGenerator:
             )
 
         return model
-
-    def from_file(self, path):
-        """
-        load model from pickle file
-        """
-        with open(path, "rb") as infile:
-            obj = pickle.load(infile)
-            return obj

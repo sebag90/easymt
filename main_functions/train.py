@@ -77,7 +77,7 @@ class Trainer:
 
         else:
             # load from file
-            self.model = self.model_generator.from_file(Path(self.resume))
+            self.model = torch.load(Path(self.resume))
             self.src_language = self.model.src_lang
             self.tgt_language = self.model.tgt_lang
 

@@ -7,15 +7,12 @@ import os
 
 import torch
 
-from model.model_generator import ModelGenerator
-
 from utils.utils import name_suffix_from_file
 
 
 def translate(args):
     inputfile = Path(args.file)
-    generator = ModelGenerator(None)
-    model = generator.from_file(Path(args.model))
+    model = torch.load(Path(args.model))
     beam_size = int(args.beam)
 
     # pick device

@@ -1,6 +1,5 @@
 from copy import deepcopy
 from pathlib import Path
-import pickle
 
 import torch
 import torch.nn as nn
@@ -51,17 +50,7 @@ class Transformer(nn.Module):
         st = self.steps
         path = Path(f"{outputpath}/{self.type}_{l1}-{l2}_{st}.pt")
 
-        with open(path, "wb") as ofile:
-            pickle.dump(self, ofile)
-
-    @classmethod
-    def load(cls, inputpath):
-        """
-        load model from pickle file
-        """
-        with open(inputpath, "rb") as infile:
-            obj = pickle.load(infile)
-            return obj
+        torch.save(self, path)
 
     def train_batch(self, batch, device, teacher_forcing_ratio, criterion):
         input_var, decoder_input, target_var, e_mask, d_mask = batch
