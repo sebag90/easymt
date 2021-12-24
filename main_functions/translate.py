@@ -12,7 +12,8 @@ from utils.utils import name_suffix_from_file
 
 def translate(args):
     inputfile = Path(args.file)
-    model = torch.load(Path(args.model))
+    checkpoint = torch.load(Path(args.model))
+    model = checkpoint["model"]
     beam_size = int(args.beam)
 
     # pick device

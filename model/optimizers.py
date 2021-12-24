@@ -19,6 +19,12 @@ class Optimizer:
     def lr(self):
         return self.optimizer.param_groups[0]['lr']
 
+    def state_dict(self):
+        return self.optimizer.state_dict()
+
+    def load_state_dict(self, *args, **kwargs):
+        self.optimizer.load_state_dict(*args, **kwargs)
+
 
 class NoamOpt(Optimizer):
     """

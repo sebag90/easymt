@@ -77,7 +77,8 @@ class Trainer:
 
         else:
             # load from file
-            self.model = torch.load(Path(self.resume))
+            checkpoint = torch.load(Path(self.resume))
+            self.model = checkpoint["model"]
             self.src_language = self.model.src_lang
             self.tgt_language = self.model.tgt_lang
 
@@ -137,6 +138,11 @@ class Trainer:
 
         self.optimizer = get_optimizer(self.model, self.params)
 
+        # load optimizer
+        if self.resume:
+            checkpoint = torch.load(Path(self.resume))
+            self.optimizer.load_state_dict(checkpoint["optimizer"])
+
     def save_model(self):
         """
         move model to cpu and save it
@@ -146,8 +152,18 @@ class Trainer:
 
         # save model
         os.makedirs("pretrained_models", exist_ok=True)
-        self.model.save("pretrained_models/")
 
+        l1 = self.model.src_lang.name
+        l2 = self.model.tgt_lang.name
+        st = self.model.steps
+        path = Path(f"pretrained_models/{self.model.type}_{l1}-{l2}_{st}.pt")
+
+        torch.save({
+                "model": self.model,
+                "optimizer": self.optimizer.state_dict()
+            },
+            path
+        )
         print("Model saved", flush=True)
 
     @torch.no_grad()
@@ -280,5 +296,5 @@ def train(args):
     try:
         trainer.train_loop()
     except KeyboardInterrupt:
-        pass
+        print("Aborting...")
     trainer.save_model()
