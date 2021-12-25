@@ -9,18 +9,18 @@ from utils.errors import DimensionError
 
 class DecoderLayer(nn.Module):
     def __init__(
-            self, n_embed, n_head, dim_ff, attn_dropout, residual_dropout):
+            self, d_model, n_head, dim_ff, attn_dropout, residual_dropout):
         super().__init__()
-        self.norm1 = LayerNormalizer(n_embed)
+        self.norm1 = LayerNormalizer(d_model)
         self.masked_attn = MultiHeadAttention(
-            n_head, n_embed, attn_dropout, residual_dropout
+            n_head, d_model, attn_dropout, residual_dropout
         )
-        self.norm2 = LayerNormalizer(n_embed)
+        self.norm2 = LayerNormalizer(d_model)
         self.attn = MultiHeadAttention(
-            n_head, n_embed, attn_dropout, residual_dropout
+            n_head, d_model, attn_dropout, residual_dropout
         )
-        self.norm3 = LayerNormalizer(n_embed)
-        self.ff = FeedForward(n_embed, dim_ff, residual_dropout)
+        self.norm3 = LayerNormalizer(d_model)
+        self.ff = FeedForward(d_model, dim_ff, residual_dropout)
 
     def forward(self, x, encoder_output, encoder_mask, decoder_mask):
         masked_attn_input = self.norm1(x)
@@ -46,15 +46,15 @@ class DecoderLayer(nn.Module):
 
 class EncoderLayer(nn.Module):
     def __init__(
-            self, n_embed, n_head, dim_ff, attn_dropout, residual_dropout):
+            self, d_model, n_head, dim_ff, attn_dropout, residual_dropout):
         super().__init__()
-        self.norm_1 = LayerNormalizer(n_embed)
+        self.norm_1 = LayerNormalizer(d_model)
         self.multi_attention = MultiHeadAttention(
-            n_head, n_embed, attn_dropout, residual_dropout
+            n_head, d_model, attn_dropout, residual_dropout
         )
 
-        self.norm_2 = LayerNormalizer(n_embed)
-        self.ff = FeedForward(n_embed, dim_ff, residual_dropout)
+        self.norm_2 = LayerNormalizer(d_model)
+        self.ff = FeedForward(d_model, dim_ff, residual_dropout)
 
     def forward(self, x, mask):
         att_input = self.norm_1(x)
@@ -64,18 +64,18 @@ class EncoderLayer(nn.Module):
 
 
 class MultiHeadAttention(nn.Module):
-    def __init__(self, n_head, n_embed, attn_dropout, residual_dropout):
+    def __init__(self, n_head, d_model, attn_dropout, residual_dropout):
         super().__init__()
-        if not n_embed % n_head == 0:
+        if not d_model % n_head == 0:
             raise DimensionError(
                 "Number of heads must be a multiple of "
                 "embedding dimension"
             )
         self.n_head = n_head
-        self.d_k = n_embed // n_head
-        self.query = nn.Linear(n_embed, n_embed)
-        self.key = nn.Linear(n_embed, n_embed)
-        self.value = nn.Linear(n_embed, n_embed)
+        self.d_k = d_model // n_head
+        self.query = nn.Linear(d_model, d_model)
+        self.key = nn.Linear(d_model, d_model)
+        self.value = nn.Linear(d_model, d_model)
 
         # dropout
         self.dropout = nn.Dropout(residual_dropout)
@@ -84,7 +84,7 @@ class MultiHeadAttention(nn.Module):
         self.attention = SelfAttention(attn_dropout)
 
         # projection layer
-        self.projection_layer = nn.Linear(n_embed, n_embed)
+        self.projection_layer = nn.Linear(d_model, d_model)
 
     def forward(self, q, k, v, mask=None):
         B, T, C = q.shape
@@ -129,13 +129,13 @@ class SelfAttention(nn.Module):
 
 
 class FeedForward(nn.Module):
-    def __init__(self, n_embed, dim_ff, dropout):
+    def __init__(self, d_model, dim_ff, dropout):
         super().__init__()
         self.layers = nn.Sequential(
-            nn.Linear(n_embed, dim_ff),
+            nn.Linear(d_model, dim_ff),
             nn.ReLU(),
             nn.Dropout(dropout),
-            nn.Linear(dim_ff, n_embed),
+            nn.Linear(dim_ff, d_model),
             nn.Dropout(dropout)
         )
 
@@ -144,25 +144,25 @@ class FeedForward(nn.Module):
 
 
 class LayerNormalizer(nn.Module):
-    def __init__(self, n_embed):
+    def __init__(self, d_model):
         super().__init__()
-        self.layer = nn.LayerNorm(n_embed)
+        self.layer = nn.LayerNorm(d_model)
 
     def forward(self, x):
         return self.layer(x)
 
 
 class PositionalEncoding(nn.Module):
-    def __init__(self, max_len, n_embed, dropout):
+    def __init__(self, max_len, d_model, dropout):
         super().__init__()
         self.dropout = nn.Dropout(dropout)
 
         # create sin/cos matrix
         den = torch.exp(
-            -torch.arange(0, n_embed, 2) * math.log(10000) / n_embed
+            -torch.arange(0, d_model, 2) * math.log(10000) / d_model
         )
         pos = torch.arange(0, max_len).reshape(max_len, 1)
-        pos_embedding = torch.zeros((max_len, n_embed))
+        pos_embedding = torch.zeros((max_len, d_model))
         pos_embedding[:, 0::2] = torch.sin(pos * den)
         pos_embedding[:, 1::2] = torch.cos(pos * den)
         pos_embedding = pos_embedding.unsqueeze(0)
