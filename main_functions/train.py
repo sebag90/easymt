@@ -47,10 +47,10 @@ class Memory:
 
 
 class Trainer:
-    def __init__(self, args):
-        self.resume = args.resume
-        self.batched = args.batched
-        self.params = Parameters.from_config(args.path)
+    def __init__(self, resume, batched, params):
+        self.resume = resume
+        self.batched = batched
+        self.params = params
         self.model_generator = ModelGenerator(self.params.model.type)
 
         # pick device
@@ -77,8 +77,11 @@ class Trainer:
 
         else:
             # load from file
-            checkpoint = torch.load(Path(self.resume))
-            self.model = checkpoint["model"]
+            self.checkpoint = torch.load(
+                Path(self.resume),
+                map_location=self.device
+            )
+            self.model = self.checkpoint["model"]
             self.src_language = self.model.src_lang
             self.tgt_language = self.model.tgt_lang
 
@@ -140,16 +143,14 @@ class Trainer:
 
         # load optimizer
         if self.resume:
-            checkpoint = torch.load(Path(self.resume))
-            self.optimizer.load_state_dict(checkpoint["optimizer"])
+            self.optimizer.load_state_dict(
+                self.checkpoint["optimizer"]
+            )
+
+            # remove checkpoint attribute from trainer
+            delattr(self, "checkpoint")
 
     def save_model(self):
-        """
-        move model to cpu and save it
-        """
-        # move model to cpu
-        self.model.to("cpu")
-
         # save model
         os.makedirs("pretrained_models", exist_ok=True)
 
@@ -183,7 +184,7 @@ class Trainer:
             loss = self.model(
                 input_batch,
                 self.device,
-                1,
+                1,  # with teacher for consistent results
                 self.criterion
             )
 
@@ -206,12 +207,13 @@ class Trainer:
             loss_memory = Memory()
 
             # shuffle data
-            self.train_data.create_order()
+            self.train_data.shuffle()
 
             # start training loop over batches
             for batch in self.train_data:
                 self.optimizer.zero_grad()
 
+                # convert batch to model input
                 input_batch = self.data_converter(
                     *batch,
                     self.model.max_len,
@@ -273,9 +275,7 @@ class Trainer:
                 # save model
                 if self.params.training.save_every != 0:
                     if steps % self.params.training.save_every == 0:
-                        # important! move back to GPU after saving
                         self.save_model()
-                        self.model.to(self.device)
 
                 # check if end of training
                 if steps == self.params.training.steps:
@@ -290,7 +290,13 @@ class Trainer:
 
 
 def train(args):
-    trainer = Trainer(args)
+    # extract arguments
+    resume = args.resume
+    batched = args.batched
+    params = Parameters.from_config(args.path)
+
+    # initialize trainer
+    trainer = Trainer(resume, batched, params)
     trainer.read_data()
     trainer.create_model()
     try:

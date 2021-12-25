@@ -2,9 +2,13 @@ import torch
 
 
 class Optimizer:
-    def __init__(self, optimizer, scheduler):
+    def __init__(self, optimizer, scheduler, name):
         self.optimizer = optimizer
         self.scheduler = scheduler
+        self.name = name
+
+    def __repr__(self):
+        return f"Optimizer({self.name} | lr: {round(self.lr, 5)})"
 
     def zero_grad(self):
         self.optimizer.zero_grad()
@@ -30,13 +34,12 @@ class NoamOpt(Optimizer):
     """
     Optim wrapper that implements rate.
     """
-    def __init__(self, model_size, factor, warmup, optimizer):
-        super().__init__(optimizer, None)
-        self._step = 0
+    def __init__(self, model_size, factor, warmup, optimizer, step):
+        super().__init__(optimizer, None, "Noam")
+        self._step = step
         self.warmup = warmup
         self.factor = factor
         self.model_size = model_size
-        self._rate = 0
 
     def step(self):
         """
@@ -46,11 +49,7 @@ class NoamOpt(Optimizer):
         rate = self.rate()
         for p in self.optimizer.param_groups:
             p['lr'] = rate
-        self._rate = rate
         self.optimizer.step()
-
-    def set_step(self, step):
-        self._step = step
 
     def zero_grad(self):
         self.optimizer.zero_grad()
@@ -78,19 +77,20 @@ class NoamOpt(Optimizer):
 def get_optimizer(model, params):
     if params.training.optimizer == "noam":
         opt = NoamOpt(
-            params.transformer.d_model,
-            params.transformer.noam_factor,
-            params.transformer.warm_up,
-            torch.optim.Adam(
+            model_size=params.transformer.d_model,
+            factor=params.transformer.noam_factor,
+            warmup=params.transformer.warm_up,
+            optimizer=torch.optim.Adam(
                 model.parameters(),
                 lr=0,
                 betas=(0.9, 0.98),
-                eps=1e-9)
+                eps=1e-9),
+            step=model.steps            
             )
 
-        opt.set_step(model.steps)
-
         return opt
+
+    name = params.training.optimizer.capitalize()
 
     # optimizer
     if params.training.optimizer.lower() == "adam":
@@ -113,4 +113,4 @@ def get_optimizer(model, params):
         patience=params.training.patience
     )
 
-    return Optimizer(optimizer, scheduler)
+    return Optimizer(optimizer, scheduler, name)

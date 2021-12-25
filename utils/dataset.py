@@ -27,11 +27,10 @@ class Pair:
 
 
 class DataLoader:
-    def __init__(self, src, tgt, shuffle=False, batch_size=32):
+    def __init__(self, src, tgt, batch_size=32):
         if not len(src) == len(tgt):
             raise ValueError
         self.batch_size = batch_size
-        self.shuffle = shuffle
         self.data = list()
         self.bins = dict()
 
@@ -45,9 +44,9 @@ class DataLoader:
                 self.bins[p.len] = list()
             self.bins[p.len].append(i)
 
-        self.create_order()
+        self.shuffle()
 
-    def create_order(self):
+    def shuffle(self):
         """
         Order is based on length of input sentence.
         First the keys of self.bins are shuffled and then
@@ -100,7 +99,7 @@ class DataLoader:
                     src.append(l1_coded)
                     tgt.append(l2_coded)
 
-        data = cls(src, tgt, shuffle=True, batch_size=batch_size)
+        data = cls(src, tgt, batch_size=batch_size)
         return data
 
 
@@ -120,9 +119,9 @@ class BatchedData:
     def __len__(self):
         return self.len
 
-    def create_order(self):
+    def shuffle(self):
         """
-        do nothing, placeholder
+        batched data cannot be shuffled, placeholder
         """
         pass
 

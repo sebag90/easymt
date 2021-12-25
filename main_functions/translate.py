@@ -12,8 +12,6 @@ from utils.utils import name_suffix_from_file
 
 def translate(args):
     inputfile = Path(args.file)
-    checkpoint = torch.load(Path(args.model))
-    model = checkpoint["model"]
     beam_size = int(args.beam)
 
     # pick device
@@ -22,6 +20,9 @@ def translate(args):
     )
     cpu = os.cpu_count()
     torch.set_num_threads(cpu)
+
+    checkpoint = torch.load(Path(args.model), map_location=device)
+    model = checkpoint["model"]
 
     # transfer model and set eval mode
     model.to(device)
