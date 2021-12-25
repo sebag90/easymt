@@ -77,9 +77,9 @@ class NoamOpt(Optimizer):
 def get_optimizer(model, params):
     if params.training.optimizer == "noam":
         opt = NoamOpt(
-            model_size=params.transformer.d_model,
-            factor=params.transformer.noam_factor,
-            warmup=params.transformer.warm_up,
+            model_size=model.size,
+            factor=params.training.noam_factor,
+            warmup=params.training.warm_up,
             optimizer=torch.optim.Adam(
                 model.parameters(),
                 lr=0,

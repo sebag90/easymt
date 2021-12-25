@@ -17,6 +17,7 @@ class Transformer(nn.Module):
         self.tgt_lang = tgt_lang
         self.max_len = max_len
         self.steps = 0
+        self.size = encoder.d_model
 
     def __repr__(self):
         # count trainable parameters

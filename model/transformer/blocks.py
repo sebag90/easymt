@@ -7,7 +7,7 @@ from model.transformer.layers import (
 
 class Encoder(nn.Module):
     def __init__(self,
-                 n_embed,
+                 d_model,
                  n_head,
                  dim_ff,
                  attn_dropout,
@@ -16,17 +16,18 @@ class Encoder(nn.Module):
                  vocab_size,
                  max_len):
         super().__init__()
+        self.d_model = d_model
         self.embedding = nn.Embedding(
             vocab_size,
-            n_embed,
+            d_model,
             padding_idx=0
         )
         self.positional_encoding = PositionalEncoding(
-            max_len, n_embed, residual_dropout
+            max_len, d_model, residual_dropout
         )
         self.layers = nn.ModuleList([
             EncoderLayer(
-                n_embed,
+                d_model,
                 n_head,
                 dim_ff,
                 attn_dropout,
@@ -34,7 +35,7 @@ class Encoder(nn.Module):
             ) for _ in range(num_layers)
         ])
 
-        self.norm = LayerNormalizer(n_embed)
+        self.norm = LayerNormalizer(d_model)
 
     def forward(self, x, mask):
         x = self.embedding(x)
@@ -48,7 +49,7 @@ class Encoder(nn.Module):
 
 class Decoder(nn.Module):
     def __init__(self,
-                 n_embed,
+                 d_model,
                  n_head,
                  dim_ff,
                  attn_dropout,
@@ -57,17 +58,18 @@ class Decoder(nn.Module):
                  vocab_size,
                  max_len):
         super().__init__()
+        self.d_model = d_model
         self.embedding = nn.Embedding(
             vocab_size,
-            n_embed,
+            d_model,
             padding_idx=0
         )
         self.positional_encoding = PositionalEncoding(
-            max_len, n_embed, residual_dropout
+            max_len, d_model, residual_dropout
         )
         self.layers = nn.ModuleList([
             DecoderLayer(
-                n_embed,
+                d_model,
                 n_head,
                 dim_ff,
                 attn_dropout,
@@ -75,8 +77,8 @@ class Decoder(nn.Module):
             ) for _ in range(num_layers)
         ])
 
-        self.norm = LayerNormalizer(n_embed)
-        self.out = nn.Linear(n_embed, vocab_size)
+        self.norm = LayerNormalizer(d_model)
+        self.out = nn.Linear(d_model, vocab_size)
 
     def forward(self, x, encoder_output, encoder_mask, decoder_mask):
         x = self.embedding(x)

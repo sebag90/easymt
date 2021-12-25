@@ -44,7 +44,7 @@ class ModelGenerator:
 
         elif params.model.type == "transformer":
             encoder = tr_encoder(
-                n_embed=params.transformer.d_model,
+                d_model=params.transformer.d_model,
                 n_head=params.transformer.heads,
                 dim_ff=params.transformer.dim_feedforward,
                 attn_dropout=params.transformer.attn_dropout,
@@ -55,7 +55,7 @@ class ModelGenerator:
             )
 
             decoder = tr_decoder(
-                n_embed=params.transformer.d_model,
+                d_model=params.transformer.d_model,
                 n_head=params.transformer.heads,
                 dim_ff=params.transformer.dim_feedforward,
                 attn_dropout=params.transformer.attn_dropout,
