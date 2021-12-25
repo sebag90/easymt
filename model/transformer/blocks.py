@@ -78,7 +78,7 @@ class Decoder(nn.Module):
         ])
 
         self.norm = LayerNormalizer(d_model)
-        self.out = nn.Linear(d_model, vocab_size)
+        self.generator = nn.Linear(d_model, vocab_size)
 
     def forward(self, x, encoder_output, encoder_mask, decoder_mask):
         x = self.embedding(x)
@@ -88,5 +88,5 @@ class Decoder(nn.Module):
             x = layer(x, encoder_output, encoder_mask, decoder_mask)
 
         x = self.norm(x)
-        output = self.out(x)
+        output = self.generator(x)
         return output
