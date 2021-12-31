@@ -97,7 +97,7 @@ class Pipeline:
                 for i, line in enumerate(infile):
                     line = processor(line)
                     ofile.write(f"{line}\n")
-                    print(f"Preprocessing: line {i}", end="\r")
+                    print(f"Preprocessing: line {i:,}", end="\r")
 
             # remove step input
             os.remove(Path(f"data/step_input.{self.language}"))
@@ -128,7 +128,7 @@ class Pipeline:
                         line = processor(line)
 
                 ofile.write(f"{line}\n")
-                print(f"Preprocessing: line {i}", end="\r")
+                print(f"Preprocessing: line {i:,}", end="\r")
 
         print(" " * 50, end="\r")
         t_1 = time.time()

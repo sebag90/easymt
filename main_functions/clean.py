@@ -19,24 +19,15 @@ def clean(args):
         ratio=args.ratio
     )
 
-    # make sure files have same number of lines
-    len_f1 = count_lines(file_1)
-    len_f2 = count_lines(file_2)
-
-    if len_f1 != len_f2:
-        raise FileError(
-            "Documents have differents lengths"
-        )
-
     # create output files
     f1_name, f1_suffix = name_suffix_from_file(str(file_1))
     ofile1 = open(
-        Path(f"{f1_name}_clean.{f1_suffix}"), "w", encoding="utf-8"
+        Path(f"{f1_name}.clean.{f1_suffix}"), "w", encoding="utf-8"
     )
 
     f2_name, f2_suffix = name_suffix_from_file(str(file_2))
     ofile2 = open(
-        Path(f"{f2_name}_clean.{f2_suffix}"), "w", encoding="utf-8"
+        Path(f"{f2_name}.clean.{f2_suffix}"), "w", encoding="utf-8"
     )
 
     with open(file_1, "r", encoding="utf-8") as f1, \
@@ -51,7 +42,7 @@ def clean(args):
                 ofile1.write(f"{cleaned1}\n")
                 ofile2.write(f"{cleaned2}\n")
 
-            print(f"Cleaning: line {i}", end="\r")
+            print(f"Cleaning: line {i:,}", end="\r")
 
     # close output files
     ofile1.close()

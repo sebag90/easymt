@@ -38,7 +38,7 @@ def normalize(args):
             # write output
             ofile.write(f"{to_write}\n")
 
-            print(f"Normalizing: line {i}", end="\r")
+            print(f"Normalizing: line {i:,}", end="\r")
 
     print(" "*50, end="\r")
     print("Normalizing: complete")

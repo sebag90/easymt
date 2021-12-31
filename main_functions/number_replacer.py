@@ -46,7 +46,7 @@ def replace_numbers(args):
             line = " ".join(sen)
 
             ofile.write(f"{line}\n")
-            print(f"Replacing numbers: line {i}", end="\r")
+            print(f"Replacing numbers: line {i:,}", end="\r")
 
     ofile.close()
     print(" " * 50, end="\r")
