@@ -36,6 +36,20 @@ class seq2seq(nn.Module):
         )
         return obj_str
 
+    def prepare_batch(self, src, tgt):
+        # prepare source data
+        src_len = torch.tensor([len(indexes) for indexes in src])
+        src_pad = nn.utils.rnn.pad_sequence(src)
+
+        # prepare target data
+        max_tgt_len = max([len(indexes) for indexes in tgt])
+        tgt_pad = nn.utils.rnn.pad_sequence(tgt)
+
+        # prepare mask
+        mask = tgt_pad != 0
+
+        return src_pad, src_len, tgt_pad, mask, max_tgt_len
+
     def encode(self, input_var, lengths, device):
         """
         encode a batch of sentences for translation

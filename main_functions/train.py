@@ -16,11 +16,8 @@ from model.loss import MaskedLoss
 from model.optimizers import get_optimizer
 
 from utils.lang import Language
-from utils.dataset import (
-    DataLoader, BatchedData,
-    RNNDataConverter,
-    TransformerDataConverter
-)
+from utils.dataset import DataLoader, BatchedData
+
 from utils.parameters import Parameters
 
 
@@ -128,12 +125,6 @@ class Trainer:
                         self.params.model.uniform_init
                     )
 
-        # define data converter
-        if self.model.type == "rnn":
-            self.data_converter = RNNDataConverter()
-        elif self.model.type == "transformer":
-            self.data_converter = TransformerDataConverter()
-
         print(self.model, flush=True)
         # move model to device
         self.model.to(self.device)
@@ -222,11 +213,7 @@ class Trainer:
                 self.optimizer.zero_grad()
 
                 # convert batch to model input
-                input_batch = self.data_converter(
-                    *batch,
-                    self.model.max_len,
-                    self.tgt_language.word2index["<sos>"]
-                )
+                input_batch = self.model.prepare_batch(*batch)
 
                 # process batch
                 loss = self.model(

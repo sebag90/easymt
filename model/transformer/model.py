@@ -35,6 +35,39 @@ class Transformer(nn.Module):
         )
         return obj_str
 
+    def prepare_batch(self, src, tgt):
+        # create target variables by removing <eos> token
+        decoder_input = list()
+        for sentence in tgt:
+            decoder_input.append(sentence[:-1])
+
+        decoder_input = nn.utils.rnn.pad_sequence(
+            decoder_input, batch_first=True
+        )
+        src = nn.utils.rnn.pad_sequence(
+            src, batch_first=True
+        )
+        target = nn.utils.rnn.pad_sequence(
+            tgt, batch_first=True
+        )
+
+        # add <sos> padding to decoder input
+        sos = self.tgt_lang.word2index["<sos>"]
+        sos_padder = torch.nn.ConstantPad2d((1, 0, 0, 0), sos)
+        decoder_input = sos_padder(decoder_input)
+
+        # create masks
+        e_mask = (src != 0).unsqueeze(1)
+        d_mask = (decoder_input != 0).unsqueeze(1)
+        subseq_mask = torch.ones(
+            (1, decoder_input.size(1), decoder_input.size(1)),
+            dtype=torch.bool
+        )
+        subseq_mask = torch.tril(subseq_mask)
+        d_mask = torch.logical_and(d_mask, subseq_mask)
+
+        return src, decoder_input, target, e_mask, subseq_mask
+
     def forward(self, batch, device, teacher_forcing_ratio, criterion):
         input_var, decoder_input, target_var, e_mask, d_mask = batch
 

@@ -6,8 +6,6 @@ from pathlib import Path
 import random
 import re
 
-import torch
-
 
 @total_ordering
 class Pair:
@@ -135,53 +133,3 @@ class BatchedData:
             # batches is always a list of batches
             for batch in batches:
                 yield batch
-
-
-class RNNDataConverter:
-    def __call__(self, src, tgt, max_len, sos_index_tgt_lang):
-        # prepare source data
-        src_len = torch.tensor([len(indexes) for indexes in src])
-        src_pad = torch.nn.utils.rnn.pad_sequence(src)
-
-        # prepare target data
-        max_tgt_len = max([len(indexes) for indexes in tgt])
-        tgt_pad = torch.nn.utils.rnn.pad_sequence(tgt)
-
-        # prepare mask
-        mask = tgt_pad != 0
-
-        return src_pad, src_len, tgt_pad, mask, max_tgt_len
-
-
-class TransformerDataConverter:
-    def __call__(self, src, tgt, max_len, sos_index_tgt_lang):
-        # create target variables by removing <eos> token
-        decoder_input = list()
-        for sentence in tgt:
-            decoder_input.append(sentence[:-1])
-
-        decoder_input = torch.nn.utils.rnn.pad_sequence(
-            decoder_input, batch_first=True
-        )
-        src = torch.nn.utils.rnn.pad_sequence(
-            src, batch_first=True
-        )
-        target = torch.nn.utils.rnn.pad_sequence(
-            tgt, batch_first=True
-        )
-
-        # add <sos> padding to decoder input
-        sos_padder = torch.nn.ConstantPad2d((1, 0, 0, 0), sos_index_tgt_lang)
-        decoder_input = sos_padder(decoder_input)
-
-        # create masks
-        e_mask = (src != 0).unsqueeze(1)
-        d_mask = (decoder_input != 0).unsqueeze(1)
-        subseq_mask = torch.ones(
-            (1, decoder_input.size(1), decoder_input.size(1)),
-            dtype=torch.bool
-        )
-        subseq_mask = torch.tril(subseq_mask)
-        d_mask = torch.logical_and(d_mask, subseq_mask)
-
-        return src, decoder_input, target, e_mask, subseq_mask
