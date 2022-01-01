@@ -5,6 +5,7 @@ order. Minimum frequency can be enforced.
 """
 
 from pathlib import Path
+import os
 
 from utils.lang import Vocab
 from utils.utils import name_suffix_from_file
@@ -36,8 +37,12 @@ def build_vocab(args):
                 if i > n_sample:
                     break
 
-    voc1.save_voc()
-    voc2.save_voc()
+    path_1 = name1.split(os.sep)
+    path_1 = os.sep.join(path_1[:-1])
+    path_2 = name2.split(os.sep)
+    path_2 = os.sep.join(path_2[:-1])
+    voc1.save_voc(path_1)
+    voc2.save_voc(path_2)
 
     print(" "*50, end="\r")
     print("Building vocabulary: complete")

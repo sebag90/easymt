@@ -74,11 +74,11 @@ class Vocab:
             self.voc[word] = 0
         self.voc[word] += 1
 
-    def save_voc(self):
+    def save_voc(self, path):
         """
         sort by values (for eventual pruning)
         """
-        outputfile = f"data/vocab.{self.language}"
+        outputfile = f"{path}/vocab.{self.language}"
         sorted_vocab = dict(
             reversed(
                 sorted(

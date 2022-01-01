@@ -85,7 +85,7 @@ def get_optimizer(model, params):
                 lr=0,
                 betas=(0.9, 0.98),
                 eps=1e-9),
-            step=model.steps            
+            step=model.steps
             )
 
         return opt

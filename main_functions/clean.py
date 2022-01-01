@@ -3,8 +3,7 @@ from pathlib import Path
 from preprocessing_tools.dexmler import Dexmler
 from preprocessing_tools.cleaner import Cleaner
 
-from utils.utils import count_lines, name_suffix_from_file
-from utils.errors import FileError
+from utils.utils import name_suffix_from_file
 
 
 def clean(args):

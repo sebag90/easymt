@@ -6,7 +6,6 @@ based on number of lines for each subset
 import os
 from pathlib import Path
 
-from utils.errors import FileError
 from utils.utils import name_suffix_from_file
 
 
