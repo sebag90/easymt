@@ -7,19 +7,24 @@ class Language:
     def __init__(self, name):
         self.name = name
         self.word2index = {
+            "<pad>": 0,
             "<sos>": 1,
             "<eos>": 2,
             "<unk>": 3
         }
         self.index2word = {
+            0: "<pad>",
             1: "<sos>",
             2: "<eos>",
             3: "<unk>"
         }
-        self.n_words = 4  # exclude <sos>, <eos>, <unk> and <pad>
 
     def __repr__(self):
         return f"Language({self.name})"
+
+    def __len__(self):
+        assert len(self.word2index) == len(self.index2word)
+        return len(self.index2word)
 
     def add_sentence(self, sentence):
         sentence = sentence.strip()
@@ -29,9 +34,9 @@ class Language:
     def add_word(self, word):
         if word not in self.word2index:
             # add new word and update counters
-            self.word2index[word] = self.n_words
-            self.index2word[self.n_words] = word
-            self.n_words += 1
+            idx = len(self)
+            self.word2index[word] = idx
+            self.index2word[idx] = word
 
     def read_vocabulary(self, vocfile):
         # read vocabulary from file
