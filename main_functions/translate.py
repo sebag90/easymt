@@ -52,7 +52,7 @@ def translate(args):
 
             # get indeces of best hypothesis
             indeces = hypotheses[0].get_indeces()
-            tokens = [model.tgt_lang.index2word[i.item()] for i in indeces]
+            tokens = model.tgt_lang.idx2toks(indeces.tolist())
 
             # remove SOS and EOS
             tokens = tokens[1:-1]

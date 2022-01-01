@@ -45,22 +45,24 @@ class Language:
                 word, count = line.strip().split("\t")
                 self.add_word(word)
 
-    def indexes_from_sentence(self, sentence):
+    def toks2idx(self, tokens):
         """
-        convert a sentence of words into a
+        convert a list of tokens into a
         sequence of indeces from the language
         if word is unknown use <unk> vector
         """
-        sentence = sentence.strip().split()
         unk = self.word2index["<unk>"]
         sen = [
             self.word2index[word] if word in self.word2index else unk
-            for word in sentence
+            for word in tokens
         ]
 
         # append <eos> sentence
         sen.append(self.word2index["<eos>"])
         return torch.tensor(sen)
+
+    def idx2toks(self, indeces):
+        return [self.index2word[i] for i in indeces]
 
 
 class Vocab:

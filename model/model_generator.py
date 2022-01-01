@@ -14,7 +14,7 @@ class ModelGenerator:
     def generate_model(self, params, src_language, tgt_language):
         if params.model.type == "rnn":
             encoder = rnn_encoder(
-                vocab_size=src_language.n_words,
+                vocab_size=len(src_language),
                 word_vec_size=params.rnn.word_vec_size,
                 hidden_size=params.rnn.hidden_size,
                 layers=params.model.encoder_layers,
@@ -27,7 +27,7 @@ class ModelGenerator:
                 attn_model=params.rnn.attention,
                 word_vec_size=params.rnn.word_vec_size,
                 hidden_size=params.rnn.hidden_size,
-                output_size=tgt_language.n_words,
+                output_size=len(tgt_language),
                 layers=params.model.decoder_layers,
                 rnn_dropout=params.rnn.rnn_dropout,
                 attn_dropout=params.rnn.attn_dropout,
@@ -50,7 +50,7 @@ class ModelGenerator:
                 attn_dropout=params.transformer.attn_dropout,
                 residual_dropout=params.transformer.residual_dropout,
                 num_layers=params.model.encoder_layers,
-                vocab_size=src_language.n_words,
+                vocab_size=len(src_language),
                 max_len=params.model.max_length
             )
 
@@ -61,7 +61,7 @@ class ModelGenerator:
                 attn_dropout=params.transformer.attn_dropout,
                 residual_dropout=params.transformer.residual_dropout,
                 num_layers=params.model.decoder_layers,
-                vocab_size=tgt_language.n_words,
+                vocab_size=len(tgt_language),
                 max_len=params.model.max_length
             )
 

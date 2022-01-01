@@ -89,13 +89,13 @@ class DataLoader:
         with open(src_file, "r", encoding="utf-8") as inlang, \
                 open(tgt_file, "r", encoding="utf-8") as outlang:
             for l1, l2 in zip(inlang, outlang):
-                l1 = l1.strip()
-                l2 = l2.strip()
+                l1 = l1.strip().split()
+                l2 = l2.strip().split()
 
-                if len(l1.split()) <= max_len and len(l2.split()) <= max_len:
+                if len(l1) <= max_len and len(l2) <= max_len:
                     # convert sentence to vector
-                    l1_coded = src_language.indexes_from_sentence(l1)
-                    l2_coded = tgt_language.indexes_from_sentence(l2)
+                    l1_coded = src_language.toks2idx(l1)
+                    l2_coded = tgt_language.toks2idx(l2)
 
                     # save coded vectors to create dataset
                     src.append(l1_coded)
