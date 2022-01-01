@@ -27,20 +27,24 @@ def convert_to_byte(args):
 
     # read vocabulary from file
     src_language.read_vocabulary(
-        Path(f"data/vocab.{src_language.name}")
+        Path(config.data.src_vocab)
     )
     tgt_language.read_vocabulary(
-        Path(f"data/vocab.{tgt_language.name}")
+        Path(config.data.tgt_vocab)
     )
 
     # load entire dataset
     train_data = DataLoader.from_files(
-        "train", src_language, tgt_language,
-        config.model.max_length, config.training.batch_size
+        config.data.src_train,
+        config.data.tgt_train,
+        src_language,
+        tgt_language,
+        config.model.max_length,
+        config.training.batch_size
     )
 
     # create output folder to save batched files
-    output_path = Path("data/batched")
+    output_path = Path(args.output_dir)
     os.makedirs(output_path, exist_ok=True)
 
     # find last file in data/batched
@@ -87,7 +91,8 @@ def convert_to_byte(args):
         print(f"Converting to byte: {i}/{len(train_data)}", end="\r")
 
     # save last incomplete list of batches
-    to_write = Path(f"data/batched/{start_from}_{total_len}")
+    to_write = Path(f"{output_path}/{start_from}_{total_len}")
+
     with open(to_write, "wb") as ofile:
         pickle.dump(batches, ofile)
 

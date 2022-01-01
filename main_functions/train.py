@@ -97,7 +97,7 @@ class Trainer:
 
         # load train dataset
         if self.batched:
-            self.train_data = BatchedData(Path("data/batched"))
+            self.train_data = BatchedData(Path(self.batched))
 
         else:
             self.train_data = DataLoader.from_files(

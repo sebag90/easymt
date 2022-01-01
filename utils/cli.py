@@ -52,6 +52,11 @@ def easymt_arguments():
             " (Default: %(default)s)"
         )
     )
+    byte.add_argument(
+        "--output-dir", metavar="PATH", action="store",
+        help="output directory for the batched files",
+        default="data/batched"
+    )
 
     # train
     train = subparsers.add_parser(
@@ -66,8 +71,10 @@ def easymt_arguments():
         help="path to model to resume training"
     )
     train.add_argument(
-        "--batched", action="store_true",
-        help="train files are already batched"
+        "--batched", action="store",
+        help=(
+            "path to the directory containing "
+            "the batched files")
     )
 
     # translate
