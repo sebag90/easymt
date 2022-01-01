@@ -228,7 +228,10 @@ class Trainer:
                 loss.backward()
 
                 # gradient clipping
-                nn.utils.clip_grad_norm_(self.model.parameters(), 5)
+                nn.utils.clip_grad_norm_(
+                    self.model.parameters(),
+                    self.params.training.gradient_clipping
+                )
 
                 # optimizer step
                 self.optimizer.step()
