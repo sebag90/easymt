@@ -73,15 +73,17 @@ class DataLoader:
             yield src, tgt
 
     @classmethod
-    def from_files(cls, name, src_language, tgt_language, max_len, batch_size):
+    def from_files(
+            cls, src_file, tgt_file, src_language,
+            tgt_language, max_len, batch_size):
         """
         read src and tgt file and prepare dataset of encoded
         sentences in pairs (src, tgt)
         """
         src = list()
         tgt = list()
-        src_file = Path(f"data/{name}.{src_language.name}")
-        tgt_file = Path(f"data/{name}.{tgt_language.name}")
+        src_file = Path(src_file)
+        tgt_file = Path(tgt_file)
 
         # read data and create dataset
         with open(src_file, "r", encoding="utf-8") as inlang, \

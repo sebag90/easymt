@@ -69,10 +69,10 @@ class Trainer:
             self.tgt_language = Language(self.params.model.target)
             # read vocabulary from file
             self.src_language.read_vocabulary(
-                Path(f"data/vocab.{self.src_language.name}")
+                Path(self.params.data.src_vocab)
             )
             self.tgt_language.read_vocabulary(
-                Path(f"data/vocab.{self.tgt_language.name}")
+                Path(self.params.data.tgt_vocab)
             )
 
         else:
@@ -87,8 +87,12 @@ class Trainer:
 
         # load eval dataset
         self.eval_data = DataLoader.from_files(
-            "eval", self.src_language, self.tgt_language,
-            self.params.model.max_length, self.params.training.batch_size
+            self.params.data.src_eval,
+            self.params.data.tgt_eval,
+            self.src_language,
+            self.tgt_language,
+            self.params.model.max_length,
+            self.params.training.batch_size
         )
 
         # load train dataset
@@ -97,8 +101,12 @@ class Trainer:
 
         else:
             self.train_data = DataLoader.from_files(
-                "train", self.src_language, self.tgt_language,
-                self.params.model.max_length, self.params.training.batch_size
+                self.params.data.src_train,
+                self.params.data.tgt_train,
+                self.src_language,
+                self.tgt_language,
+                self.params.model.max_length,
+                self.params.training.batch_size
             )
 
     def create_model(self):
