@@ -18,17 +18,17 @@ def normalize(args):
     full_name = args.file.split(os.sep)[-1]
     name, suffix = name_suffix_from_file(full_name)
 
-    if args.sp_model is not None:
-        sp = spm.SentencePieceProcessor(model_file=args.sp_model)
-    else:
-        truecaser = Truecaser(suffix)
-        detok = Detokenizer(suffix)
-        subword_regex = re.compile(r"@@( |$)")
-
     path = args.file.split(os.sep)[:-1]
     path = os.sep.join(path)
 
     ofile = Path(f"{path}/{name}.normalized.{suffix}")
+
+    if args.sp_model is not None:
+        sp = spm.SentencePieceProcessor(model_file=args.sp_model)
+    else:
+        truecaser = Truecaser(suffix, path)
+        detok = Detokenizer(suffix)
+        subword_regex = re.compile(r"@@( |$)")
 
     with open(Path(args.file), "r", encoding="utf-8") as infile, \
             open(ofile, "w", encoding="utf-8") as ofile:

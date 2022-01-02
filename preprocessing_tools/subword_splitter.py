@@ -8,10 +8,10 @@ from utils.errors import UntrainedModel
 
 
 class SubwordSplitter:
-    def __init__(self, language, bpe):
+    def __init__(self, language, bpe, path):
         self.language = language
         self.bpe = bpe
-        self.model = Path(f"data/subword_models/model.{bpe}.{language}")
+        self.model = Path(f"{path}/model.subword.{bpe}.{language}")
         if self.trained:
             with open(self.model, "r", encoding="utf-8") as modfile:
                 self.splitter = BPE(modfile)
@@ -31,7 +31,6 @@ class SubwordSplitter:
 
     def train(self, filename):
         if not os.path.isfile(self.model):
-            os.makedirs(Path("data/subword_models"), exist_ok=True)
             print("Training subword model")
 
             # train and save model

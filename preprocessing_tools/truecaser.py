@@ -7,9 +7,9 @@ from sacremoses import MosesTruecaser
 
 
 class Truecaser:
-    def __init__(self, language):
+    def __init__(self, language, path):
         self.language = language
-        self.model = Path(f"data/truecasing_models/model.{language}")
+        self.model = Path(f"{path}/model.truecase.{language}")
 
         if self.trained:
             self.truecaser = MosesTruecaser(self.model)
@@ -33,7 +33,6 @@ class Truecaser:
 
     def train(self, filename):
         if not os.path.isfile(self.model):
-            os.makedirs(Path("data/truecasing_models"), exist_ok=True)
             self.truecaser.train_from_file(
                 filename, save_to=self.model
             )

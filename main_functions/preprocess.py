@@ -52,6 +52,8 @@ class NumReplacer:
 class Pipeline:
     def __init__(self, filename, language, bpe, remove_nums):
         self.filename = filename
+        path = filename.split(os.sep)[:-1]
+        path = os.sep.join(path)
         self.temp_file = Path(f"data/temp.{language}")
         self.language = language
 
@@ -65,7 +67,7 @@ class Pipeline:
                 NumReplacer()
             )
 
-        tr = Truecaser(language)
+        tr = Truecaser(language, path)
         lc = LowerCaser(tr.trained)
 
         self.trainable = [
@@ -76,7 +78,7 @@ class Pipeline:
         # add bpe splitter to trainable processors
         if bpe is not None:
             self.trainable.append(
-                SubwordSplitter(language, bpe)
+                SubwordSplitter(language, bpe, path)
             )
 
     def apply_trainable(self, processor):
@@ -197,7 +199,8 @@ def preprocess(args):
         if not args.sp_model:
             os.rename(
                 f"{args.language}.model",
-                f"{outputpath}/sp_model.{args.language}"
+                f"{outputpath}/model.sentencepiece."
+                f"{args.sentencepiece}.{args.language}"
             )
             os.rename(
                 f"{args.language}.vocab",
