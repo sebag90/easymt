@@ -144,7 +144,7 @@ class seq2seq(nn.Module):
         beam translation for a single line of text
         """
         # encode line
-        coded = self.src_lang.indexes_from_sentence(line.strip())
+        coded = self.src_lang.toks2idx(line.strip().split())
         lengths = torch.tensor([len(coded)])
         input_batch = coded.unsqueeze(1)
 

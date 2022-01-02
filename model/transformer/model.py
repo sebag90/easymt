@@ -101,8 +101,7 @@ class Transformer(nn.Module):
         beam translation for a single line of text
         """
         # encode line
-        coded = self.src_lang.indexes_from_sentence(line.strip())
-
+        coded = self.src_lang.toks2idx(line.strip().split())
         padder = torch.nn.ZeroPad2d((0, self.max_len - coded.size(0)))
         src = padder(coded).unsqueeze(0)
         e_mask = (src != 0)
