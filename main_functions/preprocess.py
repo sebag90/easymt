@@ -155,14 +155,14 @@ class Pipeline:
 
 
 def preprocess(args):
-    if args.sentencepiece is None:
+    if args.sentencepiece is None and args.sp_model is None:
         pipe = Pipeline(args.file, args.language, args.bpe, args.replace_nums)
         pipe.run()
     else:
         # if model is already trained, load model
         if args.sp_model is not None:
             sp = spm.SentencePieceProcessor(
-                model_file=f"{args.language}.model"
+                model_file=f"{args.sp_model}"
             )
 
         else:
@@ -190,9 +190,10 @@ def preprocess(args):
         # tokenize file
         with open(Path(args.file)) as infile:
             with open(outputfile, "w", encoding="utf-8") as ofile:
-                for line in infile:
+                for i, line in enumerate(infile):
                     encoded = sp.encode(line.strip(), out_type=str)
-                    ofile.write(f"{''.join(encoded)}\n")
+                    ofile.write(f"{' '.join(encoded)}\n")
+                    print(f"Preprocessing: line {i:,}", end="\r")
 
         # if a new model was trained, move model and vocab to the directory
         # where the input file (and output file) are also saved
@@ -206,5 +207,5 @@ def preprocess(args):
                 f"{args.language}.vocab",
                 f"{outputpath}/vocab.{args.language}"
             )
-
+    print(" " * 50, end="\r")
     print("Preprocessing: complete")
