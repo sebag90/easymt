@@ -133,6 +133,7 @@ data
 
 # pretrained_models
 pretrained_models
+checkpoints
 
 # translated files
 translated.*

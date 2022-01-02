@@ -154,12 +154,12 @@ class Trainer:
 
     def save_model(self):
         # save model
-        os.makedirs("pretrained_models", exist_ok=True)
+        os.makedirs("checkpoints", exist_ok=True)
 
         l1 = self.model.src_lang.name
         l2 = self.model.tgt_lang.name
         st = self.model.steps
-        path = Path(f"pretrained_models/{self.model.type}_{l1}-{l2}_{st}.pt")
+        path = Path(f"checkpoints/{self.model.type}_{l1}-{l2}_{st}.pt")
 
         torch.save({
                 "model": self.model,
