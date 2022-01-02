@@ -169,7 +169,6 @@ class Transformer(nn.Module):
 
                     new_hyp = deepcopy(hypothesis)
                     token_id = index
-                    print(new_hyp.alpha)
 
                     # update hypothesis with new word and score
                     new_hyp.update(
