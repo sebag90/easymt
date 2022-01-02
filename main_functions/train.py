@@ -117,13 +117,16 @@ class Trainer:
                 self.tgt_language
             )
 
-            # initialize parameters uniformly
-            for name, param in self.model.named_parameters():
-                if "embedding" not in name:
-                    param.data.uniform_(
-                        - self.params.model.uniform_init,
+            for param in self.model.parameters():
+                if self.model.type == "rnn":
+                    nn.init.uniform_(
+                        param,
+                        -self.params.model.uniform_init,
                         self.params.model.uniform_init
                     )
+                else:
+                    if param.dim() > 1:
+                        nn.init.xavier_uniform_(param)
 
         print(self.model, flush=True)
         # move model to device
