@@ -175,11 +175,7 @@ class Trainer:
 
         losses = list()
         for batch in self.eval_data:
-            input_batch = self.data_converter(
-                *batch,
-                self.model.max_len,
-                self.tgt_language.word2index["<sos>"]
-            )
+            input_batch = self.model.prepare_batch(*batch)
             loss = self.model(
                 input_batch,
                 self.device,
@@ -263,12 +259,14 @@ class Trainer:
                 if steps % self.params.training.valid_steps == 0:
                     eval_loss = self.evaluate()
                     self.optimizer.scheduler_step(eval_loss)
-                    print("-"*len(to_print), flush=True)
+                    delim = "-" * len(to_print)
+
                     print(
-                        f"Validation loss: {round((eval_loss.item()), 5):.5f}",
+                        f"{delim}\n"
+                        f"Validation loss: {round((eval_loss.item()), 5):.5f}"
+                        f"\n{delim}",
                         flush=True
                     )
-                    print("-"*len(to_print), flush=True)
 
                 # save model
                 if self.params.training.save_every != 0:
