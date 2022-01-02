@@ -101,14 +101,13 @@ class Vocab:
 
 @total_ordering
 class Hypothesis:
-    def __init__(self, to_weight=True, alpha=5):
+    def __init__(self, alpha=2):
         self.score = 0
         self.tokens = list()
         self.attention_stack = list()
         self.decoder_state = None
         self.doubles = dict()
         self.alpha = alpha
-        self.to_weight = to_weight
 
     def __str__(self):
         return str(self.weigthed_score)
@@ -127,8 +126,8 @@ class Hypothesis:
             decoder_state[0]  # attention vector
         )
 
-        # if self.to_weight:
-        #     self.apply_weighting()
+        if self.alpha != 0:
+            self.apply_weighting()
 
     def apply_weighting(self):
         """

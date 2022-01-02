@@ -15,8 +15,7 @@ from preprocessing_tools.truecaser import Truecaser
 
 
 def normalize(args):
-    full_name = args.file.split(os.sep)[-1]
-    path, name, suffix = split_filename(full_name)
+    path, name, suffix = split_filename(args.file)
 
     ofile = Path(f"{path}/{name}.normalized.{suffix}")
 

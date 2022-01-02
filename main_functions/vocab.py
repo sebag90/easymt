@@ -8,7 +8,7 @@ from pathlib import Path
 import os
 
 from utils.lang import Vocab
-from utils.utils import name_suffix_from_file
+from utils.utils import split_filename
 
 
 def build_vocab(args):
@@ -17,8 +17,8 @@ def build_vocab(args):
     l2_file = Path(f"{args.file2}")
 
     # get suffixes from filenames
-    name1, suff1 = name_suffix_from_file(args.file1)
-    name2, suff2 = name_suffix_from_file(args.file2)
+    path1, name1, suff1 = split_filename(args.file1)
+    path2, name2, suff2 = split_filename(args.file2)
 
     # instantiate vocab objects
     voc1 = Vocab(suff1, args.min_freq)
@@ -37,12 +37,8 @@ def build_vocab(args):
                 if i > n_sample:
                     break
 
-    path_1 = name1.split(os.sep)
-    path_1 = os.sep.join(path_1[:-1])
-    path_2 = name2.split(os.sep)
-    path_2 = os.sep.join(path_2[:-1])
-    voc1.save_voc(path_1)
-    voc2.save_voc(path_2)
+    voc1.save_voc(path1)
+    voc2.save_voc(path2)
 
     print(" "*50, end="\r")
     print("Building vocabulary: complete")

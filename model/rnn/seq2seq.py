@@ -139,7 +139,7 @@ class seq2seq(nn.Module):
         return loss / max_target_len
 
     @torch.no_grad()
-    def beam_search(self, line, beam_size, device):
+    def beam_search(self, line, beam_size, device, alpha):
         """
         beam translation for a single line of text
         """
@@ -160,7 +160,7 @@ class seq2seq(nn.Module):
         live_hypotheses = list()
 
         # create empty hypothesis with only <sos> token
-        hyp = Hypothesis()
+        hyp = Hypothesis(alpha=alpha)
         hyp.update(
             decoder_input, decoder_state, 0
         )

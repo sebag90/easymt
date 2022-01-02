@@ -99,6 +99,11 @@ def easymt_arguments():
         "--verbose", action="store_true",
         help="print all candidates for each line"
     )
+    translate.add_argument(
+        "--alpha", action="store",
+        help="weighing factor for repetition in hypothesis",
+        default=0, type=float
+    )
 
     args = parser.parse_args()
     if args.subparser not in subparsers.choices.keys():

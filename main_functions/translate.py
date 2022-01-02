@@ -7,7 +7,7 @@ import os
 
 import torch
 
-from utils.utils import name_suffix_from_file
+from utils.utils import split_filename
 
 
 def translate(args):
@@ -31,23 +31,21 @@ def translate(args):
     # print model
     print(model)
 
-    name, suffix = name_suffix_from_file(str(inputfile))
+    path, name, suffix = split_filename(str(inputfile))
 
     # start translating
-    outputfile = Path(f"{name}.{model.tgt_lang.name}")
+    outputfile = Path(f"{path}/{name}.{model.tgt_lang.name}")
     with open(inputfile, "r", encoding="utf-8") as infile, \
             open(outputfile, "w", encoding="utf-8") as outfile:
         for progress, line in enumerate(infile):
             line = line.strip()
-            hypotheses = model.beam_search(line, beam_size, device)
+            hypotheses = model.beam_search(line, beam_size, device, args.alpha)
 
             # if verbose print all hypotheses
             if args.verbose:
                 for hyp in hypotheses:
                     indeces = hyp.get_indeces()
-                    tokens = [
-                        model.tgt_lang.index2word[i.item()] for i in indeces
-                    ]
+                    tokens = model.tgt_lang.idx2toks(indeces.tolist())
                     print(tokens)
 
             # get indeces of best hypothesis
