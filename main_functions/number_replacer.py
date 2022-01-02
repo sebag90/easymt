@@ -1,7 +1,7 @@
 from pathlib import Path
 import re
 
-from utils.utils import name_suffix_from_file
+from utils.utils import split_filename
 
 
 def replace_numbers(args):
@@ -11,8 +11,8 @@ def replace_numbers(args):
     # compile overly complicated number regex
     number = re.compile(r"(?<=\s)\d[\d,'.]*\b")
 
-    name, suffix = name_suffix_from_file(args.translation)
-    ofile = open(Path(f"{name}.numbered.{suffix}"), "w")
+    path, name, suffix = split_filename(args.translation)
+    ofile = open(Path(f"{path}/{name}.numbered.{suffix}"), "w")
 
     with open(reference, "r", encoding="utf-8") as r_file, \
             open(translation, "r", encoding="utf-8") as t_file:

@@ -9,17 +9,14 @@ import re
 
 import sentencepiece as spm
 
-from utils.utils import name_suffix_from_file
+from utils.utils import split_filename
 from preprocessing_tools.detokenizer import Detokenizer
 from preprocessing_tools.truecaser import Truecaser
 
 
 def normalize(args):
     full_name = args.file.split(os.sep)[-1]
-    name, suffix = name_suffix_from_file(full_name)
-
-    path = args.file.split(os.sep)[:-1]
-    path = os.sep.join(path)
+    path, name, suffix = split_filename(full_name)
 
     ofile = Path(f"{path}/{name}.normalized.{suffix}")
 

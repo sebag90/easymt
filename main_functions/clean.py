@@ -3,7 +3,7 @@ from pathlib import Path
 from preprocessing_tools.dexmler import Dexmler
 from preprocessing_tools.cleaner import Cleaner
 
-from utils.utils import name_suffix_from_file
+from utils.utils import split_filename
 
 
 def clean(args):
@@ -19,14 +19,14 @@ def clean(args):
     )
 
     # create output files
-    f1_name, f1_suffix = name_suffix_from_file(str(file_1))
+    f1_path, f1_name, f1_suffix = split_filename(str(file_1))
     ofile1 = open(
-        Path(f"{f1_name}.clean.{f1_suffix}"), "w", encoding="utf-8"
+        Path(f"{f1_path}/{f1_name}.clean.{f1_suffix}"), "w", encoding="utf-8"
     )
 
-    f2_name, f2_suffix = name_suffix_from_file(str(file_2))
+    f2_path, f2_name, f2_suffix = split_filename(str(file_2))
     ofile2 = open(
-        Path(f"{f2_name}.clean.{f2_suffix}"), "w", encoding="utf-8"
+        Path(f"{f2_path}/{f2_name}.clean.{f2_suffix}"), "w", encoding="utf-8"
     )
 
     with open(file_1, "r", encoding="utf-8") as f1, \

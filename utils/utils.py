@@ -1,16 +1,25 @@
+import os
 import re
 
 
-def name_suffix_from_file(filename):
+def split_filename(filename):
     """
     extracts name and suffix from a filename
     """
-    name = re.match(r"(.*)\.", filename)
-    suffix = re.search(r"[^.]+$", filename)
-    if name is not None and suffix is not None:
-        return name.group(1), suffix.group()
+    # extract path
+    split_path = filename.split(os.sep)
+    path = os.sep.join(split_path[:-1])
 
-    return filename, ""
+    name = re.match(r"(.*)\.", split_path[-1])
+    suffix = re.search(r"[^.]+$", split_path[-1])
+
+    if name is not None and suffix is not None:
+        f_name = name.group(1)
+        suff = suffix.group()
+        return path, f_name, suff
+
+    # no suffix
+    return path, name, ""
 
 
 def count_lines(filename):

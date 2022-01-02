@@ -20,7 +20,7 @@ from preprocessing_tools.truecaser import Truecaser
 from preprocessing_tools.punct_normalizer import PunctNormalizer
 from preprocessing_tools.subword_splitter import SubwordSplitter
 
-from utils.utils import name_suffix_from_file
+from utils.utils import split_filename
 
 
 class LowerCaser:
@@ -149,9 +149,9 @@ class Pipeline:
             print(" " * 50, end="\r")
             print(f"Timestamp: {datetime.timedelta(seconds=ts)}\n")
 
-        name, suffix = name_suffix_from_file(self.filename)
+        path, name, suffix = split_filename(self.filename)
         # rename last output file
-        os.rename(self.temp_file, Path(f"{name}.processed.{suffix}"))
+        os.rename(self.temp_file, Path(f"{path}/{name}.processed.{suffix}"))
 
 
 def preprocess(args):
@@ -182,10 +182,8 @@ def preprocess(args):
             )
 
         # calculate outputpath
-        name, suffix = name_suffix_from_file(args.file)
-        outputfile = Path(f"{name}.processed.{suffix}")
-        outputpath = name.split(os.sep)[:-1]
-        outputpath = os.sep.join(outputpath)
+        path, name, suffix = split_filename(args.file)
+        outputfile = Path(f"{path}/{name}.processed.{suffix}")
 
         # tokenize file
         with open(Path(args.file)) as infile:
@@ -200,12 +198,12 @@ def preprocess(args):
         if not args.sp_model:
             os.rename(
                 f"{args.language}.model",
-                f"{outputpath}/model.sentencepiece."
+                f"{path}/model.sentencepiece."
                 f"{args.sentencepiece}.{args.language}"
             )
             os.rename(
                 f"{args.language}.vocab",
-                f"{outputpath}/vocab.{args.language}"
+                f"{path}/vocab.{args.language}"
             )
     print(" " * 50, end="\r")
     print("Preprocessing: complete")
