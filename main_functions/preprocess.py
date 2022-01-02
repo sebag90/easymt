@@ -13,6 +13,8 @@ from pathlib import Path
 import re
 import time
 
+import sentencepiece as spm
+
 from preprocessing_tools.tokenizer import Tokenizer
 from preprocessing_tools.truecaser import Truecaser
 from preprocessing_tools.punct_normalizer import PunctNormalizer
@@ -151,6 +153,55 @@ class Pipeline:
 
 
 def preprocess(args):
-    pipe = Pipeline(args.file, args.language, args.bpe, args.replace_nums)
-    pipe.run()
+    if args.sentencepiece is None:
+        pipe = Pipeline(args.file, args.language, args.bpe, args.replace_nums)
+        pipe.run()
+    else:
+        # if model is already trained, load model
+        if args.sp_model is not None:
+            sp = spm.SentencePieceProcessor(
+                model_file=f"{args.language}.model"
+            )
+
+        else:
+            # model needs to be trained
+            sp_args = [
+                f"--input={args.file}",
+                f"--model_prefix={args.language}",
+                f"--vocab_size={args.sentencepiece}",
+                "--bos_id=-1",
+                "--eos_id=-1"
+            ]
+
+            # train and load model
+            spm.SentencePieceTrainer.train(" ".join(sp_args))
+            sp = spm.SentencePieceProcessor(
+                model_file=f"{args.language}.model"
+            )
+
+        # calculate outputpath
+        name, suffix = name_suffix_from_file(args.file)
+        outputfile = Path(f"{name}.processed.{suffix}")
+        outputpath = name.split(os.sep)[:-1]
+        outputpath = os.sep.join(outputpath)
+
+        # tokenize file
+        with open(Path(args.file)) as infile:
+            with open(outputfile, "w", encoding="utf-8") as ofile:
+                for line in infile:
+                    encoded = sp.encode(line.strip(), out_type=str)
+                    ofile.write(f"{''.join(encoded)}\n")
+
+        # if a new model was trained, move model and vocab to the directory
+        # where the input file (and output file) are also saved
+        if not args.sp_model:
+            os.rename(
+                f"{args.language}.model",
+                f"{outputpath}/sp_model.{args.language}"
+            )
+            os.rename(
+                f"{args.language}.vocab",
+                f"{outputpath}/vocab.{args.language}"
+            )
+
     print("Preprocessing: complete")

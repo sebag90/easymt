@@ -7,6 +7,8 @@ import os
 from pathlib import Path
 import re
 
+import sentencepiece as spm
+
 from utils.utils import name_suffix_from_file
 from preprocessing_tools.detokenizer import Detokenizer
 from preprocessing_tools.truecaser import Truecaser
@@ -16,24 +18,38 @@ def normalize(args):
     full_name = args.file.split(os.sep)[-1]
     name, suffix = name_suffix_from_file(full_name)
 
-    truecaser = Truecaser(suffix)
-    detok = Detokenizer(suffix)
-    ofile = Path(f"data/{name}.normalized.{suffix}")
+    if args.sp_model is not None:
+        sp = spm.SentencePieceProcessor(model_file=args.sp_model)
+    else:
+        truecaser = Truecaser(suffix)
+        detok = Detokenizer(suffix)
+        subword_regex = re.compile(r"@@( |$)")
 
-    subword_regex = re.compile(r"@@( |$)")
+    path = args.file.split(os.sep)[:-1]
+    path = os.sep.join(path)
+
+    ofile = Path(f"{path}/{name}.normalized.{suffix}")
 
     with open(Path(args.file), "r", encoding="utf-8") as infile, \
             open(ofile, "w", encoding="utf-8") as ofile:
         for i, line in enumerate(infile):
-            # undo subword splitting
-            if args.subword is True:
-                line = re.sub(subword_regex, "", line)
+            if args.sp_model is not None:
+                # file was encoded with sentencepiece
+                to_write = sp.decode(line.strip().split())
 
-            # truecase
-            line = truecaser(line)
+            else:
+                # undo subword splitting
+                if args.subword is True:
+                    line = re.sub(subword_regex, "", line)
 
-            # detokenize
-            to_write = detok(line)
+                # truecase
+                line = truecaser(line)
+
+                # detokenize
+                to_write = detok(line)
+
+            if args.upper is True:
+                to_write = to_write.capitalize()
 
             # write output
             ofile.write(f"{to_write}\n")

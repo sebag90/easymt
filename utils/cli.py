@@ -179,6 +179,15 @@ def texter_arguments():
         "--replace-nums", action="store_true",
         help="convert all numbers to <num>"
     )
+    preprocess.add_argument(
+        "--sentencepiece", action="store",
+        help="target vocabulary to be generated with sentencepiece",
+        type=int
+    )
+    preprocess.add_argument(
+        "--sp-model", action="store",
+        help="path to a pretrained sentencepiece model"
+    )
 
     # split dataset
     split_dataset = subparsers.add_parser(
@@ -229,6 +238,14 @@ def texter_arguments():
     normalize.add_argument(
         "--subword", action="store_true",
         help="subword splitting was applied"
+    )
+    normalize.add_argument(
+        "--sp-model", action="store",
+        help="path to the sentencepiece model"
+    )
+    normalize.add_argument(
+        "--upper", "-u", action="store_true",
+        help="uppercase the first char in the sentence"
     )
 
     # replace numbers
