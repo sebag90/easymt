@@ -81,7 +81,7 @@ class MultiHeadAttention(nn.Module):
         self.dropout = nn.Dropout(residual_dropout)
 
         # attention
-        self.attention = SelfAttention(attn_dropout)
+        self.attention = ScaleDotProductAttention(attn_dropout)
 
         # projection layer
         self.projection_layer = nn.Linear(d_model, d_model)
@@ -108,7 +108,7 @@ class MultiHeadAttention(nn.Module):
         return self.dropout(proj)
 
 
-class SelfAttention(nn.Module):
+class ScaleDotProductAttention(nn.Module):
     def __init__(self, dropout):
         super().__init__()
         self.dropout = nn.Dropout(dropout)
