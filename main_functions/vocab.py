@@ -5,7 +5,6 @@ order. Minimum frequency can be enforced.
 """
 
 from pathlib import Path
-import os
 
 from utils.lang import Vocab
 from utils.utils import split_filename

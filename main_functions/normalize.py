@@ -3,7 +3,6 @@ The normalizing function revert tokenization
 and remove subword splitting if needed
 """
 
-import os
 from pathlib import Path
 import re
 
