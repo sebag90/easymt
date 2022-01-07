@@ -80,8 +80,8 @@ class MultiHeadAttention(nn.Module):
         # dropout
         self.dropout = nn.Dropout(residual_dropout)
 
-        # attention
-        self.attention = ScaleDotProductAttention(attn_dropout)
+        # scaled dot product
+        self.scaled_dot_product = ScaledDotProduct(attn_dropout)
 
         # projection layer
         self.projection_layer = nn.Linear(d_model, d_model)
@@ -99,7 +99,7 @@ class MultiHeadAttention(nn.Module):
             B, -1, self.n_head, self.d_k
         ).transpose(1, 2)
 
-        attention_scores = self.attention(q, k, v, mask)
+        attention_scores = self.scaled_dot_product(q, k, v, mask)
 
         attention_scores = attention_scores.transpose(
             1, 2).contiguous().view(B, -1, self.n_head * self.d_k)
@@ -108,7 +108,7 @@ class MultiHeadAttention(nn.Module):
         return self.dropout(proj)
 
 
-class ScaleDotProductAttention(nn.Module):
+class ScaledDotProduct(nn.Module):
     def __init__(self, dropout):
         super().__init__()
         self.dropout = nn.Dropout(dropout)
