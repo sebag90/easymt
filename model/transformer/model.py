@@ -32,6 +32,7 @@ class Transformer(nn.Module):
             f"Transformer({self.src_lang.name} > {self.tgt_lang.name} | "
             f"steps: {self.steps:,} | "
             f"parameters: {parameters:,})\n"
+            f"{self.embedding}\n"
             f"{self.encoder}\n"
             f"{self.decoder}"
         )

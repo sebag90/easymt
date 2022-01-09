@@ -33,6 +33,7 @@ class seq2seq(nn.Module):
             f"Seq2Seq({self.src_lang.name} > {self.tgt_lang.name} | "
             f"steps: {self.steps:,} | "
             f"parameters: {parameters:,})\n"
+            f"{self.embedding}\n"
             f"{self.encoder}\n"
             f"{self.decoder}"
         )
