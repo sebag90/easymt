@@ -105,7 +105,6 @@ class Projector(nn.Module):
 
 class Encoder(nn.Module):
     def __init__(self,
-                 vocab_size,
                  word_vec_size,
                  hidden_size,
                  layers,
@@ -119,12 +118,6 @@ class Encoder(nn.Module):
         self.bidirectional = bidirectional
         self.decoder_layers = decoder_layers
 
-        # layers
-        self.embedding = nn.Embedding(
-            vocab_size,
-            word_vec_size,
-            padding_idx=0
-        )
         self.rnn = nn.LSTM(
             word_vec_size,
             hidden_size,
@@ -138,11 +131,9 @@ class Encoder(nn.Module):
         )
 
     def forward(self, input_seq, input_lengths):
-        # Convert word indexes to embeddings
-        embedded = self.embedding(input_seq)
         # Pack padded batch of sequences for RNN module
         packed = nn.utils.rnn.pack_padded_sequence(
-            embedded, input_lengths, enforce_sorted=False
+            input_seq, input_lengths, enforce_sorted=False
         )
 
         # Forward pass through RNN

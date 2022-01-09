@@ -1,6 +1,7 @@
 from model.rnn.seq2seq import seq2seq
 from model.transformer.model import Transformer
 
+from model.embedding_layer import EmbeddingLayer
 from model.rnn.encoder import Encoder as rnn_encoder
 from model.rnn.decoder import Decoder as rnn_decoder
 from model.transformer.blocks import Encoder as tr_encoder
@@ -14,7 +15,6 @@ class ModelGenerator:
     def generate_model(self, params, src_language, tgt_language):
         if params.model.type == "rnn":
             encoder = rnn_encoder(
-                vocab_size=len(src_language),
                 word_vec_size=params.rnn.word_vec_size,
                 hidden_size=params.rnn.hidden_size,
                 layers=params.model.encoder_layers,
@@ -34,9 +34,17 @@ class ModelGenerator:
                 input_feed=params.rnn.input_feed
             )
 
+            embedding = EmbeddingLayer(
+                len(src_language),
+                len(tgt_language),
+                params.rnn.word_vec_size,
+                shared=False
+            )
+
             model = seq2seq(
                 encoder,
                 decoder,
+                embedding,
                 src_language,
                 tgt_language,
                 params.model.max_length
@@ -50,7 +58,6 @@ class ModelGenerator:
                 attn_dropout=params.transformer.attn_dropout,
                 residual_dropout=params.transformer.residual_dropout,
                 num_layers=params.model.encoder_layers,
-                vocab_size=len(src_language),
                 max_len=params.model.max_length
             )
 
@@ -65,9 +72,17 @@ class ModelGenerator:
                 max_len=params.model.max_length
             )
 
+            embedding = EmbeddingLayer(
+                src_vocab=len(src_language),
+                tgt_vocab=len(tgt_language),
+                word_vec_size=params.transformer.d_model,
+                shared=params.model.shared_embedding
+            )
+
             model = Transformer(
                 encoder,
                 decoder,
+                embedding,
                 src_language,
                 tgt_language,
                 params.model.max_length

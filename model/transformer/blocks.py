@@ -13,15 +13,9 @@ class Encoder(nn.Module):
                  attn_dropout,
                  residual_dropout,
                  num_layers,
-                 vocab_size,
                  max_len):
         super().__init__()
         self.d_model = d_model
-        self.embedding = nn.Embedding(
-            vocab_size,
-            d_model,
-            padding_idx=0
-        )
         self.positional_encoding = PositionalEncoding(
             max_len, d_model, residual_dropout
         )
@@ -38,7 +32,6 @@ class Encoder(nn.Module):
         self.norm = LayerNormalizer(d_model)
 
     def forward(self, x, mask):
-        x = self.embedding(x)
         x = self.positional_encoding(x)
 
         for layer in self.layers:
@@ -59,11 +52,6 @@ class Decoder(nn.Module):
                  max_len):
         super().__init__()
         self.d_model = d_model
-        self.embedding = nn.Embedding(
-            vocab_size,
-            d_model,
-            padding_idx=0
-        )
         self.positional_encoding = PositionalEncoding(
             max_len, d_model, residual_dropout
         )
@@ -81,7 +69,6 @@ class Decoder(nn.Module):
         self.generator = nn.Linear(d_model, vocab_size)
 
     def forward(self, x, encoder_output, encoder_mask, decoder_mask):
-        x = self.embedding(x)
         x = self.positional_encoding(x)
 
         for layer in self.layers:

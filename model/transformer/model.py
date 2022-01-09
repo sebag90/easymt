@@ -8,11 +8,13 @@ from utils.lang import Hypothesis
 
 
 class Transformer(nn.Module):
-    def __init__(self, encoder, decoder, src_lang, tgt_lang, max_len):
+    def __init__(
+            self, encoder, decoder, embedding, src_lang, tgt_lang, max_len):
         super().__init__()
         self.type = "transformer"
         self.encoder = encoder
         self.decoder = decoder
+        self.embedding = embedding
         self.src_lang = src_lang
         self.tgt_lang = tgt_lang
         self.max_len = max_len
@@ -78,6 +80,10 @@ class Transformer(nn.Module):
         e_mask = e_mask.to(device)
         d_mask = d_mask.to(device)
 
+        # obtain embedded sequences
+        input_var = self.embedding.src(input_var)
+        decoder_input = self.embedding.tgt(decoder_input)
+
         # pass through encoder and decoder
         encoded = self.encoder(input_var, e_mask)
         decoded = self.decoder(decoder_input, encoded, e_mask, d_mask)
@@ -106,6 +112,7 @@ class Transformer(nn.Module):
         src = padder(coded).unsqueeze(0)
         e_mask = (src != 0)
 
+        src = self.embedding.src(src)
         encoded = self.encoder(src, e_mask)
 
         # prepare decoder input
@@ -145,6 +152,7 @@ class Transformer(nn.Module):
             d_mask = self.create_subsequent_mask(decoder_input.size(1))
 
             # pass through decoder
+            decoder_input = self.embedding.tgt(decoder_input)
             decoded = self.decoder(
                 decoder_input, encoder_output, e_mask, d_mask
             )

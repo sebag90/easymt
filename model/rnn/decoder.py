@@ -30,11 +30,6 @@ class Decoder(nn.Module):
             rnn_input_size = word_vec_size
 
         # Define layers
-        self.embedding = nn.Embedding(
-            output_size,
-            word_vec_size,
-            padding_idx=0
-        )
         self.rnn = nn.LSTM(
             rnn_input_size,
             hidden_size,
@@ -57,17 +52,14 @@ class Decoder(nn.Module):
             last_hidden,
             encoder_cell,
             encoder_outputs):
-        # Get the embedding of the current input word
-        embedded = self.embedding(input_step)
-
         if self.input_feed:
             # concatenate current word input with previous context vector
             rnn_input = torch.cat(
-                (embedded, context_vector.unsqueeze(0)),
+                (input_step, context_vector.unsqueeze(0)),
                 dim=2
             )
         else:
-            rnn_input = embedded
+            rnn_input = input_step
 
         # forward through RNN
         rnn_output, (hidden, cell) = self.rnn(

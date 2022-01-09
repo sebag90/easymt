@@ -9,11 +9,13 @@ from utils.lang import Hypothesis
 
 
 class seq2seq(nn.Module):
-    def __init__(self, encoder, decoder, src_lang, tgt_lang, max_len):
+    def __init__(
+            self, encoder, decoder, embedding, src_lang, tgt_lang, max_len):
         super().__init__()
         self.type = "rnn"
         self.encoder = encoder
         self.decoder = decoder
+        self.embedding = embedding
         self.src_lang = src_lang
         self.tgt_lang = tgt_lang
         self.max_len = max_len
@@ -59,10 +61,13 @@ class seq2seq(nn.Module):
         input_var = input_var.to(device)
         len_batch = input_var.shape[1]
 
+        # obtain embedded input sequence
+        embedded = self.embedding.src(input_var)
+
         # pass through encoder
         (encoder_outputs,
          encoder_hidden,
-         encoder_cell) = self.encoder(input_var, lengths)
+         encoder_cell) = self.encoder(embedded, lengths)
 
         # prepare decoder input
         sos_index = self.src_lang.word2index["<sos>"]
@@ -72,6 +77,7 @@ class seq2seq(nn.Module):
             dtype=torch.int,
             device=device
         )
+
         context_vector = torch.zeros(
             (len_batch, self.encoder.hidden_size),
             device=device
@@ -108,6 +114,8 @@ class seq2seq(nn.Module):
                 True if random.random() < teacher_forcing_ratio
                 else False
             )
+
+            decoder_input = self.embedding.tgt(decoder_input)
 
             # pass through decoder
             (decoder_output, context_vector,
@@ -196,6 +204,8 @@ class seq2seq(nn.Module):
             decoder_hidden = torch.cat(step_hidden, dim=1)
             decoder_cell = torch.cat(step_cell, dim=1)
             enc_outputs = torch.cat(step_encoder_outputs, dim=1)
+
+            decoder_input = self.embedding.tgt(decoder_input)
 
             # pass through decoder
             decoder_output, attention_output, hidden, cell = self.decoder(
