@@ -35,10 +35,10 @@ class ModelGenerator:
             )
 
             embedding = EmbeddingLayer(
-                len(src_language),
-                len(tgt_language),
-                params.rnn.word_vec_size,
-                shared=False
+                src_lang=src_language,
+                tgt_lang=tgt_language,
+                word_vec_size=params.rnn.word_vec_size,
+                shared=params.model.shared_embedding
             )
 
             model = seq2seq(
@@ -73,8 +73,8 @@ class ModelGenerator:
             )
 
             embedding = EmbeddingLayer(
-                src_vocab=len(src_language),
-                tgt_vocab=len(tgt_language),
+                src_lang=src_language,
+                tgt_lang=tgt_language,
                 word_vec_size=params.transformer.d_model,
                 shared=params.model.shared_embedding
             )
