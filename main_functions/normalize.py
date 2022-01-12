@@ -31,6 +31,7 @@ def normalize(args):
             if args.sp_model is not None:
                 # file was encoded with sentencepiece
                 to_write = sp.decode(line.strip().split())
+                to_write = to_write.replace("⁇", "<unk>")
 
             else:
                 # undo subword splitting
