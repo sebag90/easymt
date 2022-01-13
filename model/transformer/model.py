@@ -113,6 +113,9 @@ class Transformer(nn.Module):
         src = padder(coded).unsqueeze(0)
         e_mask = (src != 0)
 
+        src = src.to(device)
+        e_mask = e_mask.to(device)
+
         src = self.embedding.src(src)
         encoded = self.encoder(src, e_mask)
 
@@ -146,11 +149,11 @@ class Transformer(nn.Module):
                 encoder_output.append(encoded)
 
             # create batch with live hypotheses
-            decoder_input = torch.vstack(step_input)
+            decoder_input = torch.vstack(step_input).to(device)
             encoder_output = torch.cat(encoder_output)
 
             # create mask for decoding
-            d_mask = self.create_subsequent_mask(decoder_input.size(1))
+            d_mask = self.create_subsequent_mask(decoder_input.size(1)).to(device)
 
             # pass through decoder
             decoder_input = self.embedding.tgt(decoder_input)
