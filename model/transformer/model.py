@@ -112,7 +112,6 @@ class Transformer(nn.Module):
         padder = torch.nn.ZeroPad2d((0, self.max_len - coded.size(0)))
         src = padder(coded).unsqueeze(0)
         e_mask = (src != 0)
-
         src = src.to(device)
         e_mask = e_mask.to(device)
 
@@ -153,7 +152,9 @@ class Transformer(nn.Module):
             encoder_output = torch.cat(encoder_output)
 
             # create mask for decoding
-            d_mask = self.create_subsequent_mask(decoder_input.size(1)).to(device)
+            d_mask = self.create_subsequent_mask(
+                decoder_input.size(1)
+            ).to(device)
 
             # pass through decoder
             decoder_input = self.embedding.tgt(decoder_input)
