@@ -107,7 +107,7 @@ class Transformer(nn.Module):
         """
         beam translation for a single line of text
         """
-        # encode line
+        # prepare input
         coded = self.src_lang.toks2idx(line.strip().split())
         padder = torch.nn.ZeroPad2d((0, self.max_len - coded.size(0)))
         src = padder(coded).unsqueeze(0)
@@ -115,17 +115,15 @@ class Transformer(nn.Module):
         src = src.to(device)
         e_mask = e_mask.to(device)
 
+        # encode input sentence
         src = self.embedding.src(src)
         encoded = self.encoder(src, e_mask)
-
-        # prepare decoder input
-        sos_index = self.src_lang.word2index["<sos>"]
-        d_mask = self.create_subsequent_mask(self.max_len)
 
         complete_hypotheses = list()
         live_hypotheses = list()
 
         # create empty hypothesis with only <sos> token
+        sos_index = self.src_lang.word2index["<sos>"]
         hyp = Hypothesis(alpha=alpha)
         hyp.update(
             torch.tensor([sos_index]), torch.zeros(1), 0
@@ -202,10 +200,10 @@ class Transformer(nn.Module):
             step_hypotheses.sort(reverse=True)
             live_hypotheses = step_hypotheses[:k]
 
-            # increase t
+            # increase time step
             t += 1
 
-        # if no complete hypothesis, use the alive ones
+        # if no complete hypothesis, return the alive ones
         if len(complete_hypotheses) == 0:
             complete_hypotheses = live_hypotheses
 
