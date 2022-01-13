@@ -28,6 +28,9 @@ class EmbeddingLayer(nn.Module):
             tgt_pad_id = tgt_lang.word2index["<pad>"]
             assert src_pad_id == tgt_pad_id
 
+            # make sure 2 embeddings have same vocab length
+            assert src_vocab == tgt_vocab
+
             self.src = self.tgt = nn.Embedding(
                 tgt_vocab,
                 word_vec_size,
