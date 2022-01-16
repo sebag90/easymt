@@ -10,11 +10,8 @@ from utils.utils import split_filename
 
 
 def split_dataset(args):
-    name_l1_full = args.l1.split(os.sep)[-1]
-    name_l2_full = args.l2.split(os.sep)[-1]
-
-    path1, name1, suffix1 = split_filename(name_l1_full)
-    path2, name2, suffix2 = split_filename(name_l2_full)
+    path1, name1, suffix1 = split_filename(args.l1)
+    path2, name2, suffix2 = split_filename(args.l2)
 
     train_n = int(args.train)
     test_n = int(args.test)

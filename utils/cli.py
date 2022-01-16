@@ -45,8 +45,8 @@ def easymt_arguments():
         help="path to the configuration file"
     )
     byte.add_argument(
-        "--n", metavar="N", action="store",
-        default=100,
+        "-n", metavar="N", action="store",
+        default=100, type=int,
         help=(
             "number of batches for each file"
             " (Default: %(default)s)"
