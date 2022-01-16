@@ -127,7 +127,7 @@ class BatchedData:
 
     def __iter__(self):
         for entry in os.scandir(self.path):
-            with open(Path(f"data/batched/{entry.name}"), "rb") as infile:
+            with open(Path(f"{self.path}/{entry.name}"), "rb") as infile:
                 batches = pickle.load(infile)
 
             # batches is always a list of batches
