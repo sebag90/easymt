@@ -39,10 +39,14 @@ class Language:
             self.index2word[idx] = word
 
     def read_vocabulary(self, vocfile):
-        # read vocabulary from file
+        """
+        read vocabulary from TSV file
+        the first element will be considered as word
+        the rest will be gnored
+        """
         with open(vocfile, "r", encoding="utf-8") as srcvoc:
             for line in srcvoc:
-                word, count = line.strip().split("\t")
+                word, *rest = line.strip().split("\t")
                 self.add_word(word)
 
     def toks2idx(self, tokens):
