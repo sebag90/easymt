@@ -34,7 +34,7 @@ def translate(args):
     path, name, suffix = split_filename(str(inputfile))
 
     # start translating
-    outputfile = Path(f"{path}/{name}.{model.tgt_lang.name}")
+    outputfile = Path(f"{path}/{name}.translated.{model.tgt_lang.name}")
     with open(inputfile, "r", encoding="utf-8") as infile, \
             open(outputfile, "w", encoding="utf-8") as outfile:
         for progress, line in enumerate(infile):
