@@ -29,15 +29,13 @@ class Encoder(nn.Module):
             ) for _ in range(num_layers)
         ])
 
-        #self.norm = nn.LayerNorm(d_model)
-
     def forward(self, x, mask):
         x = self.positional_encoding(x)
 
         for layer in self.layers:
             x = layer(x, mask)
 
-        return x #self.norm(x)
+        return x
 
 
 class Decoder(nn.Module):
@@ -65,7 +63,6 @@ class Decoder(nn.Module):
             ) for _ in range(num_layers)
         ])
 
-        self.norm = nn.LayerNorm(d_model)
         self.generator = nn.Linear(d_model, vocab_size)
 
     def forward(self, x, encoder_output, encoder_mask, decoder_mask):
@@ -74,6 +71,5 @@ class Decoder(nn.Module):
         for layer in self.layers:
             x = layer(x, encoder_output, encoder_mask, decoder_mask)
 
-        #x = self.norm(x)
         output = self.generator(x)
         return output
