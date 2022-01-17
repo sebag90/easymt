@@ -11,15 +11,15 @@ class DecoderLayer(nn.Module):
     def __init__(
             self, d_model, n_head, dim_ff, attn_dropout, residual_dropout):
         super().__init__()
-        self.norm1 = LayerNormalizer(d_model)
+        self.norm1 = nn.LayerNorm(d_model)
         self.masked_attn = MultiHeadAttention(
             n_head, d_model, attn_dropout, residual_dropout
         )
-        self.norm2 = LayerNormalizer(d_model)
+        self.norm2 = nn.LayerNorm(d_model)
         self.attn = MultiHeadAttention(
             n_head, d_model, attn_dropout, residual_dropout
         )
-        self.norm3 = LayerNormalizer(d_model)
+        self.norm3 = nn.LayerNorm(d_model)
         self.ff = FeedForward(d_model, dim_ff, residual_dropout)
 
     def forward(self, x, encoder_output, encoder_mask, decoder_mask):
@@ -48,12 +48,12 @@ class EncoderLayer(nn.Module):
     def __init__(
             self, d_model, n_head, dim_ff, attn_dropout, residual_dropout):
         super().__init__()
-        self.norm_1 = LayerNormalizer(d_model)
+        self.norm_1 = nn.LayerNorm(d_model)
         self.multi_attention = MultiHeadAttention(
             n_head, d_model, attn_dropout, residual_dropout
         )
 
-        self.norm_2 = LayerNormalizer(d_model)
+        self.norm_2 = nn.LayerNorm(d_model)
         self.ff = FeedForward(d_model, dim_ff, residual_dropout)
 
     def forward(self, x, mask):
@@ -101,8 +101,9 @@ class MultiHeadAttention(nn.Module):
 
         attention_scores = self.scaled_dot_product(q, k, v, mask)
 
+        # concatenate head outputs
         attention_scores = attention_scores.transpose(
-            1, 2).contiguous().view(B, -1, self.n_head * self.d_k)
+            1, 2).contiguous().view(B, T, C)
 
         proj = self.projection_layer(attention_scores)
         return self.dropout(proj)
@@ -141,16 +142,6 @@ class FeedForward(nn.Module):
 
     def forward(self, x):
         return self.layers(x)
-
-
-class LayerNormalizer(nn.Module):
-    def __init__(self, d_model):
-        super().__init__()
-        self.layer = nn.LayerNorm(d_model)
-
-    def forward(self, x):
-        return self.layer(x)
-
 
 class PositionalEncoding(nn.Module):
     def __init__(self, max_len, d_model, dropout):

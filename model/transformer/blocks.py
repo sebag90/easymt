@@ -1,7 +1,7 @@
 import torch.nn as nn
 
 from model.transformer.layers import (
-    EncoderLayer, DecoderLayer, PositionalEncoding, LayerNormalizer
+    EncoderLayer, DecoderLayer, PositionalEncoding
 )
 
 
@@ -29,7 +29,7 @@ class Encoder(nn.Module):
             ) for _ in range(num_layers)
         ])
 
-        self.norm = LayerNormalizer(d_model)
+        self.norm = nn.LayerNorm(d_model)
 
     def forward(self, x, mask):
         x = self.positional_encoding(x)
@@ -65,7 +65,7 @@ class Decoder(nn.Module):
             ) for _ in range(num_layers)
         ])
 
-        self.norm = LayerNormalizer(d_model)
+        self.norm = nn.LayerNorm(d_model)
         self.generator = nn.Linear(d_model, vocab_size)
 
     def forward(self, x, encoder_output, encoder_mask, decoder_mask):
