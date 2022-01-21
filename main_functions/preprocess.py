@@ -52,9 +52,8 @@ class NumReplacer:
 class Pipeline:
     def __init__(self, filename, language, bpe, remove_nums):
         self.filename = filename
-        path = filename.split(os.sep)[:-1]
-        path = os.sep.join(path)
-        self.temp_file = Path(f"data/temp.{language}")
+        path, name, suffix = split_filename(filename)
+        self.temp_file = Path(f"{path}/temp.{language}")
         self.language = language
 
         self.pipe = [
