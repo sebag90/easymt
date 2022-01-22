@@ -193,6 +193,11 @@ def texter_arguments():
         "--sp-model", action="store",
         help="path to a pretrained sentencepiece model"
     )
+    preprocess.add_argument(
+        "-n", metavar="N", action="store",
+        default=0, type=int,
+        help="maximum number of lines used to train preprocessing models"
+    )
 
     # split dataset
     split_dataset = subparsers.add_parser(

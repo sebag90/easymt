@@ -8,6 +8,7 @@ for machine translation. The pipeline will:
 """
 
 import datetime
+import enum
 import os
 from pathlib import Path
 import re
@@ -50,9 +51,11 @@ class NumReplacer:
 
 
 class Pipeline:
-    def __init__(self, filename, language, bpe, remove_nums):
+    def __init__(self, filename, language, bpe, remove_nums, max_lines):
         self.filename = filename
+        self.max_lines = max_lines
         path, name, suffix = split_filename(filename)
+        self.path = path
         self.temp_file = Path(f"{path}/temp.{language}")
         self.language = language
 
@@ -82,17 +85,31 @@ class Pipeline:
 
     def apply_trainable(self, processor):
         # train processor on last produced text file
-        processor.train(self.temp_file)
+        if self.max_lines == 0:
+            processor.train(self.temp_file)
+        else:
+            # only use max_lens lines to train
+            trainfile = Path(f"{self.path}/train_processor.{self.language}")
+            with open(self.temp_file, "r", encoding="utf-8") as infile,\
+                    open(trainfile, "w", encoding="utf-8") as ofile:
+                for i, line in enumerate(infile):
+                    if i == self.max_lines:
+                        break
+                    ofile.write(line)
+
+            # train on reduced file
+            processor.train(trainfile)
+            os.remove(trainfile)
 
         # do not apply truecaser
         if not isinstance(processor, Truecaser):
             # rename temp --> step_input
             os.rename(
-                self.temp_file, Path(f"data/step_input.{self.language}")
+                self.temp_file, Path(f"{self.path}/step_input.{self.language}")
             )
 
             # output is going to be temp.txt again
-            input_name = Path(f"data/step_input.{self.language}")
+            input_name = Path(f"{self.path}/step_input.{self.language}")
             output_name = self.temp_file
 
             with open(input_name, "r", encoding="utf-8") as infile,\
@@ -103,7 +120,7 @@ class Pipeline:
                     print(f"Preprocessing: line {i:,}", end="\r")
 
             # remove step input
-            os.remove(Path(f"data/step_input.{self.language}"))
+            os.remove(Path(f"{self.path}/step_input.{self.language}"))
 
     def run(self):
         to_train = list()
@@ -155,7 +172,7 @@ class Pipeline:
 
 def preprocess(args):
     if args.sentencepiece is None and args.sp_model is None:
-        pipe = Pipeline(args.file, args.language, args.bpe, args.replace_nums)
+        pipe = Pipeline(args.file, args.language, args.bpe, args.replace_nums, args.n)
         pipe.run()
     else:
         # if model is already trained, load model
@@ -173,6 +190,10 @@ def preprocess(args):
                 "--bos_id=-1",
                 "--eos_id=-1"
             ]
+
+            # add limit input sentence
+            if args.n != 0:
+                sp_args.append(f"--input_sentence_size={args.n}")
 
             # train and load model
             spm.SentencePieceTrainer.train(" ".join(sp_args))
