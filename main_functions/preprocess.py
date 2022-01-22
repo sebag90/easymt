@@ -170,7 +170,7 @@ class Pipeline:
 
 
 def preprocess(args):
-    if args.sentencepiece is None and args.sp_model is None:
+    if args.SP is None:
         pipe = Pipeline(
             args.file,
             args.language,
@@ -180,18 +180,22 @@ def preprocess(args):
         )
         pipe.run()
     else:
+        path, name, suffix = split_filename(args.file)
+        modelname = f"{path}/model.sentencepiece.{args.SP}.{args.language}"
         # if model is already trained, load model
-        if args.sp_model is not None:
+        if os.path.isfile(modelname):
+            trained_model = False
             sp = spm.SentencePieceProcessor(
-                model_file=f"{args.sp_model}"
+                model_file=modelname
             )
 
         else:
             # model needs to be trained
+            trained_model = True
             sp_args = [
                 f"--input={args.file}",
                 f"--model_prefix={args.language}",
-                f"--vocab_size={args.sentencepiece}",
+                f"--vocab_size={args.SP}",
                 "--bos_id=-1",
                 "--eos_id=-1"
             ]
@@ -206,8 +210,6 @@ def preprocess(args):
                 model_file=f"{args.language}.model"
             )
 
-        # calculate outputpath
-        path, name, suffix = split_filename(args.file)
         outputfile = Path(f"{path}/{name}.processed.{suffix}")
 
         # tokenize file
@@ -220,12 +222,8 @@ def preprocess(args):
 
         # if a new model was trained, move model and vocab to the directory
         # where the input file (and output file) are also saved
-        if not args.sp_model:
-            os.rename(
-                f"{args.language}.model",
-                f"{path}/model.sentencepiece."
-                f"{args.sentencepiece}.{args.language}"
-            )
+        if trained_model is True:
+            os.rename(f"{args.language}.model", modelname)
             os.rename(
                 f"{args.language}.vocab",
                 f"{path}/vocab.{args.language}"

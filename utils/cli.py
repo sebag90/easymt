@@ -185,13 +185,13 @@ def texter_arguments():
         help="convert all numbers to <num>"
     )
     preprocess.add_argument(
-        "--sentencepiece", action="store",
-        help="target vocabulary to be generated with sentencepiece",
+        "--SP", action="store",
+        help=(
+            "target vocabulary to be generated with sentencepiece "
+            "if a model already exists in the same directory as the "
+            "file, that model will be used instead of training a new one"
+        ),
         type=int
-    )
-    preprocess.add_argument(
-        "--sp-model", action="store",
-        help="path to a pretrained sentencepiece model"
     )
     preprocess.add_argument(
         "-n", metavar="N", action="store",
