@@ -8,7 +8,6 @@ for machine translation. The pipeline will:
 """
 
 import datetime
-import enum
 import os
 from pathlib import Path
 import re
@@ -172,7 +171,13 @@ class Pipeline:
 
 def preprocess(args):
     if args.sentencepiece is None and args.sp_model is None:
-        pipe = Pipeline(args.file, args.language, args.bpe, args.replace_nums, args.n)
+        pipe = Pipeline(
+            args.file,
+            args.language,
+            args.bpe,
+            args.replace_nums,
+            args.n
+        )
         pipe.run()
     else:
         # if model is already trained, load model

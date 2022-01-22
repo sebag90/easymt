@@ -3,7 +3,6 @@ Split a single file in train, eval and test files
 based on number of lines for each subset
 """
 
-import os
 from pathlib import Path
 
 from utils.utils import split_filename

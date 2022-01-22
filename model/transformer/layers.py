@@ -143,6 +143,7 @@ class FeedForward(nn.Module):
     def forward(self, x):
         return self.layers(x)
 
+
 class PositionalEncoding(nn.Module):
     def __init__(self, max_len, d_model, dropout):
         super().__init__()
