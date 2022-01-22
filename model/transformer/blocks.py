@@ -51,7 +51,7 @@ class Decoder(nn.Module):
         super().__init__()
         self.d_model = d_model
         self.positional_encoding = PositionalEncoding(
-            max_len, d_model, residual_dropout
+            max_len + 1, d_model, residual_dropout
         )
         self.layers = nn.ModuleList([
             DecoderLayer(
