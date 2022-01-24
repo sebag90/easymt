@@ -1,3 +1,4 @@
+import ast
 import configparser
 
 from utils.errors import InvalidArgument
@@ -11,8 +12,8 @@ class Section:
     def __init__(self, section):
         for key, value in section.items():
             try:
-                setattr(self, key, eval(value))
-            except NameError:
+                setattr(self, key, ast.literal_eval(value))
+            except (NameError, ValueError, SyntaxError):
                 setattr(self, key, value)
 
     def __repr__(self):
