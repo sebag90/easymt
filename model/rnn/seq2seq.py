@@ -93,7 +93,11 @@ class seq2seq(nn.Module):
         """
         calculate and return the error on a mini batch
         """
-        input_var, lengths, target_var, mask, max_target_len = batch
+        (input_var,
+         lengths,
+         target_var,
+         mask,
+         max_target_len) = self.prepare_batch(*batch)
 
         # move batch to device
         input_var = input_var.to(device)

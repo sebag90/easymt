@@ -72,7 +72,11 @@ class Transformer(nn.Module):
         return src, decoder_input, target, e_mask, subseq_mask
 
     def forward(self, batch, device, teacher_forcing_ratio, criterion):
-        input_var, decoder_input, target_var, e_mask, d_mask = batch
+        (input_var,
+         decoder_input,
+         target_var,
+         e_mask,
+         d_mask) = self.prepare_batch(*batch)
 
         # move tensors to device
         input_var = input_var.to(device)

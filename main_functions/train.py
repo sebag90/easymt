@@ -178,9 +178,8 @@ class Trainer:
 
         losses = list()
         for batch in self.eval_data:
-            input_batch = self.model.prepare_batch(*batch)
             loss = self.model(
-                input_batch,
+                batch,
                 self.device,
                 1,  # with teacher for consistent results
                 self.criterion
@@ -211,12 +210,9 @@ class Trainer:
             for batch in self.train_data:
                 self.optimizer.zero_grad()
 
-                # convert batch to model input
-                input_batch = self.model.prepare_batch(*batch)
-
                 # process batch
                 loss = self.model(
-                    input_batch,
+                    batch,
                     self.device,
                     self.params.training.teacher_ratio,
                     self.criterion
