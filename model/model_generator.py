@@ -1,5 +1,6 @@
 from model.rnn.seq2seq import seq2seq
 from model.transformer.model import Transformer
+from model.transformer.language_model import LanguageModel
 
 from model.embedding_layer import EmbeddingLayer
 from model.rnn.encoder import Encoder as rnn_encoder
@@ -7,9 +8,11 @@ from model.rnn.decoder import Decoder as rnn_decoder
 from model.transformer.blocks import Encoder as tr_encoder
 from model.transformer.blocks import Decoder as tr_decoder
 
+from utils.errors import DimensionError
+
 
 class ModelGenerator:
-    def generate_model(self, params, src_language, tgt_language):
+    def translation(self, params, src_language, tgt_language):
         if params.model.type == "rnn":
             encoder = rnn_encoder(
                 word_vec_size=params.rnn.word_vec_size,
@@ -86,3 +89,55 @@ class ModelGenerator:
             )
 
         return model
+
+    def lm(self, params, language):
+        if params.model.task == "language generation":
+            # GPT style language model
+            lm_type = "generator"
+
+        elif params.model.task == "language encoding":
+            # BERT style language model
+            lm_type = "encoder"
+
+        if not params.model.encoder_layers == params.model.decoder_layers:
+            raise DimensionError(
+                "In language models the number of layers in the "
+                "encoder and decoder must match"
+            )
+
+        encoder = tr_encoder(
+            d_model=params.transformer.d_model,
+            n_head=params.transformer.heads,
+            dim_ff=params.transformer.dim_feedforward,
+            attn_dropout=params.transformer.attn_dropout,
+            residual_dropout=params.transformer.residual_dropout,
+            num_layers=params.model.encoder_layers,
+            max_len=params.model.max_length
+        )
+
+        # force shared embedding
+        embedding = EmbeddingLayer(
+            src_lang=language,
+            tgt_lang=language,
+            word_vec_size=params.transformer.d_model,
+            shared=True
+        )
+
+        model = LanguageModel(
+            encoder,
+            embedding,
+            language,
+            params.model.max_length,
+            lm_type
+        )
+
+        return model
+
+
+    def generate_model(self, params, src_language, tgt_language):
+        if params.model.task == "translation":
+            return self.translation(params, src_language, tgt_language)
+
+        elif params.model.task in {"language generation", "language encoding"}:
+            # für language generation we only use the source language
+            return self.lm(params, src_language)
