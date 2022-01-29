@@ -9,9 +9,6 @@ from model.transformer.blocks import Decoder as tr_decoder
 
 
 class ModelGenerator:
-    def __init__(self, model_type):
-        self.model_type = model_type
-
     def generate_model(self, params, src_language, tgt_language):
         if params.model.type == "rnn":
             encoder = rnn_encoder(

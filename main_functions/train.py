@@ -110,7 +110,7 @@ class Trainer:
         create a model, either from scratch or load it from file
         """
         if self.resume is None:
-            model_generator = ModelGenerator(self.params.model.type)
+            model_generator = ModelGenerator()
             self.model = model_generator.generate_model(
                 self.params,
                 self.src_language,
