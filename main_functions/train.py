@@ -48,7 +48,6 @@ class Trainer:
         self.resume = resume
         self.batched = batched
         self.params = params
-        self.model_generator = ModelGenerator(self.params.model.type)
 
         # pick device
         self.device = torch.device(
@@ -111,7 +110,8 @@ class Trainer:
         create a model, either from scratch or load it from file
         """
         if self.resume is None:
-            self.model = self.model_generator.generate_model(
+            model_generator = ModelGenerator(self.params.model.type)
+            self.model = model_generator.generate_model(
                 self.params,
                 self.src_language,
                 self.tgt_language
