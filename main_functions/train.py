@@ -197,9 +197,9 @@ class Trainer:
         t_init = time.time()
         training = True
         steps = 0
-        step_update = 0
-        self.model.to(self.device)
+        accumulation = 0
         running_step = 0
+        self.model.to(self.device)
 
         while training:
             # initialize variables for monitoring
@@ -210,7 +210,7 @@ class Trainer:
 
             # start training loop over batches
             for batch in self.train_data:
-                step_update += len(batch[0])
+                accumulation += len(batch[0])
                 # process batch
                 loss = self.model(
                     batch,
@@ -229,13 +229,12 @@ class Trainer:
                     self.params.training.gradient_clipping
                 )
 
-                if step_update >= self.params.training.step_size:
+                if accumulation >= self.params.training.step_size:
                     # optimizer step
                     self.optimizer.step()
-                    self.optimizer.zero_grad()
-                    steps += 1
                     self.model.steps += 1
-                    step_update = 0
+                    steps += 1
+                    accumulation = 0
 
                 if running_step != steps:
                     running_step = steps
