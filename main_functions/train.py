@@ -250,7 +250,7 @@ class Trainer:
                         print_step = f"{steps}/{self.params.training.steps}"
                         to_print = (
                             f"step: {print_step:13} | "
-                            f"lr: {round(lr, 5):9} | "
+                            f"lr: {round(lr, 5):7} | "
                             f"loss: {round((print_loss), 5):8.5f} | "
                             f"ppl: {round(ppl, 2):8.2f} | "
                             f"time: {print_time}"
