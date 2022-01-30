@@ -133,7 +133,6 @@ class ModelGenerator:
 
         return model
 
-
     def generate_model(self, params, src_language, tgt_language):
         if params.model.task == "translation":
             return self.translation(params, src_language, tgt_language)

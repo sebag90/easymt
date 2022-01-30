@@ -88,7 +88,7 @@ class LanguageModel(nn.Module):
         # pass through model and generate logits
         output = self.model(input_var, mask)
         decoded = self.generator(output)
-        
+
         # calculate and return loss
         loss = criterion(
             decoded.view(-1, decoded.size(-1)),
@@ -109,12 +109,11 @@ class LanguageModel(nn.Module):
         beam translation for a single line of text
         """
         # prepare input
-        coded = self.src_lang.toks2idx(line.strip().split())
+        coded = self.src_lang.toks2idx(line.strip().split(), append_eos=False)
 
         complete_hypotheses = list()
         live_hypotheses = list()
 
-        coded = coded[:5]
         hyp = Hypothesis(alpha=alpha)
         for word in coded:
             hyp.update(
