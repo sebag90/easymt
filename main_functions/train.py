@@ -283,6 +283,7 @@ class Trainer:
 
                 # check if end of training
                 if steps == self.params.training.steps:
+                    self.optimizer.step()
                     training = False
                     break
 
