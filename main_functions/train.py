@@ -197,7 +197,9 @@ class Trainer:
         t_init = time.time()
         training = True
         steps = 0
+        step_update = 0
         self.model.to(self.device)
+        running_step = 0
 
         while training:
             # initialize variables for monitoring
@@ -208,8 +210,7 @@ class Trainer:
 
             # start training loop over batches
             for batch in self.train_data:
-                self.optimizer.zero_grad()
-
+                step_update += len(batch[0])
                 # process batch
                 loss = self.model(
                     batch,
@@ -228,50 +229,58 @@ class Trainer:
                     self.params.training.gradient_clipping
                 )
 
-                # optimizer step
-                self.optimizer.step()
-                steps += 1
-                self.model.steps += 1
+                if step_update >= self.params.training.step_size:
+                    # optimizer step
+                    self.optimizer.step()
+                    self.optimizer.zero_grad()
+                    steps += 1
+                    self.model.steps += 1
+                    step_update = 0
 
-                # print every x steps
-                if steps % self.params.training.print_every == 0:
-                    t_1 = time.time()
-                    ts = int(t_1 - t_init)
-                    print_loss = loss_memory.print_loss
-                    ppl = math.exp(print_loss)
-                    lr = self.optimizer.lr
-                    print_time = datetime.timedelta(seconds=ts)
-                    print_step = f"{steps}/{self.params.training.steps}"
-                    to_print = (
-                        f"step: {print_step:13} | "
-                        f"lr: {round(lr, 5):9} | "
-                        f"loss: {round((print_loss), 5):8.5f} | "
-                        f"ppl: {round(ppl, 2):8.2f} | "
-                        f"time: {print_time}"
-                    )
+                if running_step != steps:
+                    running_step = steps
+                    # print every x steps
+                    if (steps % self.params.training.print_every == 0
+                            and steps != 0):
+                        t_1 = time.time()
+                        ts = int(t_1 - t_init)
+                        print_loss = loss_memory.print_loss
+                        ppl = math.exp(print_loss)
+                        lr = self.optimizer.lr
+                        print_time = datetime.timedelta(seconds=ts)
+                        print_step = f"{steps}/{self.params.training.steps}"
+                        to_print = (
+                            f"step: {print_step:13} | "
+                            f"lr: {round(lr, 5):9} | "
+                            f"loss: {round((print_loss), 5):8.5f} | "
+                            f"ppl: {round(ppl, 2):8.2f} | "
+                            f"time: {print_time}"
+                        )
 
-                    print(to_print, flush=True)
+                        print(to_print, flush=True)
 
-                    # reset loss
-                    loss_memory.print_reset()
+                        # reset loss
+                        loss_memory.print_reset()
 
-                # validation step
-                if steps % self.params.training.valid_steps == 0:
-                    eval_loss = self.evaluate()
-                    self.optimizer.scheduler_step(eval_loss)
-                    delim = "-" * len(to_print)
+                    # validation step
+                    if (steps % self.params.training.valid_steps == 0
+                            and steps != 0):
+                        eval_loss = self.evaluate()
+                        self.optimizer.scheduler_step(eval_loss)
+                        delim = "-" * len(to_print)
+                        val_loss = round((eval_loss.item()), 5)
+                        print(
+                            f"{delim}\n"
+                            f"Validation loss: {val_loss:.5f}"
+                            f"\n{delim}",
+                            flush=True
+                        )
 
-                    print(
-                        f"{delim}\n"
-                        f"Validation loss: {round((eval_loss.item()), 5):.5f}"
-                        f"\n{delim}",
-                        flush=True
-                    )
-
-                # save model
-                if self.params.training.save_every != 0:
-                    if steps % self.params.training.save_every == 0:
-                        self.save_model()
+                    # save model
+                    if self.params.training.save_every != 0:
+                        if (steps % self.params.training.save_every == 0
+                                and steps != 0):
+                            self.save_model()
 
                 # check if end of training
                 if steps == self.params.training.steps:
