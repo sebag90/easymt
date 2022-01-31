@@ -23,24 +23,20 @@ class Pair:
 
 
 class DataLoader:
-    def __init__(self, src, tgt, batch_size=32):
-        if not len(src) == len(tgt):
-            raise ValueError
+    def __init__(self, batch_size=32):
         self.batch_size = batch_size
         self.data = list()
         self.bins = dict()
 
-        # create pair objects
-        for i, (src_sen, tgt_sen) in enumerate(zip(src, tgt)):
-            p = Pair(src_sen, tgt_sen)
-            self.data.append(p)
+    def add_pair(self, src, tgt):
+        p = Pair(src, tgt)
+        position = len(self.data)
+        self.data.append(p)
 
-            # add to bin with same length
-            if p.len not in self.bins:
-                self.bins[p.len] = list()
-            self.bins[p.len].append(i)
-
-        self.shuffle()
+        # add to bin with same length
+        if p.len not in self.bins:
+            self.bins[p.len] = list()
+        self.bins[p.len].append(position)
 
     def shuffle(self):
         """
@@ -74,8 +70,7 @@ class DataLoader:
         read src and tgt file and prepare dataset of encoded
         sentences in pairs (src, tgt)
         """
-        src = list()
-        tgt = list()
+        data = cls(batch_size=batch_size)
         src_file = Path(src_file)
         tgt_file = Path(tgt_file)
 
@@ -87,10 +82,8 @@ class DataLoader:
                 l2 = l2.strip().split()
 
                 if len(l1) <= max_len and len(l2) <= max_len:
-                    src.append(l1)
-                    tgt.append(l2)
+                    data.add_pair(l1, l2)
 
-        data = cls(src, tgt, batch_size=batch_size)
         return data
 
 
