@@ -91,6 +91,7 @@ class Trainer:
         if self.batched:
             self.train_data = BatchedData(
                 Path(self.batched),
+                self.params.model.max_length,
                 self.params.training.batch_size
                 )
 
