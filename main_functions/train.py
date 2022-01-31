@@ -217,6 +217,11 @@ class Trainer:
                 )
                 loss_memory.add(loss.item())
 
+                # scale loss if using gradient accumulation
+                norm = self.params.training.step_size / len(batch[0]
+                )
+                loss = loss / norm
+
                 # calculate gradient
                 loss.backward()
 
