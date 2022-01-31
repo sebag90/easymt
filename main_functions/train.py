@@ -89,7 +89,10 @@ class Trainer:
 
         # load train dataset
         if self.batched:
-            self.train_data = BatchedData(Path(self.batched))
+            self.train_data = BatchedData(
+                Path(self.batched),
+                self.params.training.batch_size
+                )
 
         else:
             self.train_data = DataLoader.from_files(

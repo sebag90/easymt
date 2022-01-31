@@ -1,10 +1,8 @@
+from itertools import islice
 from functools import total_ordering
 import math
-import os
-import pickle
 from pathlib import Path
 import random
-import re
 
 
 @total_ordering
@@ -97,20 +95,9 @@ class DataLoader:
 
 
 class BatchedData:
-    def __init__(self, path):
+    def __init__(self, path, batch_size):
         self.path = path
-        self.len = 0
-        # obtain total number of batches from last file
-        num = re.compile(r"_([0-9]+)")
-        for entry in os.scandir(path):
-            length = re.search(num, entry.name)
-            if length is not None:
-                n = int(length.group(1))
-                if n >= self.len:
-                    self.len = n
-
-    def __len__(self):
-        return self.len
+        self.batch_size = batch_size
 
     def shuffle(self):
         """
@@ -119,10 +106,15 @@ class BatchedData:
         pass
 
     def __iter__(self):
-        for entry in os.scandir(self.path):
-            with open(Path(f"{self.path}/{entry.name}"), "rb") as infile:
-                batches = pickle.load(infile)
+        with open(Path(self.path), "r", encoding="utf-8") as infile:
+            batch = list(islice(infile, self.batch_size))
+            while len(batch) != 0:
+                src = list()
+                tgt = list()
+                for line in batch:
+                    s, t = line.strip().split("\t")
+                    src.append(s.split())
+                    tgt.append(t.split())
 
-            # batches is always a list of batches
-            for batch in batches:
-                yield batch
+                yield src, tgt
+                batch = list(islice(infile, self.batch_size))
