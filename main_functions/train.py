@@ -78,15 +78,11 @@ class Trainer:
                 map_location=self.device
             )
             self.model = self.checkpoint["model"]
-            self.src_language = self.model.src_lang
-            self.tgt_language = self.model.tgt_lang
 
         # load eval dataset
         self.eval_data = DataLoader.from_files(
             self.params.data.src_eval,
             self.params.data.tgt_eval,
-            self.src_language,
-            self.tgt_language,
             self.params.model.max_length,
             self.params.training.batch_size
         )
@@ -99,8 +95,6 @@ class Trainer:
             self.train_data = DataLoader.from_files(
                 self.params.data.src_train,
                 self.params.data.tgt_train,
-                self.src_language,
-                self.tgt_language,
                 self.params.model.max_length,
                 self.params.training.batch_size
             )

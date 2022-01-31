@@ -49,7 +49,7 @@ class Language:
                 word, *rest = line.strip().split("\t")
                 self.add_word(word)
 
-    def toks2idx(self, tokens, append_eos=True):
+    def toks2idx(self, tokens, sos=False, eos=True):
         """
         convert a list of tokens into a
         sequence of indeces from the language
@@ -61,7 +61,11 @@ class Language:
             for word in tokens
         ]
 
-        if append_eos is True:
+        if sos is True:
+            # add <sos> at the beginning
+            sen = [self.word2index["<sos>"]] + sen
+
+        if eos is True:
             # append <eos> sentence
             sen.append(self.word2index["<eos>"])
 

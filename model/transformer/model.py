@@ -39,11 +39,14 @@ class Transformer(nn.Module):
         return obj_str
 
     def prepare_batch(self, src, tgt):
-        # create target variables by removing <eos> token
-        decoder_input = list()
-        for sentence in tgt:
-            decoder_input.append(sentence[:-1])
+        # create index tensors from token lists
+        decoder_input = [
+            self.tgt_lang.toks2idx(sen, sos=True, eos=False) for sen in tgt
+        ]
+        src = [self.src_lang.toks2idx(sen) for sen in src]
+        tgt = [self.tgt_lang.toks2idx(sen) for sen in tgt]
 
+        # pad tensors
         decoder_input = nn.utils.rnn.pad_sequence(
             decoder_input, batch_first=True
         )
@@ -53,11 +56,6 @@ class Transformer(nn.Module):
         target = nn.utils.rnn.pad_sequence(
             tgt, batch_first=True
         )
-
-        # add <sos> padding to decoder input
-        sos = self.tgt_lang.word2index["<sos>"]
-        sos_padder = torch.nn.ConstantPad2d((1, 0, 0, 0), sos)
-        decoder_input = sos_padder(decoder_input)
 
         # create masks
         e_mask = (src != 0).unsqueeze(1)

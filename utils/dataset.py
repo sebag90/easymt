@@ -71,9 +71,7 @@ class DataLoader:
             yield src, tgt
 
     @classmethod
-    def from_files(
-            cls, src_file, tgt_file, src_language,
-            tgt_language, max_len, batch_size):
+    def from_files(cls, src_file, tgt_file, max_len, batch_size):
         """
         read src and tgt file and prepare dataset of encoded
         sentences in pairs (src, tgt)
@@ -91,13 +89,8 @@ class DataLoader:
                 l2 = l2.strip().split()
 
                 if len(l1) <= max_len and len(l2) <= max_len:
-                    # convert sentence to vector
-                    l1_coded = src_language.toks2idx(l1)
-                    l2_coded = tgt_language.toks2idx(l2)
-
-                    # save coded vectors to create dataset
-                    src.append(l1_coded)
-                    tgt.append(l2_coded)
+                    src.append(l1)
+                    tgt.append(l2)
 
         data = cls(src, tgt, batch_size=batch_size)
         return data

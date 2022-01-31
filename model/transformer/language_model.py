@@ -37,20 +37,18 @@ class LanguageModel(nn.Module):
         return obj_str
 
     def prepare_batch(self, src, tgt):
-        # create target variables by removing <eos> token
-        target = list()
-        for sentence in tgt:
-            target.append(sentence[1:])
+        # convert tokens to indeces and:
+        # - remove last word from source
+        # - remove first word from target
+        src = [self.src_lang.toks2idx(sen)[:-1] for sen in src]
+        tgt = [self.tgt_lang.toks2idx(sen)[1:] for sen in tgt]
 
-        source = list()
-        for sentence in src:
-            source.append(sentence[:-1])
-
+        # pad src and tgt
         tgt = nn.utils.rnn.pad_sequence(
-            target, batch_first=True
+            tgt, batch_first=True
         )
         src = nn.utils.rnn.pad_sequence(
-            source, batch_first=True
+            src, batch_first=True
         )
 
         # create masks
