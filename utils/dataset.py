@@ -112,8 +112,8 @@ class BatchedData:
 
                     # enforce max lex
                     if len(s) <= self.max_len and len(t) <= self.max_len:
-                        src.append(s.split())
-                        tgt.append(t.split())
+                        src.append(s)
+                        tgt.append(t)
 
                 yield src, tgt
                 batch = list(islice(infile, self.batch_size))
