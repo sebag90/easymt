@@ -7,7 +7,6 @@ sequentially.
 """
 
 from pathlib import Path
-import pickle
 
 from utils.dataset import DataLoader
 from utils.parameters import Parameters

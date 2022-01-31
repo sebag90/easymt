@@ -88,9 +88,10 @@ class DataLoader:
 
 
 class BatchedData:
-    def __init__(self, path, batch_size):
+    def __init__(self, path, max_len, batch_size):
         self.path = path
         self.batch_size = batch_size
+        self.max_len = max_len
 
     def shuffle(self):
         """
@@ -106,8 +107,13 @@ class BatchedData:
                 tgt = list()
                 for line in batch:
                     s, t = line.strip().split("\t")
-                    src.append(s.split())
-                    tgt.append(t.split())
+                    s = s.split()
+                    t = t.split()
+
+                    # enforce max lex
+                    if len(s) <= self.max_len and len(t) <= self.max_len:
+                        src.append(s.split())
+                        tgt.append(t.split())
 
                 yield src, tgt
                 batch = list(islice(infile, self.batch_size))
