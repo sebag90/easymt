@@ -191,12 +191,17 @@ class Trainer:
         """
         main function of the train loop
         """
-        t_init = time.time()
+        # initialize helping parameters
         training = True
         steps = 0
-        accumulation = 0
-        running_step = 0
+        accumulation = (self.params.training.step_size !=
+                        self.params.training.batch_size)
+        acc_steps = 0
+        sub_step = 0
+
+        # start timer and training
         self.model.to(self.device)
+        t_init = time.time()
 
         while training:
             # initialize variables for monitoring
@@ -207,7 +212,7 @@ class Trainer:
 
             # start training loop over batches
             for batch in self.train_data:
-                accumulation += len(batch[0])
+                acc_steps += len(batch[0])
                 # process batch
                 loss = self.model(
                     batch,
@@ -217,9 +222,10 @@ class Trainer:
                 )
                 loss_memory.add(loss.item())
 
-                # scale loss if using gradient accumulation
-                norm = self.params.training.step_size / len(batch[0])
-                loss = loss / norm
+                if accumulation:
+                    # scale loss if using gradient accumulation
+                    norm = self.params.training.step_size / len(batch[0])
+                    loss = loss / norm
 
                 # calculate gradient
                 loss.backward()
@@ -230,15 +236,16 @@ class Trainer:
                     self.params.training.gradient_clipping
                 )
 
-                if accumulation >= self.params.training.step_size:
+                if (not accumulation
+                        or (acc_steps >= self.params.training.step_size)):
                     # optimizer step
                     self.optimizer.step()
                     self.model.steps += 1
                     steps += 1
-                    accumulation = 0
+                    acc_steps = 0
 
-                if running_step != steps:
-                    running_step = steps
+                if sub_step != steps:
+                    sub_step = steps
                     # print every x steps
                     if (steps % self.params.training.print_every == 0
                             and steps != 0):
