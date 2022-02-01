@@ -84,6 +84,7 @@ class DataLoader:
                 if len(l1) <= max_len and len(l2) <= max_len:
                     data.add_pair(l1, l2)
 
+        data.shuffle()
         return data
 
 
