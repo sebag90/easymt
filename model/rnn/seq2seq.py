@@ -40,6 +40,9 @@ class seq2seq(nn.Module):
         return obj_str
 
     def prepare_batch(self, src, tgt):
+        src = [self.src_lang.toks2idx(sen) for sen in src]
+        tgt = [self.tgt_lang.toks2idx(sen) for sen in tgt]
+
         # prepare source data
         src_len = torch.tensor([len(indexes) for indexes in src])
         src_pad = nn.utils.rnn.pad_sequence(src)

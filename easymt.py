@@ -3,7 +3,7 @@ from utils.cli import easymt_arguments
 from main_functions.train import train
 from main_functions.vocab import build_vocab
 from main_functions.translate import translate
-from main_functions.convert_to_byte import convert_to_byte
+from main_functions.batch_dataset import batch_dataset
 
 
 def main():
@@ -13,7 +13,7 @@ def main():
 
         functions = {
             "build-vocab": build_vocab,
-            "convert-to-byte": convert_to_byte,
+            "batch-dataset": batch_dataset,
             "train": train,
             "translate": translate
         }

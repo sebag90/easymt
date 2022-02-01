@@ -36,26 +36,17 @@ def easymt_arguments():
     )
 
     # convert to byte
-    byte = subparsers.add_parser(
-        "convert-to-byte",
+    batch = subparsers.add_parser(
+        "batch-dataset",
         help="convert train files to byte files"
     )
-    byte.add_argument(
+    batch.add_argument(
         "path", metavar="PATH", action="store",
         help="path to the configuration file"
     )
-    byte.add_argument(
-        "-n", metavar="N", action="store",
-        default=100, type=int,
-        help=(
-            "number of batches for each file"
-            " (Default: %(default)s)"
-        )
-    )
-    byte.add_argument(
-        "--output-dir", metavar="PATH", action="store",
-        help="output directory for the batched files",
-        default="data/batched"
+    batch.add_argument(
+        "--output", metavar="PATH", action="store",
+        help="output file", required=True
     )
 
     # train

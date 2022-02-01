@@ -53,7 +53,7 @@ def translate(args):
             tokens = model.tgt_lang.idx2toks(indeces.tolist())
 
             # remove SOS and EOS
-            tokens = tokens[1:-1]
+            tokens = filter(lambda x: x not in {"<eos>", "<sos>"}, tokens)
             translated = " ".join(tokens)
 
             # write decoded sentence to output file

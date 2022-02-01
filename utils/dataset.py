@@ -1,10 +1,8 @@
+from itertools import islice
 from functools import total_ordering
 import math
-import os
-import pickle
 from pathlib import Path
 import random
-import re
 
 
 @total_ordering
@@ -25,24 +23,20 @@ class Pair:
 
 
 class DataLoader:
-    def __init__(self, src, tgt, batch_size=32):
-        if not len(src) == len(tgt):
-            raise ValueError
+    def __init__(self, batch_size=32):
         self.batch_size = batch_size
         self.data = list()
         self.bins = dict()
 
-        # create pair objects
-        for i, (src_sen, tgt_sen) in enumerate(zip(src, tgt)):
-            p = Pair(src_sen, tgt_sen)
-            self.data.append(p)
+    def add_pair(self, src, tgt):
+        p = Pair(src, tgt)
+        position = len(self.data)
+        self.data.append(p)
 
-            # add to bin with same length
-            if p.len not in self.bins:
-                self.bins[p.len] = list()
-            self.bins[p.len].append(i)
-
-        self.shuffle()
+        # add to bin with same length
+        if p.len not in self.bins:
+            self.bins[p.len] = list()
+        self.bins[p.len].append(position)
 
     def shuffle(self):
         """
@@ -71,15 +65,12 @@ class DataLoader:
             yield src, tgt
 
     @classmethod
-    def from_files(
-            cls, src_file, tgt_file, src_language,
-            tgt_language, max_len, batch_size):
+    def from_files(cls, src_file, tgt_file, max_len, batch_size):
         """
         read src and tgt file and prepare dataset of encoded
         sentences in pairs (src, tgt)
         """
-        src = list()
-        tgt = list()
+        data = cls(batch_size=batch_size)
         src_file = Path(src_file)
         tgt_file = Path(tgt_file)
 
@@ -91,33 +82,17 @@ class DataLoader:
                 l2 = l2.strip().split()
 
                 if len(l1) <= max_len and len(l2) <= max_len:
-                    # convert sentence to vector
-                    l1_coded = src_language.toks2idx(l1)
-                    l2_coded = tgt_language.toks2idx(l2)
+                    data.add_pair(l1, l2)
 
-                    # save coded vectors to create dataset
-                    src.append(l1_coded)
-                    tgt.append(l2_coded)
-
-        data = cls(src, tgt, batch_size=batch_size)
+        data.shuffle()
         return data
 
 
 class BatchedData:
-    def __init__(self, path):
+    def __init__(self, path, max_len, batch_size):
         self.path = path
-        self.len = 0
-        # obtain total number of batches from last file
-        num = re.compile(r"_([0-9]+)")
-        for entry in os.scandir(path):
-            length = re.search(num, entry.name)
-            if length is not None:
-                n = int(length.group(1))
-                if n >= self.len:
-                    self.len = n
-
-    def __len__(self):
-        return self.len
+        self.batch_size = batch_size
+        self.max_len = max_len
 
     def shuffle(self):
         """
@@ -126,10 +101,20 @@ class BatchedData:
         pass
 
     def __iter__(self):
-        for entry in os.scandir(self.path):
-            with open(Path(f"{self.path}/{entry.name}"), "rb") as infile:
-                batches = pickle.load(infile)
+        with open(Path(self.path), "r", encoding="utf-8") as infile:
+            batch = list(islice(infile, self.batch_size))
+            while len(batch) != 0:
+                src = list()
+                tgt = list()
+                for line in batch:
+                    s, t = line.strip().split("\t")
+                    s = s.split()
+                    t = t.split()
 
-            # batches is always a list of batches
-            for batch in batches:
-                yield batch
+                    # enforce max lex
+                    if len(s) <= self.max_len and len(t) <= self.max_len:
+                        src.append(s)
+                        tgt.append(t)
+
+                yield src, tgt
+                batch = list(islice(infile, self.batch_size))

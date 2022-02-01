@@ -10,11 +10,9 @@ class Optimizer:
     def __repr__(self):
         return f"Optimizer({self.name} | lr: {round(self.lr, 5)})"
 
-    def zero_grad(self):
-        self.optimizer.zero_grad()
-
     def step(self):
         self.optimizer.step()
+        self.optimizer.zero_grad()
 
     def scheduler_step(self, loss):
         self.scheduler.step(loss)
@@ -50,8 +48,6 @@ class NoamOpt(Optimizer):
         for p in self.optimizer.param_groups:
             p['lr'] = rate
         self.optimizer.step()
-
-    def zero_grad(self):
         self.optimizer.zero_grad()
 
     def scheduler_step(self, loss):

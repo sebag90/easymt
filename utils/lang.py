@@ -49,7 +49,7 @@ class Language:
                 word, *rest = line.strip().split("\t")
                 self.add_word(word)
 
-    def toks2idx(self, tokens):
+    def toks2idx(self, tokens, sos=False, eos=True):
         """
         convert a list of tokens into a
         sequence of indeces from the language
@@ -61,8 +61,14 @@ class Language:
             for word in tokens
         ]
 
-        # append <eos> sentence
-        sen.append(self.word2index["<eos>"])
+        if sos is True:
+            # add <sos> at the beginning
+            sen = [self.word2index["<sos>"]] + sen
+
+        if eos is True:
+            # append <eos> sentence
+            sen.append(self.word2index["<eos>"])
+
         return torch.tensor(sen)
 
     def idx2toks(self, indeces):
