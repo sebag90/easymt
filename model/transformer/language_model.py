@@ -107,7 +107,7 @@ class LanguageModel(nn.Module):
         beam translation for a single line of text
         """
         # prepare input
-        coded = self.src_lang.toks2idx(line.strip().split(), append_eos=False)
+        coded = self.src_lang.toks2idx(line.strip().split(), eos=False)
 
         complete_hypotheses = list()
         live_hypotheses = list()
