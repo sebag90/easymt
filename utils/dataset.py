@@ -10,7 +10,7 @@ class Pair:
     def __init__(self, src, tgt):
         self.src = src
         self.tgt = tgt
-        self.len = len(src)
+        self.len = len(src.split())
 
     def __lt__(self, other):
         return self.len < other.len
@@ -60,8 +60,8 @@ class DataLoader:
     def __iter__(self):
         for i in range(0, len(self.order), self.batch_size):
             batch_idx = self.order[i:i + self.batch_size]
-            src = [self.data[i].src for i in batch_idx]
-            tgt = [self.data[i].tgt for i in batch_idx]
+            src = [self.data[i].src.split() for i in batch_idx]
+            tgt = [self.data[i].tgt.split() for i in batch_idx]
             yield src, tgt
 
     @classmethod
@@ -78,10 +78,10 @@ class DataLoader:
         with open(src_file, "r", encoding="utf-8") as inlang, \
                 open(tgt_file, "r", encoding="utf-8") as outlang:
             for l1, l2 in zip(inlang, outlang):
-                l1 = l1.strip().split()
-                l2 = l2.strip().split()
+                l1 = l1.strip()
+                l2 = l2.strip()
 
-                if len(l1) <= max_len and len(l2) <= max_len:
+                if len(l1.split()) <= max_len and len(l2.split()) <= max_len:
                     data.add_pair(l1, l2)
 
         data.shuffle()
