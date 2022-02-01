@@ -32,7 +32,8 @@ class LanguageModel(nn.Module):
             f"steps: {self.steps:,} | "
             f"parameters: {parameters:,})\n"
             f"{self.embedding}\n"
-            f"{self.model}"
+            f"{self.model}\n"
+            f"Generator: (\n  {self.generator}\n)"
         )
         return obj_str
 

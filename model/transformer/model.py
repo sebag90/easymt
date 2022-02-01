@@ -20,6 +20,7 @@ class Transformer(nn.Module):
         self.max_len = max_len
         self.steps = 0
         self.size = encoder.d_model
+        self.generator = nn.Linear(self.size, len(self.tgt_lang))
 
     def __repr__(self):
         # count trainable parameters
@@ -34,7 +35,8 @@ class Transformer(nn.Module):
             f"parameters: {parameters:,})\n"
             f"{self.embedding}\n"
             f"{self.encoder}\n"
-            f"{self.decoder}"
+            f"{self.decoder}\n"
+            f"Generator: (\n  {self.generator}\n)"
         )
         return obj_str
 
@@ -89,8 +91,8 @@ class Transformer(nn.Module):
 
         # pass through encoder and decoder
         encoded = self.encoder(input_var, e_mask)
-        decoded = self.decoder(decoder_input, encoded, e_mask, d_mask)
-
+        output = self.decoder(decoder_input, encoded, e_mask, d_mask)
+        decoded = self.generator(output)
         # calculate and return loss
         loss = criterion(
             decoded.view(-1, decoded.size(-1)),
@@ -158,9 +160,10 @@ class Transformer(nn.Module):
 
             # pass through decoder
             decoder_input = self.embedding.tgt(decoder_input)
-            decoded = self.decoder(
+            output = self.decoder(
                 decoder_input, encoder_output, e_mask, d_mask
             )
+            decoded = self.generator(output)
 
             # softmax to get negative log likelihood to sum scores
             decoder_output = F.log_softmax(decoded, dim=-1)
