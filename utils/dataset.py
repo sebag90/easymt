@@ -107,14 +107,16 @@ class BatchedData:
                 src = list()
                 tgt = list()
                 for line in batch:
-                    s, t = line.strip().split("\t")
-                    s = s.split()
-                    t = t.split()
+                    line = line.strip()
+                    if len(line) > 0:
+                        s, t = line.split("\t")
+                        s = s.split()
+                        t = t.split()
 
-                    # enforce max lex
-                    if (0 < len(s) <= self.max_len) and (0 < len(t) <= self.max_len):
-                        src.append(s)
-                        tgt.append(t)
+                        # enforce max lex
+                        if (0 < len(s) <= self.max_len) and (0 < len(t) <= self.max_len):
+                            src.append(s)
+                            tgt.append(t)
 
                 if len(src) > 0 and len(tgt) > 0:
                     yield src, tgt
