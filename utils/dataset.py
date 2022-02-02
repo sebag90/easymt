@@ -81,7 +81,7 @@ class DataLoader:
                 l1 = l1.strip()
                 l2 = l2.strip()
 
-                if len(l1.split()) <= max_len and len(l2.split()) <= max_len:
+                if (0 < len(l1.split()) <= max_len) and (0 < len(l2.split()) <= max_len):
                     data.add_pair(l1, l2)
 
         data.shuffle()
@@ -112,9 +112,11 @@ class BatchedData:
                     t = t.split()
 
                     # enforce max lex
-                    if len(s) <= self.max_len and len(t) <= self.max_len:
+                    if (0 < len(s) <= self.max_len) and (0 < len(t) <= self.max_len):
                         src.append(s)
                         tgt.append(t)
 
-                yield src, tgt
+                if len(src) > 0 and len(tgt) > 0:
+                    yield src, tgt
+
                 batch = list(islice(infile, self.batch_size))
