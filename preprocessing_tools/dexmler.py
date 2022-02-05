@@ -8,7 +8,7 @@ class Dexmler:
     def __repr__(self):
         return "Dexmler"
 
-    def __call__(self, line1, line2):
+    def process_two(self, line1, line2):
         if line1.strip() == "" or line2.strip() == "":
             return ("", "")
 
@@ -28,6 +28,24 @@ class Dexmler:
 
         return (norm_spaces1.strip(), norm_spaces2.strip())
 
+    def process_single(self, line):
+        if line.strip() == "":
+            return tuple([""])
+
+        # remove xml tags
+        cleaned = re.sub(self.xml_tags, "", line)
+
+        # remove extra spaces
+        norm_spaces = re.sub(self.spaces, " ", cleaned)
+
+        return tuple([norm_spaces.strip()])
+
+    def __call__(self, *args):
+        if len(args) == 1:
+            return self.process_single(*args)
+        else:
+            return self.process_two(*args)
+
 
 if __name__ == "__main__":
     t = Dexmler()
@@ -40,3 +58,4 @@ if __name__ == "__main__":
         "<this it> is some </b> nasty text xml-makrup ",
         "<this it> is some </b> nasty text xml-makrup "
     ))
+    print(t("<this it> is some </b> nasty text <\5> xml-makrup </bien>"))

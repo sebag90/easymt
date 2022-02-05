@@ -11,7 +11,7 @@ class Cleaner:
     def __repr__(self):
         return "Cleaner"
 
-    def __call__(self, line1, line2):
+    def process_two(self, line1, line2):
         line1 = line1.strip()
         line2 = line2.strip()
 
@@ -37,10 +37,35 @@ class Cleaner:
             return ("", "")
 
         # return lines
-        return(line1, line2)
+        return (line1, line2)
+
+    def process_single(self, line):
+        line = line.strip()
+
+        if line == "":
+            return tuple([line])
+
+        toks = line.split()
+
+        # enforce max len
+        if len(toks) > self.max_len:
+            return tuple([""])
+
+        # enforce min len
+        if len(toks) < self.min_len:
+            return tuple([""])
+
+        return tuple([line])
+
+    def __call__(self, *args):
+        if len(args) == 1:
+            return self.process_single(*args)
+        else:
+            return self.process_two(*args)
 
 
 if __name__ == "__main__":
     t = Cleaner(1, 5)
     print(t("something something", "c sjft e fhf f d d d d d d d d d d"))
     print(t("this is a good thins", "una buona cosa"))
+    print(t("this is a good thins"))

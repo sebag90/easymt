@@ -124,14 +124,10 @@ def texter_arguments():
         "clean", help="clean 2 files"
     )
     clean.add_argument(
-        "file1", metavar="FILE1",
+        "file", metavar="FILE(S)",
+        nargs="+",
         action="store",
-        help="file 1"
-    )
-    clean.add_argument(
-        "file2", metavar="FILE2",
-        action="store",
-        help="file 2"
+        help="path to file(s) to be cleaned"
     )
     clean.add_argument(
         "--max-len", action="store",
