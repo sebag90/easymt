@@ -145,6 +145,20 @@ def texter_arguments():
         default=9, type=int
     )
 
+    chunker = subparsers.add_parser(
+        "chunk", help="divide long sentences into chunks of n words"
+    )
+    chunker.add_argument(
+        "file", metavar="FILE", action="store",
+        help="path to the text file"
+    )
+    chunker.add_argument(
+        "-n", metavar="N", action="store",
+        type=int,
+        help="maximum length of each sentence",
+        required=True
+    )
+
     # preprocess
     preprocess = subparsers.add_parser(
         "preprocess", help="preprocess a corpus"

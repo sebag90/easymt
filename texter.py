@@ -2,6 +2,7 @@ from utils.cli import texter_arguments
 
 from main_functions.split import split_file
 from main_functions.preprocess import preprocess
+from main_functions.chunk import chunk
 from main_functions.split_dataset import split_dataset
 from main_functions.normalize import normalize
 from main_functions.clean import clean
@@ -21,7 +22,8 @@ def main():
             "split-dataset": split_dataset,
             "normalize": normalize,
             "replace-numbers": replace_numbers,
-            "evaluate": evaluate
+            "evaluate": evaluate,
+            "chunk": chunk
         }
 
         if subparser not in functions.keys():
