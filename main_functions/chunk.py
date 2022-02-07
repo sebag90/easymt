@@ -2,6 +2,7 @@ from pathlib import Path
 
 from utils.utils import split_filename
 
+
 def slice_list(lst, n):
     for i in range(0, len(lst), n):
         yield lst[i:i+n]

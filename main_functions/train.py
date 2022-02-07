@@ -6,6 +6,8 @@ import datetime
 import math
 import os
 from pathlib import Path
+import signal
+import sys
 import time
 
 import torch
@@ -54,6 +56,17 @@ class Trainer:
             "cuda" if torch.cuda.is_available() else "cpu"
         )
         torch.set_num_threads(os.cpu_count())
+
+        # avoid abrpt termination of training by
+        # calling the kill_training method to
+        # ensure the last model is saved
+        for sig in (signal.SIGTERM, signal.SIGINT):
+            signal.signal(sig, self.kill_training)
+
+    def kill_training(self, *args):
+        print("Aborting...")
+        self.save_model()
+        sys.exit()
 
     def read_data(self):
         """
@@ -313,8 +326,5 @@ def train(args):
     trainer = Trainer(resume, batched, params)
     trainer.read_data()
     trainer.create_model()
-    try:
-        trainer.train_loop()
-    except KeyboardInterrupt:
-        print("Aborting...")
+    trainer.train_loop()
     trainer.save_model()
