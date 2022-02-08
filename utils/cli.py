@@ -206,14 +206,10 @@ def texter_arguments():
         help="split a file in train, eval and test files"
     )
     split_dataset.add_argument(
-        "l1", metavar="CORPUS L1",
+        "file", metavar="FILE(S)",
+        nargs="+",
         action="store",
-        help="L1 corpus"
-    )
-    split_dataset.add_argument(
-        "l2", metavar="CORPUS L2",
-        action="store",
-        help="L2 corpus"
+        help="path to file(s) to be cleaned"
     )
     split_required = split_dataset.add_argument_group(
         "required named arguments"
