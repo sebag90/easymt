@@ -227,7 +227,8 @@ class Trainer:
 
             # start training loop over batches
             for batch in self.train_data:
-                acc_steps += len(batch[0])
+                batch_size = len(batch[0])
+                acc_steps += batch_size
                 # process batch
                 loss = self.model(
                     batch,
@@ -239,7 +240,7 @@ class Trainer:
 
                 if accumulation:
                     # scale loss if using gradient accumulation
-                    norm = self.params.training.step_size / len(batch[0])
+                    norm = self.params.training.step_size / batch_size
                     loss = loss / norm
 
                 # calculate gradient
