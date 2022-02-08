@@ -65,6 +65,7 @@ class Trainer:
 
     def kill_training(self, *args):
         print("Aborting...")
+        self.optimizer.step()
         self.save_model()
         sys.exit()
 
