@@ -271,7 +271,7 @@ class Trainer:
                         ppl = math.exp(print_loss)
                         lr = self.optimizer.lr
                         print_time = datetime.timedelta(seconds=ts)
-                        print_step = f"{steps}/{self.params.training.steps}"
+                        print_step = f"{steps:,}/{self.params.training.steps:,}"
                         to_print = (
                             f"step: {print_step:13} | "
                             f"lr: {round(lr, 5):7} | "
