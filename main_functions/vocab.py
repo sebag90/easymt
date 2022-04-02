@@ -46,7 +46,6 @@ def build_vocab(args):
     mp.set_start_method("spawn")
     with mp.Pool() as pool:
         pool.starmap(process_single_file, mp_args)
-   
 
     print(" "*50, end="\r")
     print("Building vocabulary: complete")
