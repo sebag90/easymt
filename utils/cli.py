@@ -19,7 +19,7 @@ def easymt_arguments():
         help="path to file 2"
     )
     vocab.add_argument(
-        "--n_sample", metavar="N", action="store",
+        "--n-sample", metavar="N", action="store",
         help=(
             "number of lines used to build vocabulary"
             " (0 = full corpus - default: %(default)s)"
@@ -27,7 +27,7 @@ def easymt_arguments():
         default=0
     )
     vocab.add_argument(
-        "--min_freq", metavar="N", type=int,
+        "--min-freq", metavar="N", type=int,
         help=(
             "minimum frequency for a token to be included"
             " (default: %(default)s)"
@@ -35,17 +35,17 @@ def easymt_arguments():
         default=2
     )
 
-    # convert to byte
+    # batch data set
     batch = subparsers.add_parser(
         "batch-dataset",
         help="convert train files to byte files"
     )
     batch.add_argument(
-        "path", metavar="PATH", action="store",
+        "path", action="store",
         help="path to the configuration file"
     )
     batch.add_argument(
-        "--output", metavar="PATH", action="store",
+        "--output",  action="store",
         help="output file", required=True
     )
 
@@ -58,11 +58,11 @@ def easymt_arguments():
         help="path to the configuration file"
     )
     train.add_argument(
-        "--resume", action="store",
+        "--resume", action="store", metavar="MODEL",
         help="path to model to resume training"
     )
     train.add_argument(
-        "--batched", action="store",
+        "--batched", action="store", metavar="BATCHED-FILE",
         help=(
             "path to the directory containing "
             "the batched files")
@@ -72,7 +72,6 @@ def easymt_arguments():
     translate = subparsers.add_parser(
         "translate", help="translate a file"
     )
-
     translate.add_argument(
         "file", metavar="FILE", action="store",
         help="path to file to translate"
