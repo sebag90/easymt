@@ -152,10 +152,11 @@ def texter_arguments():
         help="path to the text file"
     )
     chunker.add_argument(
-        "-n", metavar="N", action="store",
+        "--max-len", metavar="N", action="store",
         type=int,
-        help="maximum length of each sentence",
-        required=True
+        help="maximum length of each sentence (default: %(default)s)",
+        required=True,
+        default=256
     )
 
     # preprocess
@@ -177,6 +178,7 @@ def texter_arguments():
     )
     preprocess.add_argument(
         "--bpe", action="store",
+        metavar="BPE-Splits",
         help="number of BPE splittings",
         type=int
     )
@@ -186,6 +188,7 @@ def texter_arguments():
     )
     preprocess.add_argument(
         "--SP", action="store",
+        metavar="V-Size",
         help=(
             "target vocabulary to be generated with sentencepiece "
             "if a model already exists in the same directory as the "
@@ -194,7 +197,7 @@ def texter_arguments():
         type=int
     )
     preprocess.add_argument(
-        "-n", metavar="N", action="store",
+        "--max-lines", metavar="N", action="store",
         default=0, type=int,
         help="maximum number of lines used to train preprocessing models"
     )
@@ -246,8 +249,9 @@ def texter_arguments():
         help="subword splitting was applied"
     )
     normalize.add_argument(
-        "--sp-model", action="store",
-        help="path to the sentencepiece model"
+        "--SP", action="store",
+        metavar="V-Size",
+        help="target vocabulary of the sentencepiece model"
     )
     normalize.add_argument(
         "--upper", "-u", action="store_true",

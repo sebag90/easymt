@@ -18,8 +18,9 @@ def normalize(args):
 
     ofile = Path(f"{path}/{name}.normalized.{suffix}")
 
-    if args.sp_model is not None:
-        sp = spm.SentencePieceProcessor(model_file=args.sp_model)
+    if args.SP is not None:
+        sp_model = f"{path}/model.sentencepiece.{args.SP}.{suffix}"
+        sp = spm.SentencePieceProcessor(model_file=sp_model)
     else:
         truecaser = Truecaser(suffix, path)
         detok = Detokenizer(suffix)
@@ -28,7 +29,7 @@ def normalize(args):
     with open(Path(args.file), "r", encoding="utf-8") as infile, \
             open(ofile, "w", encoding="utf-8") as ofile:
         for i, line in enumerate(infile):
-            if args.sp_model is not None:
+            if args.SP is not None:
                 # file was encoded with sentencepiece
                 to_write = sp.decode(line.strip().split())
                 to_write = to_write.replace("⁇", "<unk>")

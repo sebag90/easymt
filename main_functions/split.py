@@ -7,13 +7,13 @@ from pathlib import Path
 
 
 def split_file(args):
-    path = Path(args.path)
+    filepath = Path(args.path)
 
-    file1 = Path(f"{path}.l1")
-    file2 = Path(f"{path}.l2")
+    file1 = Path(f"{filepath}.l1")
+    file2 = Path(f"{filepath}.l2")
 
     line_count = 0
-    with open(path, "r", encoding="utf-8") as infile:
+    with open(filepath, "r", encoding="utf-8") as infile:
         l1file = open(file1, "w", encoding="utf-8")
         l2file = open(file2, "w", encoding="utf-8")
 
