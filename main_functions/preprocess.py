@@ -201,8 +201,8 @@ def preprocess(args):
             ]
 
             # add limit input sentence
-            if args.n != 0:
-                sp_args.append(f"--input_sentence_size={args.n}")
+            if args.max_lines != 0:
+                sp_args.append(f"--input_sentence_size={args.max_lines}")
 
             # train and load model
             spm.SentencePieceTrainer.train(" ".join(sp_args))
