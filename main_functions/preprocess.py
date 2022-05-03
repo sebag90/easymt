@@ -176,7 +176,7 @@ def preprocess(args):
             args.language,
             args.bpe,
             args.replace_nums,
-            args.n
+            args.max_lines
         )
         pipe.run()
     else:
