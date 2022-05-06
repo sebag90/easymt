@@ -24,12 +24,12 @@ def split_single(filename, train_n, eval_n, test_n, verbose):
     current_limit = limits[o_index]
     ofile = outputfiles[o_index]
 
-    sa = {f"{filename}.{suffix}": 0 for filename in to_write}
+    results = {f"{filename}.{suffix}": 0 for filename in to_write}
 
     with open(filename, "r", encoding="utf-8") as infile:
         for i, line in enumerate(infile):
             ofile.write(line)
-            sa[f"{to_write[o_index]}.{suffix}"] += 1
+            results[f"{to_write[o_index]}.{suffix}"] += 1
 
             if i == current_limit - 1:
                 o_index += 1
@@ -46,7 +46,7 @@ def split_single(filename, train_n, eval_n, test_n, verbose):
     for out_file in outputfiles:
         out_file.close()
 
-    return sa
+    return results
 
 
 def split_dataset(args):
