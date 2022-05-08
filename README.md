@@ -100,7 +100,8 @@ This step will generate the file ```data/newssyscomb.2009.processed.translated.i
 python texter.py normalize --SP 35000 data/newssyscomb.2009.processed.translated.it
 ```
 
-which will produce ```data/newssyscomb.2009.processed.translated.normalized.it```. Now we can take a look at the translations of our model:
+which will produce ```data/newssyscomb.2009.processed.translated.normalized.it```.  
+Now we can take a look at the translations of our model:
 ```
 source: Both countries invested millions of dollars into surveying.
 translation: Entrambi i paesi hanno investito milioni di dollari nell’indagine.
