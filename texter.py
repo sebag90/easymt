@@ -7,7 +7,7 @@ def main():
     args = texter_arguments()
     if args:
         subparser = args.subparser
-        module = importlib.import_module(f"main_functions.{subparser}")
+        module = importlib.import_module(f"bin.{subparser}")
         module.main(args)
 
 
