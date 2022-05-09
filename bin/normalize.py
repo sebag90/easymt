@@ -13,7 +13,7 @@ from preprocessing_tools.detokenizer import Detokenizer
 from preprocessing_tools.truecaser import Truecaser
 
 
-def normalize(args):
+def main(args):
     path, name, suffix = split_filename(args.file)
 
     ofile = Path(f"{path}/{name}.normalized.{suffix}")

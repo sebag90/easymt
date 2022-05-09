@@ -8,7 +8,7 @@ def slice_list(lst, n):
         yield lst[i:i+n]
 
 
-def chunk(args):
+def main(args):
     input_file = Path(args.file)
     max_len = args.n
 

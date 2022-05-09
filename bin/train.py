@@ -318,7 +318,7 @@ class Trainer:
         print(f"Training completed in: {print_time}", flush=True)
 
 
-def train(args):
+def main(args):
     # extract arguments
     resume = args.resume
     batched = args.batched

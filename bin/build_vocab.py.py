@@ -33,7 +33,7 @@ def process_single_file(filename, n_sample, min_freq, verbose=False):
     voc.save_voc(path)
 
 
-def build_vocab(args):
+def main(args):
     n_sample = int(args.n_sample)
     l1_file = Path(f"{args.file1}")
     l2_file = Path(f"{args.file2}")

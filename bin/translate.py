@@ -10,7 +10,7 @@ import torch
 from utils.utils import split_filename
 
 
-def translate(args):
+def main(args):
     inputfile = Path(args.file)
     beam_size = int(args.beam)
 

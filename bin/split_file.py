@@ -6,7 +6,7 @@ into 2 documents containing each a single language
 from pathlib import Path
 
 
-def split_file(args):
+def main(args):
     filepath = Path(args.path)
 
     file1 = Path(f"{filepath}.l1")

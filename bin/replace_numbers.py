@@ -4,7 +4,7 @@ import re
 from utils.utils import split_filename
 
 
-def replace_numbers(args):
+def main(args):
     reference = Path(args.reference)
     translation = Path(args.translation)
 

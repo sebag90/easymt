@@ -108,7 +108,7 @@ def texter_arguments():
 
     # split TSV files
     split = subparsers.add_parser(
-        "split", help="preprocess a TSV file"
+        "split-file", help="preprocess a TSV file"
     )
 
     split.add_argument(

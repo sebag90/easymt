@@ -7,7 +7,7 @@ from utils.utils import split_filename
 from utils.errors import InvalidArgument
 
 
-def clean(args):
+def main(args):
     # get arguments
     if not 0 < len(args.file) < 3:
         raise InvalidArgument(

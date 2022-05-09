@@ -9,7 +9,7 @@ import subprocess
 from utils.errors import FileError
 
 
-def evaluate(args):
+def main(args):
     # make sure reference and translation have same length
     ref = 0
     with open(Path(args.reference), "r", encoding="utf-8") as rfile:

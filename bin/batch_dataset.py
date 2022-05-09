@@ -12,7 +12,7 @@ from utils.dataset import DataLoader
 from utils.parameters import Parameters
 
 
-def batch_dataset(args):
+def main(args):
     # read data from configuration file
     config = Parameters.from_config(args.path)
 

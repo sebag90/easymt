@@ -169,7 +169,7 @@ class Pipeline:
         os.rename(self.temp_file, Path(f"{path}/{name}.processed.{suffix}"))
 
 
-def preprocess(args):
+def main(args):
     if args.SP is None:
         pipe = Pipeline(
             args.file,

@@ -49,7 +49,7 @@ def split_single(filename, train_n, eval_n, test_n, verbose):
     return results
 
 
-def split_dataset(args):
+def main(args):
     # get arguments
     if len(args.file) < 1:
         raise InvalidArgument(
