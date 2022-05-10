@@ -11,12 +11,10 @@ def easymt_arguments():
         help="build a vocabulary from files"
     )
     vocab.add_argument(
-        "file1", metavar="PATH", action="store",
-        help="path to file 1"
-    )
-    vocab.add_argument(
-        "file2", metavar="PATH", action="store",
-        help="path to file 2"
+        "file", metavar="FILE(S)",
+        nargs="+",
+        action="store",
+        help="path to file(s) to process"
     )
     vocab.add_argument(
         "--n-sample", metavar="N", action="store",

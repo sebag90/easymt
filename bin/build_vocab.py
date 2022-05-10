@@ -35,13 +35,12 @@ def process_single_file(filename, n_sample, min_freq, verbose=False):
 
 def main(args):
     n_sample = int(args.n_sample)
-    l1_file = Path(f"{args.file1}")
-    l2_file = Path(f"{args.file2}")
+    verbose = [False for _ in args.file]
+    verbose[0] = True
 
-    mp_args = [
-        (l1_file, n_sample, args.min_freq, True),
-        (l2_file, n_sample, args.min_freq, False)
-    ]
+    mp_args = list()
+    for filename, verb in zip(args.file, verbose):
+        mp_args.append(tuple([Path(filename), n_sample, args.min_freq, verb]))
 
     mp.set_start_method("spawn")
     with mp.Pool() as pool:
