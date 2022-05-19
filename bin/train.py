@@ -262,14 +262,14 @@ class Trainer:
                 else:
                     loss.backward()
 
-                # gradient clipping
-                nn.utils.clip_grad_norm_(
-                    self.model.parameters(),
-                    self.params.training.gradient_clipping
-                )
-
                 if (not accumulation
                         or (acc_steps >= self.params.training.step_size)):
+                    # gradient clipping
+                    nn.utils.clip_grad_norm_(
+                        self.model.parameters(),
+                        self.params.training.gradient_clipping
+                    )
+
                     # optimizer step
                     self.optimizer.step(self.scaler)
                     self.model.steps += 1
