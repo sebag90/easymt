@@ -258,13 +258,14 @@ class Trainer:
                 # calculate gradient
                 if self.mixed is True:
                     self.scaler.scale(loss).backward()
-                    self.scaler.unscale_(self.optimizer.optimizer)
                 else:
                     loss.backward()
 
                 if (not accumulation
                         or (acc_steps >= self.params.training.step_size)):
-                    # gradient clipping
+                    # unscale and clip gradients
+                    if self.mixed is True:
+                        self.scaler.unscale_(self.optimizer.optimizer)
                     nn.utils.clip_grad_norm_(
                         self.model.parameters(),
                         self.params.training.gradient_clipping
