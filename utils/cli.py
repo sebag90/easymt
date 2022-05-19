@@ -65,6 +65,10 @@ def easymt_arguments():
             "path to the directory containing "
             "the batched files")
     )
+    train.add_argument(
+        "--mixed", action="store_true",
+        help="Train the model with mixed precision"
+    )
 
     # translate
     translate = subparsers.add_parser(

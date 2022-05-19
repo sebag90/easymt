@@ -46,10 +46,12 @@ class Memory:
 
 
 class Trainer:
-    def __init__(self, resume, batched, params):
+    def __init__(self, resume, batched, mixed, params):
         self.resume = resume
         self.batched = batched
         self.params = params
+        self.mixed = mixed
+        self.scaler = torch.cuda.amp.GradScaler() if mixed is True else None
 
         # pick device
         self.device = torch.device(
@@ -155,7 +157,7 @@ class Trainer:
 
         self.optimizer = get_optimizer(self.model, self.params)
 
-        # load optimizer
+        # load checkpoint
         if self.resume:
             self.optimizer.load_state_dict(
                 self.checkpoint["optimizer"]
@@ -230,21 +232,35 @@ class Trainer:
                 batch_size = len(batch[0])
                 acc_steps += batch_size
                 # process batch
-                loss = self.model(
-                    batch,
-                    self.device,
-                    self.params.training.teacher_ratio,
-                    self.criterion
-                )
-                loss_memory.add(loss.item())
+                if self.mixed is True:
+                    with torch.cuda.amp.autocast():
+                        loss = self.model(
+                            batch,
+                            self.device,
+                            self.params.training.teacher_ratio,
+                            self.criterion
+                        )
+                else:
+                    loss = self.model(
+                            batch,
+                            self.device,
+                            self.params.training.teacher_ratio,
+                            self.criterion
+                        )
 
+                loss_memory.add(loss.item())
                 if accumulation:
                     # scale loss if using gradient accumulation
                     norm = self.params.training.step_size / batch_size
+                    # TODO: should also be in autocast env?
                     loss = loss / norm
 
                 # calculate gradient
-                loss.backward()
+                if self.mixed is True:
+                    self.scaler.scale(loss).backward()
+                    self.scaler.unscale_(self.optimizer.optimizer)
+                else:
+                    loss.backward()
 
                 # gradient clipping
                 nn.utils.clip_grad_norm_(
@@ -255,7 +271,7 @@ class Trainer:
                 if (not accumulation
                         or (acc_steps >= self.params.training.step_size)):
                     # optimizer step
-                    self.optimizer.step()
+                    self.optimizer.step(self.scaler)
                     self.model.steps += 1
                     steps += 1
                     acc_steps = 0
@@ -319,13 +335,11 @@ class Trainer:
 
 
 def main(args):
-    # extract arguments
-    resume = args.resume
-    batched = args.batched
+    # extract parameters
     params = Parameters.from_config(args.path)
 
     # initialize trainer
-    trainer = Trainer(resume, batched, params)
+    trainer = Trainer(args.resume, args.batched, args.mixed, params)
     trainer.read_data()
     trainer.create_model()
     trainer.train_loop()
