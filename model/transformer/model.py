@@ -7,6 +7,11 @@ import torch.nn.functional as F
 from utils.lang import Hypothesis
 
 
+DEVICE = torch.device(
+    "cuda" if torch.cuda.is_available() else "cpu"
+)
+
+
 class Transformer(nn.Module):
     def __init__(
             self, encoder, decoder, embedding, src_lang, tgt_lang, max_len):
@@ -71,7 +76,7 @@ class Transformer(nn.Module):
 
         return src, decoder_input, target, e_mask, subseq_mask
 
-    def forward(self, batch, device, teacher_forcing_ratio, criterion):
+    def forward(self, batch, teacher_forcing_ratio, criterion):
         (input_var,
          decoder_input,
          target_var,
@@ -79,11 +84,11 @@ class Transformer(nn.Module):
          d_mask) = self.prepare_batch(*batch)
 
         # move tensors to device
-        input_var = input_var.to(device)
-        decoder_input = decoder_input.to(device)
-        target_var = target_var.to(device)
-        e_mask = e_mask.to(device)
-        d_mask = d_mask.to(device)
+        input_var = input_var.to(DEVICE)
+        decoder_input = decoder_input.to(DEVICE)
+        target_var = target_var.to(DEVICE)
+        e_mask = e_mask.to(DEVICE)
+        d_mask = d_mask.to(DEVICE)
 
         # obtain embedded sequences
         input_var = self.embedding.src(input_var)
@@ -107,7 +112,7 @@ class Transformer(nn.Module):
         return subseq_mask
 
     @torch.no_grad()
-    def beam_search(self, line, beam_size, device, alpha):
+    def beam_search(self, line, beam_size, alpha):
         """
         beam translation for a single line of text
         """
@@ -116,8 +121,8 @@ class Transformer(nn.Module):
         padder = torch.nn.ZeroPad2d((0, self.max_len - coded.size(0)))
         src = padder(coded).unsqueeze(0)
         e_mask = (src != 0)
-        src = src.to(device)
-        e_mask = e_mask.to(device)
+        src = src.to(DEVICE)
+        e_mask = e_mask.to(DEVICE)
 
         # encode input sentence
         src = self.embedding.src(src)
@@ -150,13 +155,13 @@ class Transformer(nn.Module):
                 encoder_output.append(encoded)
 
             # create batch with live hypotheses
-            decoder_input = torch.vstack(step_input).to(device)
+            decoder_input = torch.vstack(step_input).to(DEVICE)
             encoder_output = torch.cat(encoder_output)
 
             # create mask for decoding
             d_mask = self.create_subsequent_mask(
                 decoder_input.size(1)
-            ).to(device)
+            ).to(DEVICE)
 
             # pass through decoder
             decoder_input = self.embedding.tgt(decoder_input)

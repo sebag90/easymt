@@ -10,22 +10,20 @@ import torch
 from utils.utils import split_filename
 
 
+DEVICE = torch.device(
+    "cuda" if torch.cuda.is_available() else "cpu"
+)
+
+
 def main(args):
     inputfile = Path(args.file)
     beam_size = int(args.beam)
 
-    # pick device
-    device = torch.device(
-        "cuda" if torch.cuda.is_available() else "cpu"
-    )
-    cpu = os.cpu_count()
-    torch.set_num_threads(cpu)
-
-    checkpoint = torch.load(Path(args.model), map_location=device)
+    checkpoint = torch.load(Path(args.model), map_location=DEVICE)
     model = checkpoint["model"]
 
     # transfer model and set eval mode
-    model.to(device)
+    model.to(DEVICE)
     model.eval()
 
     # print model
@@ -39,7 +37,7 @@ def main(args):
             open(outputfile, "w", encoding="utf-8") as outfile:
         for progress, line in enumerate(infile):
             line = line.strip()
-            hypotheses = model.beam_search(line, beam_size, device, args.alpha)
+            hypotheses = model.beam_search(line, beam_size, args.alpha)
 
             # if verbose print all hypotheses
             if args.verbose:

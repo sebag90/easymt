@@ -23,6 +23,12 @@ from utils.dataset import DataLoader, BatchedData
 from utils.parameters import Parameters
 
 
+
+DEVICE = torch.device(
+    "cuda" if torch.cuda.is_available() else "cpu"
+)
+
+
 class Memory:
     """
     class to keep track of loss
@@ -52,12 +58,6 @@ class Trainer:
         self.params = params
         self.mixed = mixed
         self.scaler = torch.cuda.amp.GradScaler() if mixed is True else None
-
-        # pick device
-        self.device = torch.device(
-            "cuda" if torch.cuda.is_available() else "cpu"
-        )
-        torch.set_num_threads(os.cpu_count())
 
         # avoid abrpt termination of training by
         # calling the kill_training method to
@@ -91,7 +91,7 @@ class Trainer:
             # load from file
             self.checkpoint = torch.load(
                 Path(self.resume),
-                map_location=self.device
+                map_location=DEVICE
             )
             self.model = self.checkpoint["model"]
 
@@ -144,7 +144,7 @@ class Trainer:
 
         print(self.model, flush=True)
         # move model to device
-        self.model.to(self.device)
+        self.model.to(DEVICE)
 
         # set training mode
         self.model.train()
@@ -194,7 +194,6 @@ class Trainer:
         for batch in self.eval_data:
             loss = self.model(
                 batch,
-                self.device,
                 1,  # with teacher for consistent results
                 self.criterion
             )
@@ -217,7 +216,7 @@ class Trainer:
         sub_step = 0
 
         # start timer and training
-        self.model.to(self.device)
+        self.model.to(DEVICE)
         t_init = time.time()
 
         while training:
@@ -236,14 +235,12 @@ class Trainer:
                     with torch.cuda.amp.autocast():
                         loss = self.model(
                             batch,
-                            self.device,
                             self.params.training.teacher_ratio,
                             self.criterion
                         )
                 else:
                     loss = self.model(
                             batch,
-                            self.device,
                             self.params.training.teacher_ratio,
                             self.criterion
                         )

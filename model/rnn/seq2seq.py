@@ -8,6 +8,11 @@ import torch.nn.functional as F
 from utils.lang import Hypothesis
 
 
+DEVICE = torch.device(
+    "cuda" if torch.cuda.is_available() else "cpu"
+)
+
+
 class seq2seq(nn.Module):
     def __init__(
             self, encoder, decoder, embedding, src_lang, tgt_lang, max_len):
@@ -56,13 +61,13 @@ class seq2seq(nn.Module):
 
         return src_pad, src_len, tgt_pad, mask, max_tgt_len
 
-    def encode(self, input_var, lengths, device):
+    def encode(self, input_var, lengths):
         """
         encode a batch of sentences for translation
         (batch size = 1)
         """
         # prepare input sentence
-        input_var = input_var.to(device)
+        input_var = input_var.to(DEVICE)
         len_batch = input_var.shape[1]
 
         # obtain embedded input sequence
@@ -79,12 +84,12 @@ class seq2seq(nn.Module):
             (1, len_batch),
             sos_index,
             dtype=torch.int,
-            device=device
+            device=DEVICE
         )
 
         context_vector = torch.zeros(
             (len_batch, self.encoder.hidden_size),
-            device=device
+            device=DEVICE
         )
 
         return (
@@ -92,7 +97,7 @@ class seq2seq(nn.Module):
             encoder_cell, encoder_outputs
         )
 
-    def forward(self, batch, device, teacher_forcing_ratio, criterion):
+    def forward(self, batch, teacher_forcing_ratio, criterion):
         """
         calculate and return the error on a mini batch
         """
@@ -103,9 +108,9 @@ class seq2seq(nn.Module):
          max_target_len) = self.prepare_batch(*batch)
 
         # move batch to device
-        input_var = input_var.to(device)
-        target_var = target_var.to(device)
-        mask = mask.to(device)
+        input_var = input_var.to(DEVICE)
+        target_var = target_var.to(DEVICE)
+        mask = mask.to(DEVICE)
 
         loss = 0
 
@@ -114,7 +119,7 @@ class seq2seq(nn.Module):
          context_vector,
          decoder_hidden,
          decoder_cell,
-         encoder_outputs) = self.encode(input_var, lengths, device)
+         encoder_outputs) = self.encode(input_var, lengths)
 
         for t in range(max_target_len):
             # decide if teacher for next word
@@ -149,13 +154,13 @@ class seq2seq(nn.Module):
                 # next input is decoder's current output
                 _, topi = decoder_output.topk(1)
                 decoder_input = topi.t()
-                decoder_input = decoder_input.to(device)
+                decoder_input = decoder_input.to(DEVICE)
 
         # calculate batch loss
         return loss / max_target_len
 
     @torch.no_grad()
-    def beam_search(self, line, beam_size, device, alpha):
+    def beam_search(self, line, beam_size, alpha):
         """
         beam translation for a single line of text
         """
@@ -169,7 +174,7 @@ class seq2seq(nn.Module):
         # 2 - decoder_hidden
         # 3 - decoder_cell
         (decoder_input, *decoder_state, encoder_outputs) = self.encode(
-            input_batch, lengths, device
+            input_batch, lengths
         )
 
         complete_hypotheses = list()
