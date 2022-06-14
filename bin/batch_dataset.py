@@ -27,14 +27,16 @@ def main(args):
     )
 
     outputfile = Path(args.output)
+    lines = 1
     with open(outputfile, "w", encoding="utf-8") as ofile:
-        for i, batch in enumerate(train_data):
+        for batch in train_data:
             for src, tgt in zip(*batch):
                 s_sen = " ".join(src)
                 t_sen = " ".join(tgt)
                 ofile.write(f"{s_sen}\t{t_sen}\n")
+                lines += 1
 
-            if (i+1) % 10000 == 0:
-                print(f"Processed batches: {i + 1:,}", flush=True)
+            if lines % 10000 == 0:
+                print(f"Processed lines: {lines + 1:,}", flush=True)
 
     print("Complete: Batching dataset")
