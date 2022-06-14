@@ -36,7 +36,7 @@ def main(args):
                 ofile.write(f"{s_sen}\t{t_sen}\n")
                 lines += 1
 
-            if lines % 10000 == 0:
-                print(f"Processed lines: {lines:,}", flush=True)
+                if lines % 10000 == 0:
+                    print(f"Processed lines: {lines:,}", flush=True)
 
     print("Complete: Batching dataset")
