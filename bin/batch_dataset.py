@@ -35,6 +35,6 @@ def main(args):
                 ofile.write(f"{s_sen}\t{t_sen}\n")
 
             if (i+1) % 10000 == 0:
-                print(f"Processed batches: {i+1}", flush=True)
+                print(f"Processed batches: {i + 1:,}", flush=True)
 
     print("Complete: Batching dataset")
