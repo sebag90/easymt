@@ -34,7 +34,7 @@ def main(args):
                 t_sen = " ".join(tgt)
                 ofile.write(f"{s_sen}\t{t_sen}\n")
 
-            if (i+1) % 1000 == 0:
-                print(f"Batching dataset: {i+1}/{len(train_data)}", flush=True)
+            if (i+1) % 10000 == 0:
+                print(f"Processed batches: {i+1}", flush=True)
 
     print("Complete: Batching dataset")
