@@ -81,10 +81,10 @@ class Trainer:
             self.tgt_language = Language(self.params.model.target)
             # read vocabulary from file
             self.src_language.read_vocabulary(
-                Path(self.params.data.src_vocab)
+                self.params.data.src_vocab
             )
             self.tgt_language.read_vocabulary(
-                Path(self.params.data.tgt_vocab)
+                self.params.data.tgt_vocab
             )
 
         else:
