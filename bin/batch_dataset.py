@@ -37,6 +37,6 @@ def main(args):
                 lines += 1
 
             if lines % 10000 == 0:
-                print(f"Processed lines: {lines + 1:,}", flush=True)
+                print(f"Processed lines: {lines:,}", flush=True)
 
     print("Complete: Batching dataset")
