@@ -41,10 +41,17 @@ class Parameters:
         # create empty class to store parameters
         params = cls(config)
 
-        if (params.rnn.input_feed
+        # input feed needs attention in RNN
+        if (params.rnn.input_feed is not None
                 and params.rnn.attention.lower() == "none"):
             raise InvalidArgument(
                 "Input feed needs attention"
             )
+
+        # remove target data for language generation to save space
+        if params.model.task == "language generation":
+            for entry in vars(params.data):
+                if "tgt" in entry:
+                    setattr(params.data, entry, None)      
 
         return params

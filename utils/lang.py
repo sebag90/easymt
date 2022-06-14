@@ -1,4 +1,5 @@
 from functools import total_ordering
+from pathlib import Path
 
 import torch
 
@@ -44,10 +45,11 @@ class Language:
         the first element will be considered as word
         the rest will be gnored
         """
-        with open(vocfile, "r", encoding="utf-8") as srcvoc:
-            for line in srcvoc:
-                word, *rest = line.strip().split("\t")
-                self.add_word(word)
+        if vocfile is not None:
+            with open(Path(vocfile), "r", encoding="utf-8") as srcvoc:
+                for line in srcvoc:
+                    word, *rest = line.strip().split("\t")
+                    self.add_word(word)
 
     def toks2idx(self, tokens, sos=False, eos=True):
         """
