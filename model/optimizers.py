@@ -10,8 +10,12 @@ class Optimizer:
     def __repr__(self):
         return f"Optimizer({self.name} | lr: {round(self.lr, 5)})"
 
-    def step(self):
-        self.optimizer.step()
+    def step(self, scaler=None):
+        if scaler is not None:
+            scaler.step(self.optimizer)
+            scaler.update()
+        else:
+            self.optimizer.step()
         self.optimizer.zero_grad()
 
     def scheduler_step(self, loss):
@@ -39,7 +43,7 @@ class NoamOpt(Optimizer):
         self.factor = factor
         self.model_size = model_size
 
-    def step(self):
+    def step(self, scaler=None):
         """
         Update parameters and rate
         """
@@ -47,7 +51,12 @@ class NoamOpt(Optimizer):
         rate = self.rate()
         for p in self.optimizer.param_groups:
             p['lr'] = rate
-        self.optimizer.step()
+
+        if scaler is not None:
+            scaler.step(self.optimizer)
+            scaler.update()
+        else:
+            self.optimizer.step()
         self.optimizer.zero_grad()
 
     def scheduler_step(self, loss):

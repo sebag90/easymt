@@ -41,7 +41,8 @@ def split_single(filename, train_n, eval_n, test_n, verbose):
                 ofile = outputfiles[o_index]
 
             if verbose is True:
-                print(f"Splitting dataset: line {i:,}", end="\r")
+                if (i+1) % 10000 == 0:
+                    print(f"Processed lines: {i + 1:,}", flush=True)
 
     for out_file in outputfiles:
         out_file.close()
@@ -50,6 +51,8 @@ def split_single(filename, train_n, eval_n, test_n, verbose):
 
 
 def main(args):
+    print("Starting: Splitting data set")
+
     # get arguments
     if len(args.file) < 1:
         raise InvalidArgument(
@@ -68,9 +71,8 @@ def main(args):
     with mp.Pool() as pool:
         splits = pool.starmap(split_single, mp_args)
 
-    print(" "*79, end="\r")
     print("Lines:")
     for split in splits:
         print("\t".join([f"{key}: {value}" for key, value in split.items()]))
 
-    print("Splitting dataset: complete")
+    print("Complete: Splitting data set")

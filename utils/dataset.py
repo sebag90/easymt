@@ -1,3 +1,5 @@
+from collections import defaultdict
+from dataclasses import dataclass
 from itertools import islice
 from functools import total_ordering
 import math
@@ -5,44 +7,46 @@ from pathlib import Path
 import random
 
 
+@dataclass
 @total_ordering
 class Pair:
-    def __init__(self, src, tgt):
-        self.src = src
-        self.tgt = tgt
-        self.len = len(src.split())
+    src: str
+    tgt: str
+
+    def __post_init__(self):
+        self.len = len(self.src.split())
 
     def __lt__(self, other):
         return self.len < other.len
-
-    def __repr__(self):
-        return str((self.src, self.tgt))
 
     def __len__(self):
         return self.len
 
 
-class DataLoader:
+class DataLoader(list):
     def __init__(self, batch_size=32):
         self.batch_size = batch_size
-        self.data = list()
-        self.bins = dict()
+        self.bins = defaultdict(list)
+
+    @property
+    def n_batches(self):
+        return math.ceil(len(self) // self.batch_size)
 
     def add_pair(self, src, tgt):
         p = Pair(src, tgt)
-        position = len(self.data)
-        self.data.append(p)
+        position = len(self)
+        self.append(p)
 
         # add to bin with same length
-        if p.len not in self.bins:
-            self.bins[p.len] = list()
         self.bins[p.len].append(position)
 
     def shuffle(self):
         """
         Order is based on length of input sentence.
         First the keys of self.bins are shuffled and then
-        each bin is shuffled and added to self.order
+        each bin is shuffled and added to self.order.
+        This ensures that sentences with the same length are
+        batched together
         """
         self.order = list()
         # shuffle bins keys (lenght of sentences)
@@ -54,14 +58,11 @@ class DataLoader:
             shuffled = random.sample(to_add, len(to_add))
             self.order += shuffled
 
-    def __len__(self):
-        return math.ceil(len(self.data) // self.batch_size)
-
     def __iter__(self):
         for i in range(0, len(self.order), self.batch_size):
             batch_idx = self.order[i:i + self.batch_size]
-            src = [self.data[i].src.split() for i in batch_idx]
-            tgt = [self.data[i].tgt.split() for i in batch_idx]
+            src = [self[idx].src.split() for idx in batch_idx]
+            tgt = [self[idx].tgt.split() for idx in batch_idx]
             yield src, tgt
 
     @classmethod
@@ -71,19 +72,31 @@ class DataLoader:
         sentences in pairs (src, tgt)
         """
         data = cls(batch_size=batch_size)
-        src_file = Path(src_file)
-        tgt_file = Path(tgt_file)
 
-        # read data and create dataset
-        with open(src_file, "r", encoding="utf-8") as inlang, \
-                open(tgt_file, "r", encoding="utf-8") as outlang:
-            for l1, l2 in zip(inlang, outlang):
-                l1 = l1.strip()
-                l2 = l2.strip()
+        # language modeling
+        if tgt_file is None:
+            with open(Path(src_file), encoding="utf-8") as infile:
+                for line in infile:
+                    line = line.strip()
 
-                if ((0 < len(l1.split()) <= max_len)
-                        and (0 < len(l2.split()) <= max_len)):
-                    data.add_pair(l1, l2)
+                    if 0 < len(line.split()) < max_len:
+                        data.add_pair(line, "")
+
+        # language translation
+        else:
+            src_file = Path(src_file)
+            tgt_file = Path(tgt_file)
+
+            # read data and create dataset
+            with open(src_file, "r", encoding="utf-8") as inlang, \
+                    open(tgt_file, "r", encoding="utf-8") as outlang:
+                for l1, l2 in zip(inlang, outlang):
+                    l1 = l1.strip()
+                    l2 = l2.strip()
+
+                    if ((0 < len(l1.split()) <= max_len)
+                            and (0 < len(l2.split()) <= max_len)):
+                        data.add_pair(l1, l2)
 
         data.shuffle()
         return data
@@ -95,6 +108,9 @@ class BatchedData:
         self.batch_size = batch_size
         self.max_len = max_len
 
+    def __repr__(self):
+        return f"BatchedData({self.path})"
+
     def shuffle(self):
         """
         batched data cannot be shuffled, placeholder
@@ -103,6 +119,7 @@ class BatchedData:
 
     def __iter__(self):
         with open(Path(self.path), "r", encoding="utf-8") as infile:
+            # read a batch from the dataset file
             batch = list(islice(infile, self.batch_size))
             while len(batch) != 0:
                 src = list()
@@ -110,17 +127,21 @@ class BatchedData:
                 for line in batch:
                     line = line.strip()
                     if len(line) > 0:
-                        s, t = line.split("\t")
-                        s = s.split()
-                        t = t.split()
+                        line = line.split("\t")
 
-                        # enforce max lex
-                        if ((0 < len(s) <= self.max_len)
-                                and (0 < len(t) <= self.max_len)):
-                            src.append(s)
-                            tgt.append(t)
+                        # language modeling data
+                        if len(line) == 1:
+                            src.append(line[0].split())
+                            tgt.append("")
+
+                        # language translation data
+                        else:
+                            s, t = line.split("\t")
+                            src.append(s.split())
+                            tgt.append(t.split())
 
                 if len(src) > 0 and len(tgt) > 0:
                     yield src, tgt
 
+                # get next batch
                 batch = list(islice(infile, self.batch_size))

@@ -13,6 +13,8 @@ from utils.parameters import Parameters
 
 
 def main(args):
+    print("Starting: Batching dataset")
+
     # read data from configuration file
     config = Parameters.from_config(args.path)
 
@@ -32,8 +34,7 @@ def main(args):
                 t_sen = " ".join(tgt)
                 ofile.write(f"{s_sen}\t{t_sen}\n")
 
-            # print progress
-            print(f"Batching dataset: {i}/{len(train_data)}", end="\r")
+            if (i+1) % 1000 == 0:
+                print(f"Batching dataset: {i+1}/{len(train_data)}", flush=True)
 
-    print(" " * 50, end="\r")
-    print("Batching dataset: complete")
+    print("Complete: Batching dataset")

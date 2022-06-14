@@ -116,7 +116,8 @@ class Pipeline:
                 for i, line in enumerate(infile):
                     line = processor(line)
                     ofile.write(f"{line}\n")
-                    print(f"Preprocessing: line {i:,}", end="\r")
+                    if (i+1) % 10000 == 0:
+                        print(f"Processed lines: {i + 1:,}", flush=True)
 
             # remove step input
             os.remove(Path(f"{self.path}/step_input.{self.language}"))
@@ -141,15 +142,14 @@ class Pipeline:
         with open(Path(self.filename), "r", encoding="utf-8") as infile,\
                 open(self.temp_file, "w", encoding="utf-8") as ofile:
             for i, line in enumerate(infile):
-
                 for processor in self.pipe:
                     if not isinstance(processor, Truecaser):
                         line = processor(line)
 
                 ofile.write(f"{line}\n")
-                print(f"Preprocessing: line {i:,}", end="\r")
+                if (i+1) % 10000 == 0:
+                    print(f"Processed lines: {i + 1:,}", flush=True)
 
-        print(" " * 50, end="\r")
         t_1 = time.time()
         ts = int(t_1 - t_0)
         print(f"Timestamp: {datetime.timedelta(seconds=ts)}\n")
@@ -161,7 +161,6 @@ class Pipeline:
 
             t_1 = time.time()
             ts = int(t_1 - t_0)
-            print(" " * 50, end="\r")
             print(f"Timestamp: {datetime.timedelta(seconds=ts)}\n")
 
         path, name, suffix = split_filename(self.filename)
@@ -170,6 +169,8 @@ class Pipeline:
 
 
 def main(args):
+    print("Starting: Preprocessing")
+
     if args.SP is None:
         pipe = Pipeline(
             args.file,
@@ -218,7 +219,8 @@ def main(args):
                 for i, line in enumerate(infile):
                     encoded = sp.encode(line.strip(), out_type=str)
                     ofile.write(f"{' '.join(encoded)}\n")
-                    print(f"Preprocessing: line {i:,}", end="\r")
+                    if (i+1) % 100000 == 0:
+                        print(f"Processed lines: {i + 1:,}", flush=True)
 
         # if a new model was trained, move model and vocab to the directory
         # where the input file (and output file) are also saved
@@ -228,5 +230,5 @@ def main(args):
                 f"{args.language}.vocab",
                 f"{path}/vocab.{args.language}"
             )
-    print(" " * 50, end="\r")
-    print("Preprocessing: complete")
+
+    print("Complete: Preprocessing")

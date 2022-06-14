@@ -7,6 +7,11 @@ import torch.nn.functional as F
 from utils.lang import Hypothesis
 
 
+DEVICE = torch.device(
+    "cuda" if torch.cuda.is_available() else "cpu"
+)
+
+
 class LanguageModel(nn.Module):
     def __init__(
             self, model, embedding, language, max_len, lm_type):
@@ -37,12 +42,15 @@ class LanguageModel(nn.Module):
         )
         return obj_str
 
-    def prepare_batch(self, src, tgt):
+    def prepare_batch(self, batch):
+        # LM dataset only contains src
+        sentence, _ = batch
+
         # convert tokens to indeces and:
         # - remove last word from source
         # - remove first word from target
-        src = [self.src_lang.toks2idx(sen)[:-1] for sen in src]
-        tgt = [self.tgt_lang.toks2idx(sen)[1:] for sen in tgt]
+        src = [self.src_lang.toks2idx(sen)[:-1] for sen in sentence]
+        tgt = [self.tgt_lang.toks2idx(sen)[1:] for sen in sentence]
 
         # pad src and tgt
         tgt = nn.utils.rnn.pad_sequence(
@@ -63,17 +71,17 @@ class LanguageModel(nn.Module):
         d_mask = torch.logical_and(d_mask, subseq_mask)
         return src, tgt, e_mask, subseq_mask
 
-    def forward(self, batch, device, teacher_forcing_ratio, criterion):
+    def forward(self, batch, teacher_forcing_ratio, criterion):
         (input_var,
          target_var,
          e_mask,
-         d_mask) = self.prepare_batch(*batch)
+         d_mask) = self.prepare_batch(batch)
 
         # move tensors to device
-        input_var = input_var.to(device)
-        target_var = target_var.to(device)
-        e_mask = e_mask.to(device)
-        d_mask = d_mask.to(device)
+        input_var = input_var.to(DEVICE)
+        target_var = target_var.to(DEVICE)
+        e_mask = e_mask.to(DEVICE)
+        d_mask = d_mask.to(DEVICE)
 
         # obtain embedded sequences
         input_var = self.embedding.src(input_var)
@@ -103,7 +111,7 @@ class LanguageModel(nn.Module):
         return subseq_mask
 
     @torch.no_grad()
-    def beam_search(self, line, beam_size, device, alpha):
+    def beam_search(self, line, beam_size, alpha):
         """
         beam translation for a single line of text
         """
@@ -134,12 +142,12 @@ class LanguageModel(nn.Module):
                 step_input.append(torch.tensor(hypothesis.tokens))
 
             # create batch with live hypotheses
-            model_input = torch.vstack(step_input).to(device)
+            model_input = torch.vstack(step_input).to(DEVICE)
 
             # create mask for decoding
             d_mask = self.create_subsequent_mask(
                 model_input.size(1)
-            ).to(device)
+            ).to(DEVICE)
 
             # pass through decoder
             model_input = self.embedding.tgt(model_input)
