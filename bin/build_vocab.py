@@ -24,7 +24,8 @@ def process_single_file(filename, n_sample, min_freq, verbose=False):
             voc.add_sentence(line.strip())
 
             if verbose is True:
-                print(f"Building vocabulary: line {i + 1:,}", end="\r")
+                if (i+1) % 10000 == 0:
+                    print(f"Processed lines: {i + 1:,}", flush=True)
 
             if n_sample != 0:
                 if i > n_sample:
@@ -34,6 +35,8 @@ def process_single_file(filename, n_sample, min_freq, verbose=False):
 
 
 def main(args):
+    print("Starting: Building vocabulary")
+
     n_sample = int(args.n_sample)
     verbose = [False for _ in args.file]
     verbose[0] = True
@@ -46,5 +49,4 @@ def main(args):
     with mp.Pool() as pool:
         pool.starmap(process_single_file, mp_args)
 
-    print(" "*50, end="\r")
-    print("Building vocabulary: complete")
+    print("Complete: Building vocabulary")

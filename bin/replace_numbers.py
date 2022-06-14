@@ -46,8 +46,9 @@ def main(args):
             line = " ".join(sen)
 
             ofile.write(f"{line}\n")
-            print(f"Replacing numbers: line {i:,}", end="\r")
+            if (i+1) % 10000 == 0:
+                print(f"Processed lines: {i + 1:,}", flush=True)
 
     ofile.close()
-    print(" " * 50, end="\r")
-    print("Replacing numbers: complete")
+
+    print("Complete: Replacing numbers")

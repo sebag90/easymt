@@ -60,7 +60,6 @@ def main(args):
             if args.verbose:
                 print()
             else:
-                print(f"Translating: line {progress + 1:,}", end="\r")
+                print(f"Translating: line {progress + 1:,}", flush=True)
 
-    print(" " * 50, end="\r")
     print("Translating: complete")

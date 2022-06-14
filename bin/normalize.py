@@ -14,8 +14,9 @@ from preprocessing_tools.truecaser import Truecaser
 
 
 def main(args):
-    path, name, suffix = split_filename(args.file)
+    print("Starting: Normalization")
 
+    path, name, suffix = split_filename(args.file)
     ofile = Path(f"{path}/{name}.normalized.{suffix}")
 
     if args.SP is not None:
@@ -51,7 +52,7 @@ def main(args):
             # write output
             ofile.write(f"{to_write}\n")
 
-            print(f"Normalizing: line {i:,}", end="\r")
+            if (i+1) % 100000 == 0:
+                print(f"Processed lines: {i + 1:,}", flush=True)
 
-    print(" "*50, end="\r")
-    print("Normalizing: complete")
+    print("Complete: Normalization")

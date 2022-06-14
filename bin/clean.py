@@ -8,6 +8,8 @@ from utils.errors import InvalidArgument
 
 
 def main(args):
+    print("Starting: Cleaning")
+
     # get arguments
     if not 0 < len(args.file) < 3:
         raise InvalidArgument(
@@ -45,11 +47,11 @@ def main(args):
             for line, ofile in zip(cleaned, output_files):
                 ofile.write(f"{line}\n")
 
-        print(f"Cleaning: line {i:,}", end="\r")
+        if (i+1) % 10000 == 0:
+            print(f"Processed lines: {i + 1:,}", flush=True)
 
     # close all files
     for open_file in output_files + input_files:
         open_file.close()
 
-    print(" "*50, end="\r")
-    print("Cleaning: complete")
+    print("Complete: Cleaning")

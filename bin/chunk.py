@@ -9,6 +9,8 @@ def slice_list(lst, n):
 
 
 def main(args):
+    print("Starting: Chunking")
+
     input_file = Path(args.file)
     max_len = args.n
 
@@ -23,7 +25,7 @@ def main(args):
                 to_write = " ".join(sen)
                 ofile.write(f"{to_write}\n")
 
-            print(f"Chunking: line {i:,}", end="\r")
+            if (i+1) % 10000 == 0:
+                print(f"Processed lines: {i + 1:,}", flush=True)
 
-    print(" "*50, end="\r")
-    print("Chunking: complete")
+    print("Complete: Chunking")
