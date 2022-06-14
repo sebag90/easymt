@@ -27,7 +27,7 @@ def main(args):
     )
 
     outputfile = Path(args.output)
-    lines = 1
+    lines = 0
     with open(outputfile, "w", encoding="utf-8") as ofile:
         for batch in train_data:
             for src, tgt in zip(*batch):
