@@ -42,12 +42,15 @@ class LanguageModel(nn.Module):
         )
         return obj_str
 
-    def prepare_batch(self, src, tgt):
+    def prepare_batch(self, batch):
+        # LM dataset only contains src
+        sentence, _ = batch
+
         # convert tokens to indeces and:
         # - remove last word from source
         # - remove first word from target
-        src = [self.src_lang.toks2idx(sen)[:-1] for sen in src]
-        tgt = [self.tgt_lang.toks2idx(sen)[1:] for sen in tgt]
+        src = [self.src_lang.toks2idx(sen)[:-1] for sen in sentence]
+        tgt = [self.tgt_lang.toks2idx(sen)[1:] for sen in sentence]
 
         # pad src and tgt
         tgt = nn.utils.rnn.pad_sequence(
@@ -72,7 +75,7 @@ class LanguageModel(nn.Module):
         (input_var,
          target_var,
          e_mask,
-         d_mask) = self.prepare_batch(*batch)
+         d_mask) = self.prepare_batch(batch)
 
         # move tensors to device
         input_var = input_var.to(DEVICE)

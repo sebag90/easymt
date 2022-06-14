@@ -44,7 +44,8 @@ class seq2seq(nn.Module):
         )
         return obj_str
 
-    def prepare_batch(self, src, tgt):
+    def prepare_batch(self, batch):
+        src, tgt = batch
         src = [self.src_lang.toks2idx(sen) for sen in src]
         tgt = [self.tgt_lang.toks2idx(sen) for sen in tgt]
 
@@ -105,7 +106,7 @@ class seq2seq(nn.Module):
          lengths,
          target_var,
          mask,
-         max_target_len) = self.prepare_batch(*batch)
+         max_target_len) = self.prepare_batch(batch)
 
         # move batch to device
         input_var = input_var.to(DEVICE)

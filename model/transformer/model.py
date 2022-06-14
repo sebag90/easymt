@@ -45,7 +45,8 @@ class Transformer(nn.Module):
         )
         return obj_str
 
-    def prepare_batch(self, src, tgt):
+    def prepare_batch(self, batch):
+        src, tgt = batch
         # create index tensors from token lists
         decoder_input = [
             self.tgt_lang.toks2idx(sen, sos=True, eos=False) for sen in tgt
@@ -81,7 +82,7 @@ class Transformer(nn.Module):
          decoder_input,
          target_var,
          e_mask,
-         d_mask) = self.prepare_batch(*batch)
+         d_mask) = self.prepare_batch(batch)
 
         # move tensors to device
         input_var = input_var.to(DEVICE)
