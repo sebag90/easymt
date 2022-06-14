@@ -79,7 +79,7 @@ class DataLoader(list):
                 for line in infile:
                     line = line.strip()
 
-                    if 0 < len(line.split()) < max_len:
+                    if 0 < len(line.split()) <= max_len:
                         data.add_pair(line, "")
 
         # language translation
