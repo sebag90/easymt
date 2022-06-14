@@ -61,8 +61,8 @@ class DataLoader(list):
     def __iter__(self):
         for i in range(0, len(self.order), self.batch_size):
             batch_idx = self.order[i:i + self.batch_size]
-            src = [self[i].src.split() for i in batch_idx]
-            tgt = [self[i].tgt.split() for i in batch_idx]
+            src = [self[idx].src.split() for idx in batch_idx]
+            tgt = [self[idx].tgt.split() for idx in batch_idx]
             yield src, tgt
 
     @classmethod
