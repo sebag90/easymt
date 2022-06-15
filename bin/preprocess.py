@@ -116,7 +116,7 @@ class Pipeline:
                 for i, line in enumerate(infile):
                     line = processor(line)
                     ofile.write(f"{line}\n")
-                    if (i+1) % 10000 == 0:
+                    if (i+1) % 100000 == 0:
                         print(f"Processed lines: {i + 1:,}", flush=True)
 
             # remove step input
@@ -147,7 +147,7 @@ class Pipeline:
                         line = processor(line)
 
                 ofile.write(f"{line}\n")
-                if (i+1) % 10000 == 0:
+                if (i+1) % 100000 == 0:
                     print(f"Processed lines: {i + 1:,}", flush=True)
 
         t_1 = time.time()

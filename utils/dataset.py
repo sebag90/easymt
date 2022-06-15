@@ -65,6 +65,16 @@ class DataLoader(list):
             tgt = [self[idx].tgt.split() for idx in batch_idx]
             yield src, tgt
 
+    def n_longest(self, n):
+        yielded = 0
+        for key in sorted(self.bins.keys(), reverse=True):
+            for position in self.bins[key]:
+                yield self[position]
+                yielded += 1
+
+                if yielded == n:
+                    return
+
     @classmethod
     def from_files(cls, src_file, tgt_file, max_len, batch_size):
         """

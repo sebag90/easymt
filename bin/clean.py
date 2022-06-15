@@ -47,7 +47,7 @@ def main(args):
             for line, ofile in zip(cleaned, output_files):
                 ofile.write(f"{line}\n")
 
-        if (i+1) % 10000 == 0:
+        if (i+1) % 100000 == 0:
             print(f"Processed lines: {i + 1:,}", flush=True)
 
     # close all files

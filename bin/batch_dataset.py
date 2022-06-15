@@ -36,7 +36,14 @@ def main(args):
                 ofile.write(f"{s_sen}\t{t_sen}\n")
                 lines += 1
 
-                if lines % 10000 == 0:
+                if lines % 100000 == 0:
                     print(f"Processed lines: {lines:,}", flush=True)
+
+    if args.max != 0:
+        max_file = Path(f"{outputfile}.max")
+        with open(max_file, "w", encoding="utf-8") as ofile:
+            for pair in train_data.n_longest(args.max):
+                ofile.write(f"{pair.src}\t{pair.tgt}\n")
+
 
     print("Complete: Batching dataset")

@@ -52,7 +52,7 @@ def main(args):
             # write output
             ofile.write(f"{to_write}\n")
 
-            if (i+1) % 10000 == 0:
+            if (i+1) % 100000 == 0:
                 print(f"Processed lines: {i + 1:,}", flush=True)
 
     print("Complete: Normalization")

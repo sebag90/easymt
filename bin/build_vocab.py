@@ -24,7 +24,7 @@ def process_single_file(filename, n_sample, min_freq, verbose=False):
             voc.add_sentence(line.strip())
 
             if verbose is True:
-                if (i+1) % 10000 == 0:
+                if (i+1) % 100000 == 0:
                     print(f"Processed lines: {i + 1:,}", flush=True)
 
             if n_sample != 0:

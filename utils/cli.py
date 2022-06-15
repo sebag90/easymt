@@ -46,6 +46,14 @@ def easymt_arguments():
         "--output",  action="store",
         help="output file", required=True
     )
+    batch.add_argument(
+        "--max", metavar="N", action="store",
+        help=(
+            "saves a sample file containing the N longest "
+            "sequences in the dataset"
+        ),
+        default=0, type=int
+    )
 
     # train
     train = subparsers.add_parser(

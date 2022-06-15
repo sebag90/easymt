@@ -41,7 +41,7 @@ def split_single(filename, train_n, eval_n, test_n, verbose):
                 ofile = outputfiles[o_index]
 
             if verbose is True:
-                if (i+1) % 10000 == 0:
+                if (i+1) % 100000 == 0:
                     print(f"Processed lines: {i + 1:,}", flush=True)
 
     for out_file in outputfiles:
