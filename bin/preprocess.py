@@ -11,7 +11,7 @@ import datetime
 import io
 import os
 from pathlib import Path
-
+import pickle
 import sys
 import time
 
@@ -21,6 +21,7 @@ from preprocessing_tools.pipeline import Pipeline
 
 def main(args):
     print("Starting: Preprocessing", file=sys.stderr)
+    modelpath = Path(args.model)
 
     if args.SP is None:
         pipe = Pipeline(
@@ -29,10 +30,22 @@ def main(args):
             args.replace_nums,
             args.max_lines
         )
-        pipe.run(sys.stdin)
+        if modelpath.is_file() is True:
+            with open(modelpath, "rb") as infile:
+                model = pickle.load(infile)
+            pipe.load_model(model)
+            pipe.run(sys.stdin)
+
+        else:
+            pipe.run(sys.stdin)
+            model = pipe.get_model()
+
+            with open(modelpath, "wb") as ofile:
+                pickle.dump(model, ofile)
+
+
     else:
         # if model is already trained
-        modelpath = Path(args.model)
         if modelpath.is_file():
             sp = spm.SentencePieceProcessor(
                 model_file=args.model
@@ -64,7 +77,13 @@ def main(args):
         
             # save model
             with open(modelpath, "wb") as ofile:
-                ofile.write(model.getvalue())
+                json.dump(
+                    {
+                        "model": model.getvalue(),
+                        "type": "sp"
+                    },
+                    ofile
+                )
 
             t_file.seek(0)
             read_from = t_file

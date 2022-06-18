@@ -15,6 +15,7 @@ class Pipeline:
     def __init__(self, language, bpe, remove_nums, max_lines):
         self.max_lines = max_lines
         self.language = language
+        self.bpe = bpe
 
         self.pipe = [
             PunctNormalizer(language),
@@ -35,10 +36,24 @@ class Pipeline:
         ]
 
         # add bpe splitter to trainable processors
-        if bpe is not None:
+        if bpe > 0:
             self.trainable.append(
                 SubwordSplitter(language, bpe)
             )
+
+    def get_model(self):
+        return {
+            "pipe": self.pipe,
+            "bpe": self.bpe,
+            "language": self.language,
+            "type": "pipe"
+        }
+
+    def load_model(self, model_dict):
+        self.pipe = model_dict["pipe"]
+        self.bpe = model_dict["bpe"]
+        self.language = model_dict["language"]
+        self.trainable = list()
 
     def apply_trainable(self, processor, temp_file):
         train_file = tempfile.TemporaryFile("w+")
@@ -109,6 +124,7 @@ class Pipeline:
             t_1 = time.time()
             ts = int(t_1 - t_0)
             print(f"Timestamp: {datetime.timedelta(seconds=ts)}\n", file=sys.stderr)
+            self.pipe.append(processor)
 
         t_file.seek(0)
         for line in t_file:

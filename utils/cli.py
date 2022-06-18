@@ -189,7 +189,8 @@ def texter_arguments():
         "--bpe", action="store",
         metavar="BPE-Splits",
         help="number of BPE splittings",
-        type=int
+        type=int,
+        default=0
     )
     preprocess.add_argument(
         "--replace-nums", action="store_true",
@@ -245,24 +246,15 @@ def texter_arguments():
     )
 
     # normalize
-    normalize = subparsers.add_parser(
-        "normalize",
+    decode = subparsers.add_parser(
+        "decode",
         help="undo preprocessing to normalize text"
     )
-    normalize.add_argument(
-        "file", metavar="FILE",
-        help="file to process"
+    decode.add_argument(
+        "--model", "-m", action="store",
+        help="preprocessing model to decode text"
     )
-    normalize.add_argument(
-        "--subword", action="store_true",
-        help="subword splitting was applied"
-    )
-    normalize.add_argument(
-        "--SP", action="store",
-        metavar="V-Size",
-        help="target vocabulary of the sentencepiece model"
-    )
-    normalize.add_argument(
+    decode.add_argument(
         "--upper", "-u", action="store_true",
         help="uppercase the first char in the sentence"
     )

@@ -36,6 +36,7 @@ class SubwordSplitter:
 
             learn_bpe(filename, modfile, self.bpe)
             self.model = BPE(modfile)
+            modfile.close()
             self.trained = True
 
 
