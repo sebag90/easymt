@@ -1,5 +1,6 @@
 import os
-from pathlib import Path
+import sys
+import tempfile
 
 from subword_nmt.learn_bpe import learn_bpe
 from subword_nmt.apply_bpe import BPE
@@ -8,42 +9,53 @@ from utils.errors import UntrainedModel
 
 
 class SubwordSplitter:
-    def __init__(self, language, bpe, path):
+    def __init__(self, language, bpe, model=None):
         self.language = language
         self.bpe = bpe
-        self.model = Path(f"{path}/model.subword.{bpe}.{language}")
-        if self.trained:
-            with open(self.model, "r", encoding="utf-8") as modfile:
-                self.splitter = BPE(modfile)
+        if model is None:
+            self.trained = False
+        else:
+            self.trained = True
+            self.model = model
 
     def __repr__(self):
         return f"SubwordSplitter({self.language}, {self.bpe})"
 
-    @property
-    def trained(self):
-        return os.path.isfile(self.model)
 
     def __call__(self, line):
-        if os.path.isfile(self.model):
-            return self.splitter.process_line(line).strip()
+        if self.trained is True:
+            return self.model.process_line(line).strip()
         else:
             raise UntrainedModel("SubwordSplitter not trained")
 
     def train(self, filename):
-        if not os.path.isfile(self.model):
-            print("Training subword model")
+        if self.trained is False:
+            print("Training subword model", file=sys.stderr)
+            modfile = tempfile.TemporaryFile("w+")
+            filename.seek(0)
 
-            # train and save model
-            with open(filename, "r", encoding="utf-8") as infile, \
-                    open(self.model, "w", encoding="utf-8") as ofile:
-                learn_bpe(infile, ofile, self.bpe)
-
-            # load model
-            with open(self.model, "r", encoding="utf-8") as modfile:
-                self.splitter = BPE(modfile)
+            learn_bpe(filename, modfile, self.bpe)
+            self.model = BPE(modfile)
+            self.trained = True
 
 
 if __name__ == "__main__":
-    t = SubwordSplitter("en", 35000)
-    t.train("data/test.en")
+    import requests
+    import random
+    word_site = "https://www.mit.edu/~ecprice/wordlist.10000"
+
+    response = requests.get(word_site)
+    WORDS = response.content.splitlines()
+
+    
+
+    t = SubwordSplitter("en", 1000)
+    n = tempfile.TemporaryFile("w+")
+    
+    for i in range(100):
+        for w in range(250):
+            n.write(str(random.choice(WORDS)))
+
+
+    t.train(n)
     print(t('catastrophically furiously'))

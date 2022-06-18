@@ -7,24 +7,20 @@ from sacremoses import MosesTruecaser
 
 
 class Truecaser:
-    def __init__(self, language, path):
+    def __init__(self, language, model=None):
         self.language = language
-        self.model = Path(f"{path}/model.truecase.{language}")
-
-        if self.trained:
-            self.truecaser = MosesTruecaser(self.model)
+        if model is not None:
+            self.truecaser = model
+            self.trained = True
         else:
             self.truecaser = MosesTruecaser()
+            self.trained = False
 
     def __repr__(self):
         return f"Truecaser({self.language})"
 
-    @property
-    def trained(self):
-        return os.path.isfile(self.model)
-
     def __call__(self, line):
-        if os.path.isfile(self.model):
+        if self.trained is True:
             toks = self.truecaser.truecase(line)
             string = " ".join(toks)
             return string.strip()
@@ -32,10 +28,10 @@ class Truecaser:
             raise UntrainedModel("Truecaser not trained")
 
     def train(self, filename):
-        if not os.path.isfile(self.model):
-            self.truecaser.train_from_file(
-                filename, save_to=self.model
-            )
+        if self.trained is False:
+            self.truecaser.train_from_file_object(filename)
+            self.trained = True
+
 
 
 if __name__ == "__main__":
