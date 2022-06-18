@@ -7,14 +7,12 @@ def easymt_arguments():
 
     # build vocab
     vocab = subparsers.add_parser(
-        "build-vocab",
+        "vocab",
         help="build a vocabulary from files"
     )
     vocab.add_argument(
-        "file", metavar="FILE(S)",
-        nargs="+",
-        action="store",
-        help="path to file(s) to process"
+        "--progress", "-p", action="store_true",
+        help="print progress status"
     )
     vocab.add_argument(
         "--n-sample", metavar="N", action="store",
@@ -22,6 +20,7 @@ def easymt_arguments():
             "number of lines used to build vocabulary"
             " (0 = full corpus - default: %(default)s)"
         ),
+        type=int,
         default=0
     )
     vocab.add_argument(
@@ -35,7 +34,7 @@ def easymt_arguments():
 
     # batch data set
     batch = subparsers.add_parser(
-        "batch-dataset",
+        "batch",
         help="convert train files to byte files"
     )
     batch.add_argument(
@@ -81,10 +80,6 @@ def easymt_arguments():
     # translate
     translate = subparsers.add_parser(
         "translate", help="translate a file"
-    )
-    translate.add_argument(
-        "file", metavar="FILE", action="store",
-        help="path to file to translate"
     )
     translate.add_argument(
         "model", metavar="MODEL", action="store",
@@ -173,10 +168,10 @@ def texter_arguments():
     preprocess = subparsers.add_parser(
         "preprocess", help="preprocess a corpus"
     )
-    preprocess.add_argument(
-        "file", metavar="FILE", action="store",
-        help="path to the text file"
-    )
+    # preprocess.add_argument(
+    #     "file", metavar="FILE", action="store",
+    #     help="path to the text file"
+    # )
     pre_required = preprocess.add_argument_group(
         "required named arguments"
     )
@@ -185,6 +180,10 @@ def texter_arguments():
         action="store",
         help="language of the file",
         required=True
+    )
+    pre_required.add_argument(
+        "--model", "-m", action="store",
+        help="path to a trained preprocessing model"
     )
     preprocess.add_argument(
         "--bpe", action="store",

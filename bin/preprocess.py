@@ -8,9 +8,12 @@ for machine translation. The pipeline will:
 """
 
 import datetime
+import io
 import os
 from pathlib import Path
 import re
+import sys
+import tempfile
 import time
 
 import sentencepiece as spm
@@ -169,7 +172,7 @@ class Pipeline:
 
 
 def main(args):
-    print("Starting: Preprocessing")
+    print("Starting: Preprocessing", file=sys.stderr)
 
     if args.SP is None:
         pipe = Pipeline(
@@ -181,54 +184,49 @@ def main(args):
         )
         pipe.run()
     else:
-        path, name, suffix = split_filename(args.file)
-        modelname = f"{path}/model.sentencepiece.{args.SP}.{args.language}"
-        # if model is already trained, load model
-        if os.path.isfile(modelname):
-            trained_model = False
+        # if model is already trained
+        modelpath = Path(args.model)
+        if modelpath.is_file():
             sp = spm.SentencePieceProcessor(
-                model_file=modelname
+                model_file=args.model
             )
+            read_from = sys.stdin
 
         else:
             # model needs to be trained
-            trained_model = True
-            sp_args = [
-                f"--input={args.file}",
-                f"--model_prefix={args.language}",
-                f"--vocab_size={args.SP}",
-                "--bos_id=-1",
-                "--eos_id=-1"
-            ]
+            model = io.BytesIO()
+            t_file = tempfile.TemporaryFile(mode="w+")
 
-            # add limit input sentence
-            if args.max_lines != 0:
-                sp_args.append(f"--input_sentence_size={args.max_lines}")
+            for line in sys.stdin:
+                t_file.write(line)
+
+            t_file.seek(0)
 
             # train and load model
-            spm.SentencePieceTrainer.train(" ".join(sp_args))
-            sp = spm.SentencePieceProcessor(
-                model_file=f"{args.language}.model"
+            spm.SentencePieceTrainer.train(
+                sentence_iterator=t_file,
+                model_writer=model,
+                vocab_size=args.SP,
+                bos_id=-1,
+                eos_id=-1,
+                input_sentence_size=args.max_lines
             )
+            sp = spm.SentencePieceProcessor(
+                model_proto=model.getvalue()
+            )
+        
+            # save model
+            with open(modelpath, "wb") as ofile:
+                ofile.write(model.getvalue())
 
-        outputfile = Path(f"{path}/{name}.processed.{suffix}")
+            t_file.seek(0)
+            read_from = t_file
 
         # tokenize file
-        with open(Path(args.file)) as infile:
-            with open(outputfile, "w", encoding="utf-8") as ofile:
-                for i, line in enumerate(infile):
-                    encoded = sp.encode(line.strip(), out_type=str)
-                    ofile.write(f"{' '.join(encoded)}\n")
-                    if (i+1) % 100000 == 0:
-                        print(f"Processed lines: {i + 1:,}", flush=True)
+        for i, line in enumerate(read_from):
+            encoded = sp.encode(line.strip(), out_type=str)
+            sys.stdout.write(f"{' '.join(encoded)}\n")
+            if (i+1) % 100000 == 0:
+                print(f"Processed lines: {i + 1:,}", file=sys.stderr)
 
-        # if a new model was trained, move model and vocab to the directory
-        # where the input file (and output file) are also saved
-        if trained_model is True:
-            os.rename(f"{args.language}.model", modelname)
-            os.rename(
-                f"{args.language}.vocab",
-                f"{path}/vocab.{args.language}"
-            )
-
-    print("Complete: Preprocessing")
+    print("Complete: Preprocessing", file=sys.stderr)
