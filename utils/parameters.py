@@ -52,6 +52,6 @@ class Parameters:
         if params.model.task == "language generation":
             for entry in vars(params.data):
                 if "tgt" in entry:
-                    setattr(params.data, entry, None)      
+                    setattr(params.data, entry, None)
 
         return params

@@ -1,6 +1,6 @@
-import os
 import sys
 import tempfile
+import re
 
 from subword_nmt.learn_bpe import learn_bpe
 from subword_nmt.apply_bpe import BPE
@@ -9,18 +9,14 @@ from utils.errors import UntrainedModel
 
 
 class SubwordSplitter:
-    def __init__(self, language, bpe, model=None):
+    def __init__(self, language, bpe):
         self.language = language
         self.bpe = bpe
-        if model is None:
-            self.trained = False
-        else:
-            self.trained = True
-            self.model = model
+        self.trained = False
+        self.pattern = re.compile(r"@@( |$)")
 
     def __repr__(self):
         return f"SubwordSplitter({self.language}, {self.bpe})"
-
 
     def __call__(self, line):
         if self.trained is True:
@@ -39,24 +35,5 @@ class SubwordSplitter:
             modfile.close()
             self.trained = True
 
-
-if __name__ == "__main__":
-    import requests
-    import random
-    word_site = "https://www.mit.edu/~ecprice/wordlist.10000"
-
-    response = requests.get(word_site)
-    WORDS = response.content.splitlines()
-
-    
-
-    t = SubwordSplitter("en", 1000)
-    n = tempfile.TemporaryFile("w+")
-    
-    for i in range(100):
-        for w in range(250):
-            n.write(str(random.choice(WORDS)))
-
-
-    t.train(n)
-    print(t('catastrophically furiously'))
+    def decode(self, line):
+        return re.sub(self.pattern, "", line)

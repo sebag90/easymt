@@ -1,7 +1,4 @@
 class LowerCaser:
-    def __init__(self, trained=False):
-        self.trained = trained
-
     def __repr__(self):
         return "Lowercaser"
 

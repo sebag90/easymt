@@ -11,8 +11,8 @@ from utils.lang import Vocab
 
 def main(args):
     if args.progress is True:
-        sys.stderr.write(f"Starting: Building vocabulary\n")
-    
+        sys.stderr.write("Starting: Building vocabulary\n")
+
     voc = Vocab(args.min_freq)
     for i, line in enumerate(sys.stdin):
         voc.add_sentence(line.strip())
@@ -22,7 +22,7 @@ def main(args):
                 sys.stderr.write(f"Processed lines: {i + 1:,}\n")
 
         if args.n_sample != 0:
-            if i > n_sample:
+            if i > args.n_sample:
                 break
 
     for word, count in voc.get_vocab():

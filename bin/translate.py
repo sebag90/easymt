@@ -3,12 +3,9 @@ translate a text file with a pretrained model
 """
 
 from pathlib import Path
-import os
 import sys
 
 import torch
-
-from utils.utils import split_filename
 
 
 DEVICE = torch.device(
@@ -30,7 +27,7 @@ def main(args):
     print(model, file=sys.stderr)
 
     # start translating
-    
+
     for progress, line in enumerate(sys.stdin):
         line = line.strip()
         hypotheses = model.beam_search(line, beam_size, args.alpha)

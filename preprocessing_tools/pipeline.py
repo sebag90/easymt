@@ -1,7 +1,5 @@
 import sys
-import time
 import tempfile
-import datetime
 
 from preprocessing_tools.tokenizer import Tokenizer
 from preprocessing_tools.truecaser import Truecaser
@@ -9,51 +7,84 @@ from preprocessing_tools.punct_normalizer import PunctNormalizer
 from preprocessing_tools.subword_splitter import SubwordSplitter
 from preprocessing_tools.num_replacer import NumReplacer
 from preprocessing_tools.lower_caser import LowerCaser
+from preprocessing_tools.sentence_piece import SentencePieceTokenizer
+
+
+class Tools:
+    def __init__(self, language, bpe, sp_voc_size, max_lines):
+        self.sp = SentencePieceTokenizer(
+            sp_voc_size, max_lines
+        )
+        self.truecaser = Truecaser(language)
+        self.punct_normalizer = PunctNormalizer(language)
+        self.tokenizer = Tokenizer(language)
+        self.num_replacer = NumReplacer()
+        self.lower_caser = LowerCaser()
+        self.subword_splitter = SubwordSplitter(language, bpe)
 
 
 class Pipeline:
-    def __init__(self, language, bpe, remove_nums, max_lines):
+    def __init__(self, language, bpe, sp_voc_size, remove_nums, max_lines):
         self.max_lines = max_lines
         self.language = language
-        self.bpe = bpe
+        self.tools = Tools(
+            language, bpe, sp_voc_size, max_lines
+        )
+        self.create_pipe(bpe, sp_voc_size, remove_nums)
 
-        self.pipe = [
-            PunctNormalizer(language),
-            Tokenizer(language)
-        ]
+    def create_pipe(self, bpe, sp_voc_size, remove_nums):
+        if sp_voc_size > 0:
+            self.to_train = [
+                "sp"
+            ]
+            self.pipe = list()
+            self.decoder = ["sp"]
 
-        if remove_nums is True:
-            self.pipe.append(
-                NumReplacer()
-            )
+        else:
+            self.bpe = bpe
+            self.pipe = [
+                "punct_normalizer",
+                "tokenizer"
+            ]
+            self.decoder = [
+                "truecaser", "tokenizer"
+            ]
 
-        tr = Truecaser(language, None)
-        lc = LowerCaser(tr.trained)
+            if remove_nums is True:
+                self.pipe.append(
+                    "num_replacer"
+                )
 
-        self.trainable = [
-            tr,
-            lc  # must be applied after training Truecaser
-        ]
+            self.to_train = [
+                "truecaser",
+                "lower_caser"
+            ]
 
-        # add bpe splitter to trainable processors
-        if bpe > 0:
-            self.trainable.append(
-                SubwordSplitter(language, bpe)
-            )
+            if bpe > 0:
+                self.to_train.append(
+                    "subword_splitter"
+                )
+                self.decoder.insert(
+                    0, "subword_splitter"
+                )
 
     def get_model(self):
         return {
             "pipe": self.pipe,
-            "bpe": self.bpe,
+            "decoder": self.decoder,
             "language": self.language,
-            "type": "pipe"
+            "tools": self.tools
         }
 
-    def load_model(self, model_dict):
-        self.pipe = model_dict["pipe"]
-        self.bpe = model_dict["bpe"]
-        self.language = model_dict["language"]
-        self.trainable = list()
+    @classmethod
+    def from_trained_model(cls, model_dict):
+        p = cls("placeholder", 0, 0, False, 0)
+        p.pipe = model_dict["pipe"]
+        p.decoder = model_dict["decoder"]
+        p.language = model_dict["language"]
+        p.tools = model_dict["tools"]
+        p.to_train = list()
+        return p
 
     def apply_trainable(self, processor, temp_file):
         train_file = tempfile.TemporaryFile("w+")
@@ -70,64 +101,57 @@ class Pipeline:
             processor.train(train_file)
             train_file.close()
 
-        # do not apply truecaser
-        if not isinstance(processor, Truecaser):
-            stepfile = tempfile.TemporaryFile("w+")
-            temp_file.seek(0)
-            for i, line in enumerate(temp_file):
-                line = processor(line)
-                stepfile.write(f"{line}\n")
-                if (i+1) % 100000 == 0:
-                    print(f"Processed lines: {i + 1:,}", file=sys.stderr)
-
-            temp_file.close()
-            return stepfile
-        else:
-            return temp_file
-
-    def run(self, input_gen):
-        to_train = list()
-        # collect trained processors
-        for processor in self.trainable:
-            if processor.trained:
-                self.pipe.append(processor)
-            else:
-                to_train.append(processor)
-
-        pipe_string = " > ".join([str(i) for i in self.pipe])
-        complete = " > ".join([str(i) for i in self.pipe + to_train])
-        print(f"Pipe: {complete}\n", file=sys.stderr)
-        t_0 = time.time()
-
-        print(f"Applying: {pipe_string}", file=sys.stderr)
-        # applied untrainable and trained processors
-
-        t_file = tempfile.TemporaryFile("w+")
-        for i, line in enumerate(input_gen):
-            for processor in self.pipe:
-                if not isinstance(processor, Truecaser):
-                    line = processor(line)
-
-            t_file.write(f"{line}\n")
+        stepfile = tempfile.TemporaryFile("w+")
+        temp_file.seek(0)
+        for i, line in enumerate(temp_file):
+            line = processor(line)
+            stepfile.write(f"{line}\n")
             if (i+1) % 100000 == 0:
                 print(f"Processed lines: {i + 1:,}", file=sys.stderr)
 
-        t_1 = time.time()
-        ts = int(t_1 - t_0)
-        print(f"Timestamp: {datetime.timedelta(seconds=ts)}\n", file=sys.stderr)
+        temp_file.close()
+        return stepfile
+
+    def run(self, input_gen):
+        pipe_string = " > ".join(
+            [str(getattr(self.tools, i)) for i in self.pipe]
+        )
+        complete = " > ".join(
+            [str(getattr(self.tools, i)) for i in self.pipe + self.to_train]
+        )
+        print(f"Pipe: {complete}\n", file=sys.stderr)
+
+        if len(self.pipe) > 0:
+            print(f"Applying: {pipe_string}", file=sys.stderr)
+
+        t_file = tempfile.TemporaryFile("w+")
+        for i, line in enumerate(input_gen):
+            for p_name in self.pipe:
+                processor = getattr(self.tools, p_name)
+                line = processor(line)
+
+            t_file.write(f"{line}\n")
+
+            if len(self.pipe) > 0:
+                if (i+1) % 100000 == 0:
+                    print(f"Processed lines: {i + 1:,}", file=sys.stderr)
 
         # train and apply untrained processors
-        for processor in to_train:
+        for p_name in self.to_train:
+            processor = getattr(self.tools, p_name)
             print(f"Applying: {processor}", file=sys.stderr)
             t_file = self.apply_trainable(processor, t_file)
-
-            t_1 = time.time()
-            ts = int(t_1 - t_0)
-            print(f"Timestamp: {datetime.timedelta(seconds=ts)}\n", file=sys.stderr)
-            self.pipe.append(processor)
+            self.pipe.append(p_name)
 
         t_file.seek(0)
         for line in t_file:
             sys.stdout.write(line)
 
         t_file.close()
+
+    def decode(self, line):
+        for p_name in self.decoder:
+            processor = getattr(self.tools, p_name)
+            line = processor.decode(line)
+
+        return line

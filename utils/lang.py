@@ -102,7 +102,7 @@ class Vocab(dict):
                 )
             )
         )
-    
+
         for word, count in sorted_vocab.items():
             if count >= self.min_freq:
                 yield word, count

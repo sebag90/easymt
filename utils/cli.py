@@ -42,8 +42,8 @@ def easymt_arguments():
         help="path to the configuration file"
     )
     batch.add_argument(
-        "--output",  action="store",
-        help="output file", required=True
+        "--output-max",  action="store",
+        help="output file"
     )
     batch.add_argument(
         "--max", metavar="N", action="store",
@@ -79,11 +79,12 @@ def easymt_arguments():
 
     # translate
     translate = subparsers.add_parser(
-        "translate", help="translate a file"
+        "translate", help="translate with a trained model"
     )
     translate.add_argument(
-        "model", metavar="MODEL", action="store",
-        help="path to model"
+        "--model", action="store",
+        help="path to model",
+        required=True
     )
     translate.add_argument(
         "--beam", metavar="N", action="store",
@@ -115,7 +116,6 @@ def texter_arguments():
     split = subparsers.add_parser(
         "split-file", help="preprocess a TSV file"
     )
-
     split.add_argument(
         "path", metavar="PATH", action="store",
         help=(
@@ -168,10 +168,6 @@ def texter_arguments():
     preprocess = subparsers.add_parser(
         "preprocess", help="preprocess a corpus"
     )
-    # preprocess.add_argument(
-    #     "file", metavar="FILE", action="store",
-    #     help="path to the text file"
-    # )
     pre_required = preprocess.add_argument_group(
         "required named arguments"
     )
@@ -183,28 +179,30 @@ def texter_arguments():
     )
     pre_required.add_argument(
         "--model", "-m", action="store",
-        help="path to a trained preprocessing model"
+        help="path to a trained preprocessing model",
+        required=True
     )
     preprocess.add_argument(
         "--bpe", action="store",
         metavar="BPE-Splits",
         help="number of BPE splittings",
         type=int,
-        default=0
+        default=0,
     )
     preprocess.add_argument(
         "--replace-nums", action="store_true",
         help="convert all numbers to <num>"
     )
     preprocess.add_argument(
-        "--SP", action="store",
+        "--sp", action="store",
         metavar="V-Size",
         help=(
             "target vocabulary to be generated with sentencepiece "
             "if a model already exists in the same directory as the "
             "file, that model will be used instead of training a new one"
         ),
-        type=int
+        type=int,
+        default=0
     )
     preprocess.add_argument(
         "--max-lines", metavar="N", action="store",
@@ -252,7 +250,8 @@ def texter_arguments():
     )
     decode.add_argument(
         "--model", "-m", action="store",
-        help="preprocessing model to decode text"
+        help="preprocessing model to decode text",
+        required=True
     )
     decode.add_argument(
         "--upper", "-u", action="store_true",
