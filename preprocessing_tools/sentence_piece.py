@@ -40,3 +40,7 @@ class SentencePieceTokenizer:
     def decode(self, line):
         line = self.model.decode(line)
         return line.replace("⁇", "<unk>")
+
+    def get_vocab(self):
+        for id_n in range(self.model.get_piece_size()):
+            yield self.model.id_to_piece(id_n), round(self.model.get_score(id_n), 4)
