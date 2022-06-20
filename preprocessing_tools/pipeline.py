@@ -98,7 +98,7 @@ class Pipeline:
                     break
 
             # train on reduced file
-            temp_file.seek(0)
+            train_file.seek(0)
             processor.train(train_file)
             train_file.close()
 
