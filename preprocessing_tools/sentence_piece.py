@@ -30,6 +30,7 @@ class SentencePieceTokenizer:
             vocab_size=self.size,
             bos_id=-1,
             eos_id=-1,
+            unk_surface="<unk>",
             input_sentence_size=self.max_lines
         )
         self.model = spm.SentencePieceProcessor(
@@ -38,8 +39,7 @@ class SentencePieceTokenizer:
         self.trained = True
 
     def decode(self, line):
-        line = self.model.decode(line)
-        return line.replace("⁇", "<unk>")
+        return self.model.decode(line)
 
     def get_vocab(self):
         for id_n in range(self.model.get_piece_size()):
