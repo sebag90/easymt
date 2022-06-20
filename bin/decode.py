@@ -27,7 +27,7 @@ def main(args):
         if args.upper is True:
             line = line.capitalize()
 
-        print(line), file=sys.stdout
+        print(line, file=sys.stdout)
 
         if (i+1) % 10000 == 0:
             print(f"Processed lines: {i + 1:,}", file=sys.stderr)

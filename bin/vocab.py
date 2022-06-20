@@ -6,10 +6,7 @@ order. Minimum frequency can be enforced.
 
 import sys
 import pickle
-import io
 from utils.lang import Vocab
-
-from preprocessing_tools.pipeline import Pipeline
 
 
 def main(args):

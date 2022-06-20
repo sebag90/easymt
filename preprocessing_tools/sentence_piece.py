@@ -43,4 +43,7 @@ class SentencePieceTokenizer:
 
     def get_vocab(self):
         for id_n in range(self.model.get_piece_size()):
-            yield self.model.id_to_piece(id_n), round(self.model.get_score(id_n), 4)
+            yield (
+                self.model.id_to_piece(id_n),
+                round(self.model.get_score(id_n), 4)
+            )
