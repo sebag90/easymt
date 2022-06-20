@@ -47,8 +47,8 @@ def main(args):
         tokens = filter(lambda x: x not in {"<eos>", "<sos>"}, tokens)
         translated = " ".join(tokens)
 
-        # write decoded sentence to output file
-        sys.stdout.write(f"{translated}\n")
+        # output translated sentence
+        print(translated, file=sys.stdout)
 
         print(f"Translating: line {progress + 1:,}", file=sys.stderr)
 

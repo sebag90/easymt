@@ -98,6 +98,7 @@ class Pipeline:
                     break
 
             # train on reduced file
+            temp_file.seek(0)
             processor.train(train_file)
             train_file.close()
 
@@ -145,7 +146,7 @@ class Pipeline:
 
         t_file.seek(0)
         for line in t_file:
-            sys.stdout.write(line)
+            print(line.strip(), file=sys.stdout)
 
         t_file.close()
 

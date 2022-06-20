@@ -41,7 +41,7 @@ def main(args):
         for src, tgt in zip(*batch):
             s_sen = " ".join(src)
             t_sen = " ".join(tgt)
-            sys.stdout.write(f"{s_sen}\t{t_sen}\n")
+            print(f"{s_sen}\t{t_sen}", file=sys.stdout)
             lines += 1
 
             if lines % 100000 == 0:
