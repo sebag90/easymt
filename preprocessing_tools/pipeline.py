@@ -88,6 +88,7 @@ class Pipeline:
 
     def apply_trainable(self, processor, temp_file):
         train_file = tempfile.TemporaryFile("w+")
+        temp_file.seek(0)
         # train processor on last produced text file
         if self.max_lines == 0:
             processor.train(temp_file)
@@ -131,6 +132,7 @@ class Pipeline:
                 processor = getattr(self.tools, p_name)
                 line = processor(line)
 
+            line = line.strip()
             t_file.write(f"{line}\n")
 
             if len(self.pipe) > 0:
