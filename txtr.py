@@ -7,7 +7,7 @@ def main():
     args = texter_arguments()
     if args:
         subparser = args.subparser.replace("-", "_")
-        module = importlib.import_module(f"bin.{subparser}")
+        module = importlib.import_module(f"bin.txtr.{subparser}")
         module.main(args)
 
 

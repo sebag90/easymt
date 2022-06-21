@@ -2,7 +2,10 @@ import argparse
 
 
 def easymt_arguments():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description="EasyMT: Neural Machine Translation",
+        prog="easymt"
+    )
     subparsers = parser.add_subparsers(dest="subparser")
 
     # build vocab
@@ -109,18 +112,33 @@ def easymt_arguments():
 
 
 def texter_arguments():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description="TXTR: Text Processing",
+        prog="txtr"
+    )
     subparsers = parser.add_subparsers(dest="subparser")
 
-    # split TSV files
+    # split TSV files in 2 different files
     split = subparsers.add_parser(
-        "split-file", help="preprocess a TSV file"
+        "tsvsplit", help="preprocess a TSV file"
     )
     split.add_argument(
-        "path", metavar="PATH", action="store",
+        "--output", "-o", action="store",
+        required=True,
         help=(
             "path to the TSV file"
         )
+    )
+
+    # join 2 files to a single TSV text file
+    split = subparsers.add_parser(
+        "tsvjoin", help="preprocess a TSV file"
+    )
+    split.add_argument(
+        "files",
+        nargs=2,
+        action="store",
+        help="path to file(s) to be joined"
     )
 
     # clean 2 files

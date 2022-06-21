@@ -11,7 +11,7 @@ def main(args):
     print("Starting: Splitting data set", file=sys.stderr)
 
     limits = [args.train, args.eval, args.test]
-    endings = ["train", "eval", "test"]    
+    endings = ["train", "eval", "test"]
     o_index = 0
 
     outputfiles = list()
@@ -35,7 +35,6 @@ def main(args):
 
             current_limit += limits[o_index]
             current_file = outputfiles[o_index]
-
 
     for out_file in outputfiles:
         out_file.close()
