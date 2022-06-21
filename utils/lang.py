@@ -46,7 +46,7 @@ class Language:
         the rest will be gnored
         """
         if vocfile is not None:
-            with open(Path(vocfile), "r", encoding="utf-8") as srcvoc:
+            with Path(vocfile).open("r", encoding="utf-8") as srcvoc:
                 for line in srcvoc:
                     word, *rest = line.strip().split("\t")
                     self.add_word(word)

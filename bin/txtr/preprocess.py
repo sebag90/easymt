@@ -19,7 +19,7 @@ def main(args):
     modelpath = Path(args.model)
 
     if modelpath.is_file() is True:
-        with open(modelpath, "rb") as infile:
+        with modelpath.open("rb") as infile:
             model = pickle.load(infile)
         pipe = Pipeline.from_trained_model(model)
         pipe.run(sys.stdin)
@@ -35,7 +35,7 @@ def main(args):
         pipe.run(sys.stdin)
         model = pipe.get_model()
 
-        with open(modelpath, "wb") as ofile:
+        with modelpath.open("wb") as ofile:
             pickle.dump(model, ofile)
 
     print("Complete: Preprocessing", file=sys.stderr)

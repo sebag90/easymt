@@ -49,7 +49,7 @@ def main(args):
 
     if args.max != 0:
         max_file = Path(args.output_max)
-        with open(max_file, "w", encoding="utf-8") as ofile:
+        with max_file.open("w", encoding="utf-8") as ofile:
             for pair in train_data.n_longest(args.max):
                 ofile.write(f"{pair.src}\t{pair.tgt}\n")
 

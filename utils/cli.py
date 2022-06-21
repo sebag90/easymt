@@ -171,10 +171,6 @@ def texter_arguments():
         "chunk", help="divide long sentences into chunks of n words"
     )
     chunker.add_argument(
-        "file", metavar="FILE", action="store",
-        help="path to the text file"
-    )
-    chunker.add_argument(
         "--max-len", metavar="N", action="store",
         type=int,
         help="maximum length of each sentence (default: %(default)s)",

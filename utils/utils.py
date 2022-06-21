@@ -27,7 +27,7 @@ def count_lines(filename):
     counts the line in a document
     """
     counter = 0
-    with open(filename, "r", encoding="utf-8") as infile:
+    with filename.open("r", encoding="utf-8") as infile:
         for line in infile:
             counter += 1
 

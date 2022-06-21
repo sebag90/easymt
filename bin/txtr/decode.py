@@ -15,7 +15,7 @@ def main(args):
 
     modelpath = Path(args.model)
 
-    with open(modelpath, "rb") as infile:
+    with modelpath.open("rb") as infile:
         model = pickle.load(infile)
 
     pipe = Pipeline.from_trained_model(model)
