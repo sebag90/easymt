@@ -215,30 +215,34 @@ def texter_arguments():
         "split-dataset",
         help="split a file in train, eval and test files"
     )
-    split_dataset.add_argument(
-        "file", metavar="FILE(S)",
-        nargs="+",
-        action="store",
-        help="path to file(s) to be cleaned"
-    )
     split_required = split_dataset.add_argument_group(
         "required named arguments"
     )
     split_required.add_argument(
+        "--output", "-o",
+        action="store",
+        help=(
+            "path to the output files (endings .train, "
+            ".test and .eval will be added)")
+    )
+    split_required.add_argument(
         "--train", metavar="N_train",
         action="store",
+        type=int,
         help="number of lines for train data",
         required=True
     )
     split_required.add_argument(
         "--eval", metavar="N_eval",
         action="store",
+        type=int,
         help="number of lines for evaluation data",
         required=True
     )
     split_required.add_argument(
         "--test", metavar="N_test",
         action="store",
+        type=int,
         help="number of lines for test data",
         required=True
     )
