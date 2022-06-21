@@ -19,7 +19,7 @@ def main(args):
         voc = Vocab(args.min_freq)
         voc.add_sentence(first_line.strip())
 
-        for i, line in enumerate(sys.stdin):
+        for i, line in enumerate(sys.stdin, start=1):
             voc.add_sentence(line.strip())
 
             if args.progress is True:
@@ -27,7 +27,7 @@ def main(args):
                     print(f"Processed lines: {i + 1:,}", file=sys.stderr)
 
             if args.n_sample != 0:
-                if i + 1 > args.n_sample:
+                if i > args.n_sample:
                     break
 
         for word, count in voc.get_vocab():
