@@ -1,3 +1,4 @@
+from collections import defaultdict
 from functools import total_ordering
 from pathlib import Path
 
@@ -77,8 +78,9 @@ class Language:
         return [self.index2word[i] for i in indeces]
 
 
-class Vocab(dict):
+class Vocab(defaultdict):
     def __init__(self, min_freq):
+        super().__init__(int)
         self.min_freq = min_freq
 
     def add_sentence(self, sentence):
@@ -87,8 +89,6 @@ class Vocab(dict):
             self.add_word(word)
 
     def add_word(self, word):
-        if word not in self:
-            self[word] = 0
         self[word] += 1
 
     def get_vocab(self):
