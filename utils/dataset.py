@@ -114,7 +114,7 @@ class DataLoader(list):
 
 class BatchedData:
     def __init__(self, path, max_len, batch_size):
-        self.path = path
+        self.path = Path(path)
         self.batch_size = batch_size
         self.max_len = max_len
 
@@ -128,7 +128,7 @@ class BatchedData:
         pass
 
     def __iter__(self):
-        with Path(self.path).open("r", encoding="utf-8") as infile:
+        with self.path.open("r", encoding="utf-8") as infile:
             # read a batch from the dataset file
             batch = list(islice(infile, self.batch_size))
             while len(batch) != 0:
