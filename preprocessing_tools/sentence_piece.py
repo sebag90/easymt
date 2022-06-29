@@ -39,7 +39,7 @@ class SentencePieceTokenizer:
         self.trained = True
 
     def decode(self, line):
-        return self.model.decode(line)
+        return self.model.decode(line.split())
 
     def get_vocab(self):
         for id_n in range(self.model.get_piece_size()):
