@@ -179,10 +179,10 @@ def texter_arguments():
     )
 
     # preprocess
-    preprocess = subparsers.add_parser(
-        "preprocess", help="preprocess a corpus"
+    tokenize = subparsers.add_parser(
+        "tokenize", help="tokenize a corpus"
     )
-    pre_required = preprocess.add_argument_group(
+    pre_required = tokenize.add_argument_group(
         "required named arguments"
     )
     pre_required.add_argument(
@@ -196,18 +196,18 @@ def texter_arguments():
         help="path to a trained preprocessing model",
         required=True
     )
-    preprocess.add_argument(
+    tokenize.add_argument(
         "--bpe", action="store",
         metavar="BPE-Splits",
         help="number of BPE splittings",
         type=int,
         default=0,
     )
-    preprocess.add_argument(
+    tokenize.add_argument(
         "--replace-nums", action="store_true",
         help="convert all numbers to <num>"
     )
-    preprocess.add_argument(
+    tokenize.add_argument(
         "--sp", action="store",
         metavar="V-Size",
         help=(
@@ -218,7 +218,7 @@ def texter_arguments():
         type=int,
         default=0
     )
-    preprocess.add_argument(
+    tokenize.add_argument(
         "--max-lines", metavar="N", action="store",
         default=0, type=int,
         help="maximum number of lines used to train preprocessing models"
