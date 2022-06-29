@@ -146,7 +146,7 @@ class BatchedData:
 
                         # language translation data
                         else:
-                            s, t = line.split("\t")
+                            s, t = line
                             src.append(s.split())
                             tgt.append(t.split())
 
