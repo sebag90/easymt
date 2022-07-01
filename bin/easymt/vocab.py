@@ -4,8 +4,9 @@ reads a file and creates a vocuabulary file
 order. Minimum frequency can be enforced.
 """
 
-import sys
+from io import TextIOWrapper
 import pickle
+import sys
 from utils.lang import Vocab
 
 
@@ -15,11 +16,13 @@ def main(args):
 
     try:
         # input is a text file, count the words
-        first_line = first_line.decode()
+        first_line = first_line.decode("utf-8")
+
         voc = Vocab(args.min_freq)
         voc.add_sentence(first_line.strip())
 
-        for i, line in enumerate(sys.stdin, start=1):
+        input_stream = TextIOWrapper(sys.stdin.buffer, encoding='utf-8')
+        for i, line in enumerate(input_stream, start=1):
             voc.add_sentence(line.strip())
 
             if args.progress is True:

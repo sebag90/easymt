@@ -1,3 +1,4 @@
+from io import TextIOWrapper
 import sys
 
 
@@ -9,7 +10,9 @@ def slice_list(lst, n):
 def main(args):
     print("Starting: Chunking", file=sys.stderr)
 
-    for i, line in enumerate(sys.stdin, start=1):
+    input_stream = TextIOWrapper(sys.stdin.buffer, encoding='utf-8')
+
+    for i, line in enumerate(input_stream, start=1):
         chunks = slice_list(line.strip().split(), args.n)
         for sen in chunks:
             to_write = " ".join(sen)

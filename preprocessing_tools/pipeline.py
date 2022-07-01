@@ -87,7 +87,7 @@ class Pipeline:
         return p
 
     def apply_trainable(self, processor, temp_file):
-        train_file = tempfile.TemporaryFile("w+")
+        train_file = tempfile.TemporaryFile("w+", encoding="utf-8")
         temp_file.seek(0)
         # train processor on last produced text file
         if self.max_lines == 0:
@@ -103,7 +103,7 @@ class Pipeline:
             processor.train(train_file)
             train_file.close()
 
-        stepfile = tempfile.TemporaryFile("w+")
+        stepfile = tempfile.TemporaryFile("w+", encoding="utf-8")
         temp_file.seek(0)
         for i, line in enumerate(temp_file):
             line = processor(line)
@@ -126,7 +126,7 @@ class Pipeline:
         if len(self.pipe) > 0:
             print(f"Applying: {pipe_string}", file=sys.stderr)
 
-        t_file = tempfile.TemporaryFile("w+")
+        t_file = tempfile.TemporaryFile("w+", encoding="utf-8")
         for i, line in enumerate(input_gen):
             for p_name in self.pipe:
                 processor = getattr(self.tools, p_name)

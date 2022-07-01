@@ -3,6 +3,7 @@ Split a single file in train, eval and test files
 based on number of lines for each subset
 """
 
+from io import TextIOWrapper
 from pathlib import Path
 import sys
 
@@ -23,7 +24,8 @@ def main(args):
     current_file = outputfiles[o_index]
     results = {name: 0 for name in endings}
 
-    for i, line in enumerate(sys.stdin, start=1):
+    input_stream = TextIOWrapper(sys.stdin.buffer, encoding='utf-8')
+    for i, line in enumerate(input_stream, start=1):
         current_file.write(line)
         results[endings[o_index]] += 1
 

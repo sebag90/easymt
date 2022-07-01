@@ -1,3 +1,4 @@
+from io import TextIOWrapper
 import sys
 
 from preprocessing_tools.dexmler import Dexmler
@@ -14,7 +15,8 @@ def main(args):
         ratio=args.ratio
     )
 
-    for i, line in enumerate(sys.stdin):
+    input_stream = TextIOWrapper(sys.stdin.buffer, encoding='utf-8')
+    for i, line in enumerate(input_stream):
         lines = line.split("\t")
 
         # clean files

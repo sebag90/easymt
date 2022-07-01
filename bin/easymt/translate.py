@@ -2,6 +2,7 @@
 translate a text file with a pretrained model
 """
 
+from io import TextIOWrapper
 from pathlib import Path
 import sys
 
@@ -27,8 +28,8 @@ def main(args):
     print(model, file=sys.stderr)
 
     # start translating
-
-    for progress, line in enumerate(sys.stdin):
+    input_stream = TextIOWrapper(sys.stdin.buffer, encoding='utf-8')
+    for progress, line in enumerate(input_stream):
         line = line.strip()
         hypotheses = model.beam_search(line, beam_size, args.alpha)
 

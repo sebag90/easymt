@@ -3,6 +3,7 @@ The decoding function revert tokenization
 and remove subword splitting if needed
 """
 
+from io import TextIOWrapper
 from pathlib import Path
 import sys
 import pickle
@@ -21,7 +22,8 @@ def main(args):
     pipe = Pipeline.from_trained_model(model)
 
     # start decoding
-    for i, line in enumerate(sys.stdin):
+    input_stream = TextIOWrapper(sys.stdin.buffer, encoding='utf-8')
+    for i, line in enumerate(input_stream):
         line = pipe.decode(line)
 
         if args.upper is True:
