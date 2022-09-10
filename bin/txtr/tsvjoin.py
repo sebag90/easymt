@@ -19,4 +19,4 @@ def main(args):
         if i % 100000 == 0:
             print(f"Processed lines: {i:,}", file=sys.stderr)
 
-    print("Complete: Splitting document")
+    print("Complete: Splitting document", file=sys.stderr)

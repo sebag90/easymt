@@ -91,16 +91,16 @@ To check on how the model is training, use: ```tail -f nohup.out```
 Once you trained a model you can test this on the newssyscomb evaluation files.
 First translate a document:
 ```
-python easymt.py translate data/newssyscomb.2009.processed.en checkpoints/transformer_en-it_100000.pt
+python easymt.py translate --model checkpoints/transformer_en-it_100000.pt < data/newssyscomb.2009.processed.en > data/translated.it
 ```
 
-This step will generate the file ```data/newssyscomb.2009.processed.translated.it``` which is still encoded or tokenized according to the preprocessing steps we used during data preparation. To undo this, use ```texter.py```:
+This step will generate the file ```data/translated.it``` which is still encoded or tokenized according to the preprocessing steps we used during data preparation. To undo this, use ```txtr.py```:
 
 ```
-python texter.py normalize --SP 35000 data/newssyscomb.2009.processed.translated.it
+python txtr.py decode --model data/tokenizer.model < data/translated.it > normalized.it
 ```
 
-which will produce ```data/newssyscomb.2009.processed.translated.normalized.it```.  
+which will produce ```normalized.it```.  
 Now we can take a look at the translations of our model:
 ```
 source: Both countries invested millions of dollars into surveying.

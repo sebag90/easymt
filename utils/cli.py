@@ -146,12 +146,6 @@ def texter_arguments():
         "clean", help="clean 2 files"
     )
     clean.add_argument(
-        "file", metavar="FILE(S)",
-        nargs="+",
-        action="store",
-        help="path to file(s) to be cleaned"
-    )
-    clean.add_argument(
         "--max-len", action="store",
         help="maximum sentence length (default: %(default)s)",
         default=70, type=int
