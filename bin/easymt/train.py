@@ -23,7 +23,6 @@ from utils.dataset import DataLoader, BatchedData
 from utils.parameters import Parameters
 
 
-
 DEVICE = torch.device(
     "cuda" if torch.cuda.is_available() else "cpu"
 )
@@ -286,7 +285,9 @@ class Trainer:
                         lr = self.optimizer.lr
                         print_time = datetime.timedelta(seconds=ts)
                         trailing = f">{len(str(self.params.training.steps))}d"
-                        current_step = f"{steps:{trailing}}/{self.params.training.steps}"
+                        current_step = (
+                            f"{steps:{trailing}}/{self.params.training.steps}"
+                        )
                         to_print = (
                             f"step: {current_step:13} | "
                             f"lr: {round(lr, 5):7} | "

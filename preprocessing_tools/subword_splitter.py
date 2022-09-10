@@ -1,5 +1,6 @@
-import os
-from pathlib import Path
+import sys
+import tempfile
+import re
 
 from subword_nmt.learn_bpe import learn_bpe
 from subword_nmt.apply_bpe import BPE
@@ -8,42 +9,31 @@ from utils.errors import UntrainedModel
 
 
 class SubwordSplitter:
-    def __init__(self, language, bpe, path):
+    def __init__(self, language, bpe):
         self.language = language
         self.bpe = bpe
-        self.model = Path(f"{path}/model.subword.{bpe}.{language}")
-        if self.trained:
-            with open(self.model, "r", encoding="utf-8") as modfile:
-                self.splitter = BPE(modfile)
+        self.trained = False
+        self.pattern = re.compile(r"@@( |$)")
 
     def __repr__(self):
         return f"SubwordSplitter({self.language}, {self.bpe})"
 
-    @property
-    def trained(self):
-        return os.path.isfile(self.model)
-
     def __call__(self, line):
-        if os.path.isfile(self.model):
-            return self.splitter.process_line(line).strip()
+        if self.trained is True:
+            return self.model.process_line(line).strip()
         else:
             raise UntrainedModel("SubwordSplitter not trained")
 
     def train(self, filename):
-        if not os.path.isfile(self.model):
-            print("Training subword model")
+        if self.trained is False:
+            print("Training subword model", file=sys.stderr)
+            modfile = tempfile.TemporaryFile("w+")
+            filename.seek(0)
 
-            # train and save model
-            with open(filename, "r", encoding="utf-8") as infile, \
-                    open(self.model, "w", encoding="utf-8") as ofile:
-                learn_bpe(infile, ofile, self.bpe)
+            learn_bpe(filename, modfile, self.bpe)
+            self.model = BPE(modfile)
+            modfile.close()
+            self.trained = True
 
-            # load model
-            with open(self.model, "r", encoding="utf-8") as modfile:
-                self.splitter = BPE(modfile)
-
-
-if __name__ == "__main__":
-    t = SubwordSplitter("en", 35000)
-    t.train("data/test.en")
-    print(t('catastrophically furiously'))
+    def decode(self, line):
+        return re.sub(self.pattern, "", line)

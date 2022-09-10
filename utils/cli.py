@@ -2,19 +2,20 @@ import argparse
 
 
 def easymt_arguments():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description="EasyMT: Neural Machine Translation",
+        prog="easymt"
+    )
     subparsers = parser.add_subparsers(dest="subparser")
 
     # build vocab
     vocab = subparsers.add_parser(
-        "build-vocab",
+        "vocab",
         help="build a vocabulary from files"
     )
     vocab.add_argument(
-        "file", metavar="FILE(S)",
-        nargs="+",
-        action="store",
-        help="path to file(s) to process"
+        "--progress", "-p", action="store_true",
+        help="print progress status"
     )
     vocab.add_argument(
         "--n-sample", metavar="N", action="store",
@@ -22,6 +23,7 @@ def easymt_arguments():
             "number of lines used to build vocabulary"
             " (0 = full corpus - default: %(default)s)"
         ),
+        type=int,
         default=0
     )
     vocab.add_argument(
@@ -35,7 +37,7 @@ def easymt_arguments():
 
     # batch data set
     batch = subparsers.add_parser(
-        "batch-dataset",
+        "batch",
         help="convert train files to byte files"
     )
     batch.add_argument(
@@ -43,8 +45,8 @@ def easymt_arguments():
         help="path to the configuration file"
     )
     batch.add_argument(
-        "--output",  action="store",
-        help="output file", required=True
+        "--output-max",  action="store",
+        help="output file"
     )
     batch.add_argument(
         "--max", metavar="N", action="store",
@@ -80,15 +82,12 @@ def easymt_arguments():
 
     # translate
     translate = subparsers.add_parser(
-        "translate", help="translate a file"
+        "translate", help="translate with a trained model"
     )
     translate.add_argument(
-        "file", metavar="FILE", action="store",
-        help="path to file to translate"
-    )
-    translate.add_argument(
-        "model", metavar="MODEL", action="store",
-        help="path to model"
+        "--model", action="store",
+        help="path to model",
+        required=True
     )
     translate.add_argument(
         "--beam", metavar="N", action="store",
@@ -113,19 +112,33 @@ def easymt_arguments():
 
 
 def texter_arguments():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description="TXTR: Text Processing",
+        prog="txtr"
+    )
     subparsers = parser.add_subparsers(dest="subparser")
 
-    # split TSV files
+    # split TSV files in 2 different files
     split = subparsers.add_parser(
-        "split-file", help="preprocess a TSV file"
+        "tsvsplit", help="preprocess a TSV file"
     )
-
     split.add_argument(
-        "path", metavar="PATH", action="store",
+        "--output", "-o", action="store",
+        required=True,
         help=(
             "path to the TSV file"
         )
+    )
+
+    # join 2 files to a single TSV text file
+    split = subparsers.add_parser(
+        "tsvjoin", help="preprocess a TSV file"
+    )
+    split.add_argument(
+        "files",
+        nargs=2,
+        action="store",
+        help="path to file(s) to be joined"
     )
 
     # clean 2 files
@@ -158,10 +171,6 @@ def texter_arguments():
         "chunk", help="divide long sentences into chunks of n words"
     )
     chunker.add_argument(
-        "file", metavar="FILE", action="store",
-        help="path to the text file"
-    )
-    chunker.add_argument(
         "--max-len", metavar="N", action="store",
         type=int,
         help="maximum length of each sentence (default: %(default)s)",
@@ -170,14 +179,10 @@ def texter_arguments():
     )
 
     # preprocess
-    preprocess = subparsers.add_parser(
-        "preprocess", help="preprocess a corpus"
+    tokenize = subparsers.add_parser(
+        "tokenize", help="tokenize a corpus"
     )
-    preprocess.add_argument(
-        "file", metavar="FILE", action="store",
-        help="path to the text file"
-    )
-    pre_required = preprocess.add_argument_group(
+    pre_required = tokenize.add_argument_group(
         "required named arguments"
     )
     pre_required.add_argument(
@@ -186,27 +191,34 @@ def texter_arguments():
         help="language of the file",
         required=True
     )
-    preprocess.add_argument(
+    pre_required.add_argument(
+        "--model", "-m", action="store",
+        help="path to a trained preprocessing model",
+        required=True
+    )
+    tokenize.add_argument(
         "--bpe", action="store",
         metavar="BPE-Splits",
         help="number of BPE splittings",
-        type=int
+        type=int,
+        default=0,
     )
-    preprocess.add_argument(
+    tokenize.add_argument(
         "--replace-nums", action="store_true",
         help="convert all numbers to <num>"
     )
-    preprocess.add_argument(
-        "--SP", action="store",
+    tokenize.add_argument(
+        "--sp", action="store",
         metavar="V-Size",
         help=(
             "target vocabulary to be generated with sentencepiece "
             "if a model already exists in the same directory as the "
             "file, that model will be used instead of training a new one"
         ),
-        type=int
+        type=int,
+        default=0
     )
-    preprocess.add_argument(
+    tokenize.add_argument(
         "--max-lines", metavar="N", action="store",
         default=0, type=int,
         help="maximum number of lines used to train preprocessing models"
@@ -217,53 +229,49 @@ def texter_arguments():
         "split-dataset",
         help="split a file in train, eval and test files"
     )
-    split_dataset.add_argument(
-        "file", metavar="FILE(S)",
-        nargs="+",
-        action="store",
-        help="path to file(s) to be cleaned"
-    )
     split_required = split_dataset.add_argument_group(
         "required named arguments"
     )
     split_required.add_argument(
+        "--output", "-o",
+        action="store",
+        help=(
+            "path to the output files (endings .train, "
+            ".test and .eval will be added)")
+    )
+    split_required.add_argument(
         "--train", metavar="N_train",
         action="store",
+        type=int,
         help="number of lines for train data",
         required=True
     )
     split_required.add_argument(
         "--eval", metavar="N_eval",
         action="store",
+        type=int,
         help="number of lines for evaluation data",
         required=True
     )
     split_required.add_argument(
         "--test", metavar="N_test",
         action="store",
+        type=int,
         help="number of lines for test data",
         required=True
     )
 
     # normalize
-    normalize = subparsers.add_parser(
-        "normalize",
+    decode = subparsers.add_parser(
+        "decode",
         help="undo preprocessing to normalize text"
     )
-    normalize.add_argument(
-        "file", metavar="FILE",
-        help="file to process"
+    decode.add_argument(
+        "--model", "-m", action="store",
+        help="preprocessing model to decode text",
+        required=True
     )
-    normalize.add_argument(
-        "--subword", action="store_true",
-        help="subword splitting was applied"
-    )
-    normalize.add_argument(
-        "--SP", action="store",
-        metavar="V-Size",
-        help="target vocabulary of the sentencepiece model"
-    )
-    normalize.add_argument(
+    decode.add_argument(
         "--upper", "-u", action="store_true",
         help="uppercase the first char in the sentence"
     )

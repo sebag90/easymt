@@ -12,12 +12,12 @@ from utils.errors import FileError
 def main(args):
     # make sure reference and translation have same length
     ref = 0
-    with open(Path(args.reference), "r", encoding="utf-8") as rfile:
+    with Path(args.reference).open("r", encoding="utf-8") as rfile:
         for line in rfile:
             ref += 1
 
     tra = 0
-    with open(Path(args.translation), "r", encoding="utf-8") as tfile:
+    with Path(args.translation).open("r", encoding="utf-8") as tfile:
         for line in tfile:
             tra += 1
 

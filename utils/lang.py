@@ -1,3 +1,4 @@
+from collections import defaultdict
 from functools import total_ordering
 from pathlib import Path
 
@@ -46,7 +47,7 @@ class Language:
         the rest will be gnored
         """
         if vocfile is not None:
-            with open(Path(vocfile), "r", encoding="utf-8") as srcvoc:
+            with Path(vocfile).open("r", encoding="utf-8") as srcvoc:
                 for line in srcvoc:
                     word, *rest = line.strip().split("\t")
                     self.add_word(word)
@@ -77,11 +78,10 @@ class Language:
         return [self.index2word[i] for i in indeces]
 
 
-class Vocab:
-    def __init__(self, language, min_freq):
-        self.language = language
+class Vocab(defaultdict):
+    def __init__(self, min_freq):
+        super().__init__(int)
         self.min_freq = min_freq
-        self.voc = {}
 
     def add_sentence(self, sentence):
         sentence = sentence.strip()
@@ -89,26 +89,23 @@ class Vocab:
             self.add_word(word)
 
     def add_word(self, word):
-        if word not in self.voc:
-            self.voc[word] = 0
-        self.voc[word] += 1
+        self[word] += 1
 
-    def save_voc(self, path):
+    def get_vocab(self):
         """
         sort by values (for eventual pruning)
         """
-        outputfile = f"{path}/vocab.{self.language}"
         sorted_vocab = dict(
             reversed(
                 sorted(
-                    self.voc.items(), key=lambda item: item[1]
+                    self.items(), key=lambda item: item[1]
                 )
             )
         )
-        with open(outputfile, "w", encoding="utf-8") as ofile:
-            for word, count in sorted_vocab.items():
-                if count >= self.min_freq:
-                    ofile.write(f"{word}\t{count}\n")
+
+        for word, count in sorted_vocab.items():
+            if count >= self.min_freq:
+                yield word, count
 
 
 @total_ordering

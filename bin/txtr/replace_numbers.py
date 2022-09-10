@@ -12,10 +12,10 @@ def main(args):
     number = re.compile(r"(?<=\s)\d[\d,'.]*\b")
 
     path, name, suffix = split_filename(args.translation)
-    ofile = open(Path(f"{path}/{name}.numbered.{suffix}"), "w")
+    ofile = Path(f"{path}/{name}.numbered.{suffix}").open("w")
 
-    with open(reference, "r", encoding="utf-8") as r_file, \
-            open(translation, "r", encoding="utf-8") as t_file:
+    with reference.open("r", encoding="utf-8") as r_file, \
+            translation.open("r", encoding="utf-8") as t_file:
         for i, (line_r, line_t) in enumerate(zip(r_file, t_file)):
             # extract numbers from reference
             original_numbers = re.findall(number, line_r)

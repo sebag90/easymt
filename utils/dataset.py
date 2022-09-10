@@ -85,7 +85,7 @@ class DataLoader(list):
 
         # language modeling
         if tgt_file is None:
-            with open(Path(src_file), encoding="utf-8") as infile:
+            with Path(src_file).open(encoding="utf-8") as infile:
                 for line in infile:
                     line = line.strip()
 
@@ -98,8 +98,8 @@ class DataLoader(list):
             tgt_file = Path(tgt_file)
 
             # read data and create dataset
-            with open(src_file, "r", encoding="utf-8") as inlang, \
-                    open(tgt_file, "r", encoding="utf-8") as outlang:
+            with src_file.open("r", encoding="utf-8") as inlang, \
+                    tgt_file.open("r", encoding="utf-8") as outlang:
                 for l1, l2 in zip(inlang, outlang):
                     l1 = l1.strip()
                     l2 = l2.strip()
@@ -114,7 +114,7 @@ class DataLoader(list):
 
 class BatchedData:
     def __init__(self, path, max_len, batch_size):
-        self.path = path
+        self.path = Path(path)
         self.batch_size = batch_size
         self.max_len = max_len
 
@@ -128,7 +128,7 @@ class BatchedData:
         pass
 
     def __iter__(self):
-        with open(Path(self.path), "r", encoding="utf-8") as infile:
+        with self.path.open("r", encoding="utf-8") as infile:
             # read a batch from the dataset file
             batch = list(islice(infile, self.batch_size))
             while len(batch) != 0:
@@ -146,7 +146,7 @@ class BatchedData:
 
                         # language translation data
                         else:
-                            s, t = line.split("\t")
+                            s, t = line
                             src.append(s.split())
                             tgt.append(t.split())
 
