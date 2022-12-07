@@ -32,7 +32,8 @@ def main(args):
             args.bpe,
             args.sp,
             args.replace_nums,
-            args.max_lines
+            args.max_lines,
+            args.processors
         )
         pipe.run(input_stream)
         model = pipe.get_model()

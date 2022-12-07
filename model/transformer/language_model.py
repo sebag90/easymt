@@ -49,8 +49,8 @@ class LanguageModel(nn.Module):
         # convert tokens to indeces and:
         # - remove last word from source
         # - remove first word from target
-        src = [self.src_lang.toks2idx(sen)[:-1] for sen in sentence]
-        tgt = [self.tgt_lang.toks2idx(sen)[1:] for sen in sentence]
+        src = [self.src_lang.toks2idx(sen, sos=False, eos=False)[:-1] for sen in sentence]
+        tgt = [self.tgt_lang.toks2idx(sen, sos=False, eos=False)[1:] for sen in sentence]
 
         # pad src and tgt
         tgt = nn.utils.rnn.pad_sequence(

@@ -1,4 +1,5 @@
 import argparse
+import sys
 
 
 def easymt_arguments():
@@ -180,15 +181,18 @@ def texter_arguments():
         "required named arguments"
     )
     pre_required.add_argument(
+        "--model", "-m", action="store",
+        help=(
+            "output path for the trained tokenizer "
+            "or to an already existing tokenizer"
+        ),
+        required=True
+    )
+    tokenize.add_argument(
         "--language", metavar="LANG",
         action="store",
         help="language of the file",
-        required=True
-    )
-    pre_required.add_argument(
-        "--model", "-m", action="store",
-        help="path to a trained preprocessing model",
-        required=True
+        required='--sp' not in sys.argv
     )
     tokenize.add_argument(
         "--bpe", action="store",
@@ -196,6 +200,12 @@ def texter_arguments():
         help="number of BPE splittings",
         type=int,
         default=0,
+    )
+    tokenize.add_argument(
+        "--processors",
+        nargs="+",
+        default=["punct_normalizer", "tokenizer", "truecaser", "lowercaser"],
+        help="processors to use during tokenizing process (default: %(default)s)",
     )
     tokenize.add_argument(
         "--replace-nums", action="store_true",

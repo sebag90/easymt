@@ -24,15 +24,15 @@ class Tools:
 
 
 class Pipeline:
-    def __init__(self, language, bpe, sp_voc_size, remove_nums, max_lines):
+    def __init__(self, language, bpe, sp_voc_size, remove_nums, max_lines, processors):
         self.max_lines = max_lines
         self.language = language
         self.tools = Tools(
             language, bpe, sp_voc_size, max_lines
         )
-        self.create_pipe(bpe, sp_voc_size, remove_nums)
+        self.create_pipe(bpe, sp_voc_size, remove_nums, processors)
 
-    def create_pipe(self, bpe, sp_voc_size, remove_nums):
+    def create_pipe(self, bpe, sp_voc_size, remove_nums, processors):
         if sp_voc_size > 0:
             self.to_train = [
                 "sp"
@@ -42,23 +42,26 @@ class Pipeline:
 
         else:
             self.bpe = bpe
-            self.pipe = [
-                "punct_normalizer",
-                "tokenizer"
-            ]
-            self.decoder = [
-                "truecaser", "tokenizer"
-            ]
+            self.pipe = list()
+            self.decoder = list()
+            self.to_train = list()
+
+            for p in  ["punct_normalizer", "tokenizer"]:
+                if p in processors:
+                    self.pipe.append(p)
+
+            for p in ["truecaser", "tokenizer"]:
+                if p in processors:
+                    self.decoder.append(p)
 
             if remove_nums is True:
                 self.pipe.append(
                     "num_replacer"
                 )
 
-            self.to_train = [
-                "truecaser",
-                "lower_caser"
-            ]
+            for p in ["truecaser", "lower_caser"]:
+                if p in processors:
+                    self.to_train.append(p)
 
             if bpe > 0:
                 self.to_train.append(
