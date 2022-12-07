@@ -5,6 +5,7 @@ from functools import total_ordering
 import math
 from pathlib import Path
 import random
+import sys
 
 
 @dataclass
@@ -86,11 +87,17 @@ class DataLoader(list):
         # language modeling
         if tgt_file is None:
             with Path(src_file).open(encoding="utf-8") as infile:
-                for line in infile:
+                for i, line in enumerate(infile):
                     line = line.strip()
 
                     if 0 < len(line.split()) <= max_len:
                         data.add_pair(line, "")
+
+                    if i % 1000000 == 0:
+                        print(i, end="", file=sys.stderr, flush=True)
+
+                    elif i % 100000 == 0:
+                        print(".", end="", file=sys.stderr, flush=True)
 
         # language translation
         else:
@@ -100,13 +107,19 @@ class DataLoader(list):
             # read data and create dataset
             with src_file.open("r", encoding="utf-8") as inlang, \
                     tgt_file.open("r", encoding="utf-8") as outlang:
-                for l1, l2 in zip(inlang, outlang):
+                for i, (l1, l2) in enumerate(zip(inlang, outlang)):
                     l1 = l1.strip()
                     l2 = l2.strip()
 
                     if ((0 < len(l1.split()) <= max_len)
                             and (0 < len(l2.split()) <= max_len)):
                         data.add_pair(l1, l2)
+
+                    if i % 1000000 == 0:
+                        print(i, end="", file=sys.stderr, flush=True)
+
+                    elif i % 100000 == 0:
+                        print(".", end="", file=sys.stderr, flush=True)
 
         data.shuffle()
         return data

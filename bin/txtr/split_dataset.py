@@ -38,10 +38,16 @@ def main(args):
             current_limit += limits[o_index]
             current_file = outputfiles[o_index]
 
+        if i % 1000000 == 0:
+            print(i, end="", file=sys.stderr, flush=True)
+
+        elif i % 100000 == 0:
+            print(".", end="", file=sys.stderr, flush=True)
+
     for out_file in outputfiles:
         out_file.close()
 
-    print("Lines:", file=sys.stderr)
+    print("\nLines:", file=sys.stderr)
     for name, lines in results.items():
         print(name, lines, file=sys.stderr)
     print("Complete: Splitting data set", file=sys.stderr)

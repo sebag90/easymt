@@ -44,8 +44,11 @@ def main(args):
             print(f"{s_sen}\t{t_sen}", file=sys.stdout)
             lines += 1
 
-            if lines % 100000 == 0:
-                print(f"Processed lines: {lines:,}", file=sys.stderr)
+            if lines % 1000000 == 0:
+                print(lines, end="", file=sys.stderr, flush=True)
+
+            elif lines % 100000 == 0:
+                print(".", end="", file=sys.stderr, flush=True)
 
     if args.max != 0:
         max_file = Path(args.output_max)
@@ -53,4 +56,4 @@ def main(args):
             for pair in train_data.n_longest(args.max):
                 ofile.write(f"{pair.src}\t{pair.tgt}\n")
 
-    print("Complete: Batching dataset", file=sys.stderr)
+    print("\nComplete: Batching dataset", file=sys.stderr)
