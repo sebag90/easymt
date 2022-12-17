@@ -111,6 +111,51 @@ class LanguageModel(nn.Module):
         return subseq_mask
 
     @torch.no_grad()
+    def top_k(self, line, steps, k=10, temperature=1):
+        step_input = self.src_lang.toks2idx(line.strip().split(), eos=False)
+        hyp = Hypothesis(alpha=1)
+        for word in step_input:
+            hyp.update(
+                word, torch.zeros(1), 0
+            )
+        step_input = step_input.unsqueeze(0).to(DEVICE)
+
+        for _ in range(steps):
+            # crop current context if it's too big
+            if step_input.size(1) > self.max_len:
+                step_input = step_input[-self.max_len:]
+
+            # create sausal mask
+            d_mask = self.create_subsequent_mask(
+                step_input.size(1)
+            ).to(DEVICE)
+
+            # pass through decoder
+            encoded = self.embedding.tgt(step_input)
+            output = self.model(
+                encoded, d_mask
+            )
+            decoded = self.generator(output)
+
+            # divide logits by temperature
+            decoded = decoded[:, -1, :] / temperature
+
+            # select most k probabile words
+            probs, idxs = torch.topk(decoded, k)
+
+            # apply softmax and sample a word
+            decoder_output = F.softmax(probs, dim=-1)
+            idx_sample = torch.multinomial(decoder_output, num_samples=1).item()
+            idx_next = idxs.squeeze()[idx_sample]
+
+            # update step input
+            hyp.update(idx_next, torch.zeros(1), torch.zeros(1))
+            step_input = torch.cat((step_input, idx_next.view(1, -1)), dim=1)
+
+        return [hyp]
+            
+
+    @torch.no_grad()
     def beam_search(self, line, beam_size, alpha):
         """
         beam translation for a single line of text

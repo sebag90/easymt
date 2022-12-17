@@ -81,7 +81,7 @@ class Pipeline:
 
     @classmethod
     def from_trained_model(cls, model_dict):
-        p = cls("placeholder", 0, 0, False, 0)
+        p = cls("placeholder", 0, 0, False, 0, [])
         p.pipe = model_dict["pipe"]
         p.decoder = model_dict["decoder"]
         p.language = model_dict["language"]

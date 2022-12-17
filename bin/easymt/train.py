@@ -99,7 +99,8 @@ class Trainer:
             self.params.data.src_eval,
             self.params.data.tgt_eval,
             self.params.model.max_length,
-            self.params.training.batch_size
+            self.params.training.batch_size,
+            verbose=False  # evaluation dataset is small
         )
 
         # load train dataset

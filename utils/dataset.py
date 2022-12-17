@@ -77,11 +77,13 @@ class DataLoader(list):
                     return
 
     @classmethod
-    def from_files(cls, src_file, tgt_file, max_len, batch_size):
+    def from_files(cls, src_file, tgt_file, max_len, batch_size, verbose=True):
         """
         read src and tgt file and prepare dataset of encoded
         sentences in pairs (src, tgt)
         """
+        print("Reading data set", file=sys.stderr, flush=True)
+        
         data = cls(batch_size=batch_size)
 
         # language modeling
@@ -93,11 +95,12 @@ class DataLoader(list):
                     if 0 < len(line.split()) <= max_len:
                         data.add_pair(line, "")
 
-                    if i % 1000000 == 0:
-                        print(i, end="", file=sys.stderr, flush=True)
+                    if verbose is True:
+                        if i % 1000000 == 0:
+                            print(i, end="", file=sys.stderr, flush=True)
 
-                    elif i % 100000 == 0:
-                        print(".", end="", file=sys.stderr, flush=True)
+                        elif i % 100000 == 0:
+                            print(".", end="", file=sys.stderr, flush=True)
 
         # language translation
         else:

@@ -23,6 +23,7 @@ def main(args):
     if modelpath.is_file() is True:
         with modelpath.open("rb") as infile:
             model = pickle.load(infile)
+
         pipe = Pipeline.from_trained_model(model)
         pipe.run(input_stream)
 

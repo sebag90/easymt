@@ -91,9 +91,29 @@ def easymt_arguments():
         required=True
     )
     translate.add_argument(
+        "--method", metavar="METHOD", action="store",
+        choices=["beam", "topk"],
+        help="Decoding algorithm (default: %(default)s)"
+    )
+    translate.add_argument(
         "--beam", metavar="N", action="store",
         default=5,
         help="size of search beam (default: %(default)s)"
+    )
+    translate.add_argument(
+        "--k", metavar="N", action="store",
+        default=10,
+        help="K value for top-K algorithm (default: %(default)s)"
+    )
+    translate.add_argument(
+        "--steps", metavar="N", action="store",
+        default=150, type=int,
+        help="Number of steps while decoding (default: %(default)s)"
+    )
+    translate.add_argument(
+        "--temperature", metavar="N", action="store",
+        default=1,
+        help="Temperature for the Top K algorithm (default: %(default)s)"
     )
     translate.add_argument(
         "--verbose", action="store_true",

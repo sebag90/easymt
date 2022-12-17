@@ -31,8 +31,11 @@ def main(args):
     input_stream = TextIOWrapper(sys.stdin.buffer, encoding='utf-8')
     for progress, line in enumerate(input_stream):
         line = line.strip()
-        hypotheses = model.beam_search(line, beam_size, args.alpha)
-
+        
+        if args.method == "beam":
+            hypotheses = model.beam_search(line, beam_size, args.alpha)
+        else:
+            hypotheses = model.top_k(line, steps=args.steps, k=args.k, temperature=args.temperature)
         # if verbose print all hypotheses
         if args.verbose:
             for hyp in hypotheses:
@@ -50,7 +53,6 @@ def main(args):
 
         # output translated sentence
         print(translated, file=sys.stdout)
-
         print(f"Translating: line {progress + 1:,}", file=sys.stderr)
 
     print("Translating: complete", file=sys.stderr)
