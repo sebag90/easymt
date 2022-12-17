@@ -146,7 +146,7 @@ class LanguageModel(nn.Module):
             # apply softmax and sample a word
             decoder_output = F.softmax(probs, dim=-1)
             idx_sample = torch.multinomial(decoder_output, num_samples=1).item()
-            idx_next = idxs.squeeze()[idx_sample]
+            idx_next = idxs[:, idx_sample]
 
             # update step input
             hyp.update(idx_next, torch.zeros(1), torch.zeros(1))

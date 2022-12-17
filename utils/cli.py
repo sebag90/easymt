@@ -102,7 +102,7 @@ def easymt_arguments():
     )
     translate.add_argument(
         "--k", metavar="N", action="store",
-        default=10,
+        default=10,type=int,
         help="K value for top-K algorithm (default: %(default)s)"
     )
     translate.add_argument(
