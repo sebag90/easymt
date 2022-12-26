@@ -1,18 +1,19 @@
+import argparse
 from pathlib import Path
 import re
-
-from utils.utils import split_filename
-
+import sys
 
 def main(args):
     reference = Path(args.reference)
     translation = Path(args.translation)
 
+    if args.output is not None:
+        output_file = Path(args.output).open("w", encoding="utf-8")
+    else:
+        output_file = sys.stdout
+
     # compile overly complicated number regex
     number = re.compile(r"(?<=\s)\d[\d,'.]*\b")
-
-    path, name, suffix = split_filename(args.translation)
-    ofile = Path(f"{path}/{name}.numbered.{suffix}").open("w")
 
     with reference.open("r", encoding="utf-8") as r_file, \
             translation.open("r", encoding="utf-8") as t_file:
@@ -44,11 +45,36 @@ def main(args):
                 sen = line_t.strip().split()
 
             line = " ".join(sen)
+            print(line, file=output_file)
 
-            ofile.write(f"{line}\n")
-            if (i+1) % 100000 == 0:
-                print(f"Processed lines: {i + 1:,}", flush=True)
+            # print progress
+            if i % 1000000 == 0:
+                print(i, end="", file=sys.stderr, flush=True)
 
-    ofile.close()
+            elif i % 100000 == 0:
+                print(".", end="", file=sys.stderr, flush=True)
+
+    output_file.close()
 
     print("Complete: Replacing numbers")
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "reference",
+        action="store",
+        help="path to reference translation"
+    )
+    parser.add_argument(
+        "translation",
+        action="store",
+        help="path to translated document"
+    )
+    parser.add_argument(
+        "--output",
+        metavar="PATH",
+        action="store",
+    )
+
+    args = parser.parse_args()
+    main(args)

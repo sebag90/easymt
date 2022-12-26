@@ -1,27 +1,28 @@
 import io
-
+import pickle
 import sentencepiece as spm
+from pathlib import Path
 
 
 class SentencePieceTokenizer:
-    def __init__(self, size, max_lines):
+    def __init__(self, size):
         self.size = size
         self.model = None
+        self.processor = None
         self.trained = False
-        self.max_lines = max_lines
 
     def __repr__(self):
         return f"SentencePieceTokenizer({self.size})"
 
     def __call__(self, line):
-        encoded = self.model.encode(
+        encoded = self.processor.encode(
             line.strip(), out_type=str
         )
         return ' '.join(encoded)
 
-    def train(self, input_file):
+    def train(self, input_file, bpe, max_lines):
         model = io.BytesIO()
-        input_file.seek(0)
+        #input_file.seek(0)
 
         # train and load model
         spm.SentencePieceTrainer.train(
@@ -31,19 +32,38 @@ class SentencePieceTokenizer:
             bos_id=-1,
             eos_id=-1,
             unk_surface="<unk>",
-            input_sentence_size=self.max_lines
+            input_sentence_size=max_lines,
+            model_type=("bpe" if bpe is True else "unigram")
         )
-        self.model = spm.SentencePieceProcessor(
+        self.model = model.getvalue()
+        self.processor = spm.SentencePieceProcessor(
             model_proto=model.getvalue()
         )
         self.trained = True
 
+    def save_model(self, outputpath):
+        with Path(outputpath).open("wb") as ofile:
+            ofile.write(self.model)
+
+    @classmethod
+    def from_pretrained(cls, model):
+        data = model.read_bytes()
+        model = spm.SentencePieceProcessor(
+            model_proto=data
+        )
+        processor = cls(model.get_piece_size())
+
+        processor.model = data
+        processor.processor = model
+        processor.trained = True
+        return processor
+
     def decode(self, line):
-        return self.model.decode(line.split())
+        return self.processor.decode(line.split())
 
     def get_vocab(self):
-        for id_n in range(self.model.get_piece_size()):
+        for id_n in range(self.processor.get_piece_size()):
             yield (
-                self.model.id_to_piece(id_n),
-                round(self.model.get_score(id_n), 4)
+                self.processor.id_to_piece(id_n),
+                round(self.processor.get_score(id_n), 4)
             )

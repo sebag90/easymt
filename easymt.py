@@ -7,7 +7,7 @@ def main():
     args = easymt_arguments()
     if args:
         subparser = args.subparser.replace("-", "_")
-        module = importlib.import_module(f"bin.easymt.{subparser}")
+        module = importlib.import_module(f"easymt.{subparser}")
         module.main(args)
 
 

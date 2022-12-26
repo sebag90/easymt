@@ -15,8 +15,6 @@ DEVICE = torch.device(
 
 
 def main(args):
-    beam_size = int(args.beam)
-
     checkpoint = torch.load(Path(args.model), map_location=DEVICE)
     model = checkpoint["model"]
 
@@ -31,9 +29,9 @@ def main(args):
     input_stream = TextIOWrapper(sys.stdin.buffer, encoding='utf-8')
     for progress, line in enumerate(input_stream):
         line = line.strip()
-        
+
         if args.method == "beam":
-            hypotheses = model.beam_search(line, beam_size, args.alpha)
+            hypotheses = model.beam_search(line, args.beam, args.alpha)
         else:
             hypotheses = model.top_k(line, steps=args.steps, k=args.k, temperature=args.temperature)
         # if verbose print all hypotheses
