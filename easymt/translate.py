@@ -33,7 +33,12 @@ def main(args):
         if args.method == "beam":
             hypotheses = model.beam_search(line, args.beam, args.alpha)
         else:
-            hypotheses = model.top_k(line, steps=args.steps, k=args.k, temperature=args.temperature)
+            hypotheses = model.top_k(
+                line,
+                steps=args.steps,
+                k=args.k,
+                temperature=args.temperature
+            )
         # if verbose print all hypotheses
         if args.verbose:
             for hyp in hypotheses:

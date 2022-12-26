@@ -6,7 +6,6 @@ import argparse
 from io import TextIOWrapper
 from pathlib import Path
 import sys
-import pickle
 
 # append preprocessing tools both if run from
 # easymt root directory or script directory
@@ -19,7 +18,6 @@ from sentence_piece import SentencePieceTokenizer
 def main(args):
     tokenizer = SentencePieceTokenizer.from_pretrained(Path(args.model))
 
-    # start decoding
     if args.input is not None:
         input_stream = Path(args.input).open(encoding="utf-8")
         output_file = Path(args.output).open("w", encoding="utf-8")
@@ -45,6 +43,7 @@ def main(args):
     print("\nComplete: Detokenization", file=sys.stderr)
     input_stream.close()
     output_file.close()
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

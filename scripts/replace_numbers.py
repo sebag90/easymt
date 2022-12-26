@@ -3,6 +3,7 @@ from pathlib import Path
 import re
 import sys
 
+
 def main(args):
     reference = Path(args.reference)
     translation = Path(args.translation)
@@ -57,6 +58,7 @@ def main(args):
     output_file.close()
 
     print("Complete: Replacing numbers")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

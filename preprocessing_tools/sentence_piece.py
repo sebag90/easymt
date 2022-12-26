@@ -1,5 +1,4 @@
 import io
-import pickle
 import sentencepiece as spm
 from pathlib import Path
 
@@ -22,7 +21,6 @@ class SentencePieceTokenizer:
 
     def train(self, input_file, bpe, max_lines):
         model = io.BytesIO()
-        #input_file.seek(0)
 
         # train and load model
         spm.SentencePieceTrainer.train(

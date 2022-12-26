@@ -1,5 +1,4 @@
 import argparse
-import sys
 
 
 def easymt_arguments():
@@ -102,7 +101,7 @@ def easymt_arguments():
     )
     translate.add_argument(
         "--k", metavar="N", action="store",
-        default=10,type=int,
+        default=10, type=int,
         help="K value for top-K algorithm (default: %(default)s)"
     )
     translate.add_argument(

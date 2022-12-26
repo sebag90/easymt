@@ -83,7 +83,7 @@ class DataLoader(list):
         sentences in pairs (src, tgt)
         """
         print("Reading data set", file=sys.stderr, flush=True)
-        
+
         data = cls(batch_size=batch_size)
 
         # language modeling

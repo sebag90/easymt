@@ -9,7 +9,6 @@ for machine translation. The pipeline will:
 import argparse
 from io import TextIOWrapper
 from pathlib import Path
-import pickle
 import sys
 import tempfile
 
@@ -59,6 +58,7 @@ def main(args):
     print("\nComplete: Tokenizing", file=sys.stderr)
     input_stream.close()
     output_file.close()
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

@@ -49,8 +49,16 @@ class LanguageModel(nn.Module):
         # convert tokens to indeces and:
         # - remove last word from source
         # - remove first word from target
-        src = [self.src_lang.toks2idx(sen, sos=False, eos=False)[:-1] for sen in sentence]
-        tgt = [self.tgt_lang.toks2idx(sen, sos=False, eos=False)[1:] for sen in sentence]
+        src = [
+            self.src_lang.toks2idx(
+                sen, sos=False, eos=False
+            )[:-1] for sen in sentence
+        ]
+        tgt = [
+            self.tgt_lang.toks2idx(
+                sen, sos=False, eos=False
+            )[1:] for sen in sentence
+        ]
 
         # pad src and tgt
         tgt = nn.utils.rnn.pad_sequence(
@@ -145,7 +153,9 @@ class LanguageModel(nn.Module):
 
             # apply softmax and sample a word
             decoder_output = F.softmax(probs, dim=-1)
-            idx_sample = torch.multinomial(decoder_output, num_samples=1).item()
+            idx_sample = torch.multinomial(
+                decoder_output, num_samples=1
+            ).item()
             idx_next = idxs[:, idx_sample]
 
             # update step input
@@ -153,7 +163,6 @@ class LanguageModel(nn.Module):
             step_input = torch.cat((step_input, idx_next.view(1, -1)), dim=1)
 
         return [hyp]
-            
 
     @torch.no_grad()
     def beam_search(self, line, beam_size, alpha):

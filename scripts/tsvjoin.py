@@ -48,6 +48,5 @@ if __name__ == "__main__":
         action="store",
     )
 
-
     args = parser.parse_args()
     main(args)
