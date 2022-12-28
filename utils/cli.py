@@ -14,10 +14,6 @@ def easymt_arguments():
         help="build a vocabulary from files"
     )
     vocab.add_argument(
-        "--progress", "-p", action="store_true",
-        help="print progress status"
-    )
-    vocab.add_argument(
         "--n-sample", metavar="N", action="store",
         help=(
             "number of lines used to build vocabulary"
