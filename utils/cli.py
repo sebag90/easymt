@@ -34,6 +34,17 @@ def easymt_arguments():
         ),
         default=2
     )
+    vocab.add_argument(
+        "--input",
+        action="store",
+        required=True,
+        help="Path to the input file (text file or trained tokenizer model)"
+    )
+    vocab.add_argument(
+        "--output",
+        action="store",
+        help="Path to the output file"
+    )
 
     # batch data set
     batch = subparsers.add_parser(

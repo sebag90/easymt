@@ -4,50 +4,48 @@ reads a file and creates a vocuabulary file
 order. Minimum frequency can be enforced.
 """
 
-from io import TextIOWrapper
-import pickle
 import sys
 from utils.lang import Vocab
+from pathlib import Path
+
+from preprocessing_tools.sentence_piece import SentencePieceTokenizer
 
 
 def main(args):
-    print("Starting: Building vocabulary", file=sys.stderr)
-    first_line = sys.stdin.buffer.readline()
+    input_file = Path(args.input)
+
+    if args.output is not None:
+        output_file = Path(args.output).open("w", encoding="utf-8")
+    else:
+        output_file = sys.stdout
 
     try:
-        # input is a text file, count the words
-        first_line = first_line.decode("utf-8")
-
+        # input file is a text file, calculate vocabulary
         voc = Vocab(args.min_freq)
-        voc.add_sentence(first_line.strip())
+        with input_file.open(encoding="utf-8") as infile:
+            for i, line in enumerate(infile):
+                voc.add_sentence(line.strip())
 
-        input_stream = TextIOWrapper(sys.stdin.buffer, encoding='utf-8')
-        for i, line in enumerate(input_stream, start=1):
-            voc.add_sentence(line.strip())
+                # print progress
+                if i % 1000000 == 0:
+                    print(i, end="", file=sys.stderr, flush=True)
 
-            if args.progress is True:
-                if (i+1) % 100000 == 0:
-                    print(f"Processed lines: {i + 1:,}", file=sys.stderr)
+                elif i % 100000 == 0:
+                    print(".", end="", file=sys.stderr, flush=True)
 
-            if args.n_sample != 0:
-                if i > args.n_sample:
-                    break
+                if args.n_sample != 0:
+                    if i > args.n_sample:
+                        break
 
         for word, count in voc.get_vocab():
-            print(f"{word}\t{count}", file=sys.stdout)
+            print(f"{word}\t{count}", file=output_file)
 
     except UnicodeDecodeError:
-        # input file is a preprocessing model, extract vocab
-        model = first_line + sys.stdin.buffer.read()
-        data = pickle.loads(model)
+        # input file is a pretrained sentencepiece tokenizer
+        tokenizer = SentencePieceTokenizer.from_pretrained(input_file)
 
-        if data["pipe"] == ["sp"]:
-            for word, score in data["tools"].sp.get_vocab():
-                print(f"{word}\t{score}", file=sys.stdout)
-        else:
-            print(
-                "Preprocessing model contains no vocabulary, "
-                "extract it from the text file instead"
-            )
+        for word, score in tokenizer.get_vocab():
+            print(f"{word}\t{score}", file=output_file)
 
+    output_file.close()
     print("Complete: Building vocabulary", file=sys.stderr)
