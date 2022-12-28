@@ -46,12 +46,18 @@ class seq2seq(nn.Module):
 
     def prepare_batch(self, batch):
         src, tgt = batch
-        src = [self.src_lang.toks2idx(sen) for sen in src]
-        tgt = [self.tgt_lang.toks2idx(sen) for sen in tgt]
+        padding_value = self.src_lang.word2index["<pad>"]
+
+        # encoder and target only need the <eos> token
+        src = [self.src_lang.toks2idx(sen, sos=False) for sen in src]
+        tgt = [self.tgt_lang.toks2idx(sen, sos=False) for sen in tgt]
 
         # prepare source data
         src_len = torch.tensor([len(indexes) for indexes in src])
-        src_pad = nn.utils.rnn.pad_sequence(src)
+        src_pad = nn.utils.rnn.pad_sequence(
+            src,
+            padding_value=padding_value
+        )
 
         # prepare target data
         max_tgt_len = max([len(indexes) for indexes in tgt])

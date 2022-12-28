@@ -45,6 +45,7 @@ class LanguageModel(nn.Module):
     def prepare_batch(self, batch):
         # LM dataset only contains src
         sentence, _ = batch
+        padding_value = self.src_lang.word2index["<pad>"]
 
         # convert tokens to indeces and:
         # - remove last word from source
@@ -62,15 +63,19 @@ class LanguageModel(nn.Module):
 
         # pad src and tgt
         tgt = nn.utils.rnn.pad_sequence(
-            tgt, batch_first=True
+            tgt,
+            batch_first=True,
+            padding_value=padding_value
         )
         src = nn.utils.rnn.pad_sequence(
-            src, batch_first=True
+            src,
+            batch_first=True,
+            padding_value=padding_value
         )
 
         # create masks
-        e_mask = (src != 0).unsqueeze(1)
-        d_mask = (tgt != 0).unsqueeze(1)
+        e_mask = (src != padding_value).unsqueeze(1)
+        d_mask = (tgt != padding_value).unsqueeze(1)
         subseq_mask = torch.ones(
             (1, tgt.size(1), tgt.size(1)),
             dtype=torch.bool

@@ -52,7 +52,7 @@ class Language:
                     word, *rest = line.strip().split("\t")
                     self.add_word(word)
 
-    def toks2idx(self, tokens, sos=False, eos=True):
+    def toks2idx(self, tokens, sos=True, eos=True):
         """
         convert a list of tokens into a
         sequence of indeces from the language

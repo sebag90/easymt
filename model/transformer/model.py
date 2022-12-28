@@ -47,27 +47,41 @@ class Transformer(nn.Module):
 
     def prepare_batch(self, batch):
         src, tgt = batch
+        padding_value = self.src_lang.word2index["<pad>"]
         # create index tensors from token lists
+        # decoder input == target sentence with <sos> and no <eos>
         decoder_input = [
-            self.tgt_lang.toks2idx(sen, sos=True, eos=False) for sen in tgt
+            self.tgt_lang.toks2idx(sen, eos=False) for sen in tgt
         ]
-        src = [self.src_lang.toks2idx(sen) for sen in src]
-        tgt = [self.tgt_lang.toks2idx(sen) for sen in tgt]
+        # source sentence only needs <eos>
+        src = [self.src_lang.toks2idx(sen, sos=False) for sen in src]
+
+        # target sentence has no <sos> (because it's the input of the decoder)
+        # but has a <eos> (must be learnt from the decoder) 
+        tgt = [self.tgt_lang.toks2idx(sen, sos=False) for sen in tgt]
 
         # pad tensors
         decoder_input = nn.utils.rnn.pad_sequence(
-            decoder_input, batch_first=True
+            decoder_input,
+            batch_first=True,
+            padding_value=padding_value
+
         )
         src = nn.utils.rnn.pad_sequence(
-            src, batch_first=True
+            src,
+            batch_first=True,
+            padding_value=padding_value
+
         )
         target = nn.utils.rnn.pad_sequence(
-            tgt, batch_first=True
+            tgt,
+            batch_first=True,
+            padding_value=padding_value
         )
 
         # create masks
-        e_mask = (src != 0).unsqueeze(1)
-        d_mask = (decoder_input != 0).unsqueeze(1)
+        e_mask = (src != padding_value).unsqueeze(1)
+        d_mask = (decoder_input != padding_value).unsqueeze(1)
         subseq_mask = torch.ones(
             (1, decoder_input.size(1), decoder_input.size(1)),
             dtype=torch.bool

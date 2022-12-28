@@ -7,16 +7,11 @@ from io import TextIOWrapper
 from pathlib import Path
 import sys
 
-# append preprocessing tools both if run from
-# easymt root directory or script directory
-sys.path.append("../preprocessing_tools")
-sys.path.append("preprocessing_tools")
-
-from sentence_piece import SentencePieceTokenizer
+from tokenizers import Tokenizer
 
 
 def main(args):
-    tokenizer = SentencePieceTokenizer.from_pretrained(Path(args.model))
+    tokenizer = Tokenizer.from_file(args.model)
 
     if args.input is not None:
         input_stream = Path(args.input).open(encoding="utf-8")
@@ -26,7 +21,8 @@ def main(args):
         output_file = sys.stdout
 
     for i, line in enumerate(input_stream):
-        line = tokenizer.decode(line)
+        line = line.strip().split()
+        line = tokenizer.decode([tokenizer.token_to_id(i) for i in line])
 
         if args.upper is True:
             line = line.capitalize()

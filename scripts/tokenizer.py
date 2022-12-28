@@ -12,10 +12,7 @@ from pathlib import Path
 import sys
 import tempfile
 
-sys.path.append("../preprocessing_tools")
-sys.path.append("preprocessing_tools")
-
-from sentence_piece import SentencePieceTokenizer
+from tokenizers import Tokenizer, models, pre_tokenizers, decoders, trainers, processors
 
 
 def main(args):
@@ -26,12 +23,21 @@ def main(args):
         input_stream = TextIOWrapper(sys.stdin.buffer, encoding='utf-8')
         output_file = sys.stdout
 
-    model = Path(args.model)
+    if Path(args.model).is_file():
+        tokenizer = Tokenizer.from_file(args.model)
 
-    if model.is_file():
-        tokenizer = SentencePieceTokenizer.from_pretrained(model)
     else:
-        tokenizer = SentencePieceTokenizer(args.size)
+        tokenizer = Tokenizer(models.BPE())
+        tokenizer.pre_tokenizer = pre_tokenizers.ByteLevel(add_prefix_space=False)
+        tokenizer.decoder = decoders.ByteLevel()
+        tokenizer.post_processor = processors.ByteLevel(trim_offsets=True)
+
+        trainer = trainers.BpeTrainer(
+            vocab_size=args.size,
+            min_frequency=args.min_freq,
+            special_tokens=["<pad>", "<bos>", "<eos>", "<unk>"],
+            initial_alphabet=pre_tokenizers.ByteLevel.alphabet()
+        )
 
         if args.input is None:
             tmp = tempfile.TemporaryFile("w+", encoding="utf-8")
@@ -41,12 +47,17 @@ def main(args):
             tmp.seek(0)
             input_stream = tmp
 
-        tokenizer.train(input_stream, args.bpe, args.train_lines)
-        tokenizer.save_model(args.model)
+        if args.train_file is not None:
+            tokenizer.train([args.train_file], trainer=trainer)
+        else:
+            tokenizer.train_from_iterator((i.strip() for i in input_stream), trainer=trainer)
+
+        tokenizer.save(args.model)
         input_stream.seek(0)
 
     for i, line in enumerate(input_stream):
-        print(tokenizer(line), file=output_file)
+        tokens = " ".join(tokenizer.encode(line.strip()).tokens)
+        print(tokens, file=output_file)
 
         # print progress
         if i % 1000000 == 0:
@@ -87,12 +98,18 @@ if __name__ == "__main__":
         default=35000,
     )
     parser.add_argument(
-        "--train-lines",
+        "--min-freq",
         action="store",
         metavar="N",
-        help="number of lines used for training (default: %(default)s)",
+        help="minimum frequency of a token(default: %(default)s)",
         type=int,
-        default=1000000,
+        default=2,
+    )
+    parser.add_argument(
+        "--train-file",
+        action="store",
+        metavar="PATH",
+        help="path to a training file for the tokenizer",
     )
     parser.add_argument(
         "--bpe",

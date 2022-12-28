@@ -5,9 +5,7 @@ channels:
 dependencies:
   - python
   - pytorch
-  - sentencepiece
   - pip
   - pip:
-    - subword-nmt
+    - tokenizers
     - sacrebleu
-    - sacremoses

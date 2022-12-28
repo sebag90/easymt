@@ -151,7 +151,7 @@ class Trainer:
 
         # loss
         self.criterion = MaskedLoss(
-            padding_idx=0,
+            padding_idx=self.src_lang.word2index["<pad>"],
             smoothing=self.params.training.label_smoothing
         )
 
