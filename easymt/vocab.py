@@ -21,12 +21,13 @@ def main(args):
         output_file = sys.stdout
 
     try:
-        tokenizer = Tokenizer.from_file(args.input)
+        model = json.loads(Path(args.input).read_text())
+        tokenizer = Tokenizer.from_str(args.input)
 
         for word, position in sorted(tokenizer.get_vocab().items(), key=lambda x: x[-1]):
             print(f"{word}\t{position}", file=output_file)
 
-    except Exception:
+    except JSONDecodeError:
         # input file is a text file, calculate vocabulary
         voc = Vocab(args.min_freq)
         with input_file.open(encoding="utf-8") as infile:
