@@ -41,20 +41,41 @@ def easymt_arguments():
         help="convert train files to byte files"
     )
     batch.add_argument(
-        "path", action="store",
-        help="path to the configuration file"
+        "--src",
+        action="store",
+        required=True,
+        help="Path to the source train data"
     )
     batch.add_argument(
-        "--output-max",  action="store",
+        "--tgt",
+        action="store",
+        help="Path to the target train data (empty for LM)"
+    )
+    batch.add_argument(
+        "--batch-size",
+        action="store",
+        default=256,
+        type=int,
         help="output file"
     )
     batch.add_argument(
-        "--max", metavar="N", action="store",
-        help=(
-            "saves a sample file containing the N longest "
-            "sequences in the dataset"
-        ),
-        default=0, type=int
+        "--max-len",
+        action="store",
+        type=int,
+        default=512,
+        help="Maximum length of sentences (default: %(default)s)"
+    )
+    batch.add_argument(
+        "--min-len",
+        action="store",
+        type=int,
+        default=10,
+        help="Minimum length of sentences (default: %(default)s)"
+    )
+    batch.add_argument(
+        "--output",
+        action="store",
+        help="write to this file instead of stdout"
     )
 
     # train

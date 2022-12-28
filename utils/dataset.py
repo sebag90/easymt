@@ -24,22 +24,38 @@ class Pair:
         return self.len
 
 
-class DataLoader(list):
+class EmptyFile:
+    def __iter__(self):
+        while True:
+            yield ""
+
+    def close(self):
+        pass
+
+
+class DataLoader(dict):
     def __init__(self, batch_size=32):
         self.batch_size = batch_size
         self.bins = defaultdict(list)
+        self.i = 0
 
     @property
     def n_batches(self):
         return math.ceil(len(self) // self.batch_size)
 
-    def add_pair(self, src, tgt):
+    def add_pair(self, src, tgt, dynamic=True):
         p = Pair(src, tgt)
-        position = len(self)
-        self.append(p)
+        position = self.i
+        self[position] = p
+        self.i += 1
 
         # add to bin with same length
         self.bins[p.len].append(position)
+
+        if dynamic is True:
+            if len(self.bins[p.len]) == self.batch_size:
+                idxs = self.bins.pop(p.len)
+                return [self.pop(i) for i in idxs]
 
     def shuffle(self):
         """
@@ -86,44 +102,34 @@ class DataLoader(list):
 
         data = cls(batch_size=batch_size)
 
-        # language modeling
+        src_file = Path(src_file).open(encoding="utf-8")
         if tgt_file is None:
-            with Path(src_file).open(encoding="utf-8") as infile:
-                for i, line in enumerate(infile):
-                    line = line.strip()
-
-                    if 0 < len(line.split()) <= max_len:
-                        data.add_pair(line, "")
-
-                    if verbose is True:
-                        if i % 1000000 == 0:
-                            print(i, end="", file=sys.stderr, flush=True)
-
-                        elif i % 100000 == 0:
-                            print(".", end="", file=sys.stderr, flush=True)
-
-        # language translation
+            tgt_file = EmptyFile()
         else:
-            src_file = Path(src_file)
-            tgt_file = Path(tgt_file)
+            tgt_file = Path(tgt_file).open(encoding="utf-8")
 
-            # read data and create dataset
-            with src_file.open("r", encoding="utf-8") as inlang, \
-                    tgt_file.open("r", encoding="utf-8") as outlang:
-                for i, (l1, l2) in enumerate(zip(inlang, outlang)):
-                    l1 = l1.strip()
-                    l2 = l2.strip()
+        for i, (l1, l2) in enumerate(zip(src_file, tgt_file)):
+            l1 = l1.strip()
+            l2 = l2.strip()
 
-                    if ((0 < len(l1.split()) <= max_len)
-                            and (0 < len(l2.split()) <= max_len)):
-                        data.add_pair(l1, l2)
+            if tgt_file is None:
+                can_add = 0 < len(l1.split()) <= max_len
+            else:
+                can_add = ((0 < len(l1.split()) <= max_len) and
+                           (0 < len(l2.split()) <= max_len))
 
-                    if i % 1000000 == 0:
-                        print(i, end="", file=sys.stderr, flush=True)
+            if can_add:
+                data.add_pair(l1, l2)
 
-                    elif i % 100000 == 0:
-                        print(".", end="", file=sys.stderr, flush=True)
+            if verbose is True:
+                if i % 1000000 == 0:
+                    print(i, end="", file=sys.stderr, flush=True)
 
+                elif i % 100000 == 0:
+                    print(".", end="", file=sys.stderr, flush=True)
+
+        src_file.close()
+        tgt_file.close()
         data.shuffle()
         return data
 
