@@ -57,7 +57,7 @@ class Transformer(nn.Module):
         src = [self.src_lang.toks2idx(sen, sos=False) for sen in src]
 
         # target sentence has no <sos> (because it's the input of the decoder)
-        # but has a <eos> (must be learnt from the decoder) 
+        # but has a <eos> (must be learnt from the decoder)
         tgt = [self.tgt_lang.toks2idx(sen, sos=False) for sen in tgt]
 
         # pad tensors

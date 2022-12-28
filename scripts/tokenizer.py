@@ -12,7 +12,14 @@ from pathlib import Path
 import sys
 import tempfile
 
-from tokenizers import Tokenizer, models, pre_tokenizers, decoders, trainers, processors
+from tokenizers import (
+    Tokenizer,
+    models,
+    pre_tokenizers,
+    decoders,
+    trainers,
+    processors
+)
 
 
 def main(args):
@@ -28,9 +35,13 @@ def main(args):
 
     else:
         tokenizer = Tokenizer(models.BPE())
-        tokenizer.pre_tokenizer = pre_tokenizers.ByteLevel(add_prefix_space=False)
+        tokenizer.pre_tokenizer = pre_tokenizers.ByteLevel(
+            add_prefix_space=False
+        )
         tokenizer.decoder = decoders.ByteLevel()
-        tokenizer.post_processor = processors.ByteLevel(trim_offsets=True)
+        tokenizer.post_processor = processors.ByteLevel(
+            trim_offsets=True
+        )
 
         trainer = trainers.BpeTrainer(
             vocab_size=args.size,
@@ -48,9 +59,15 @@ def main(args):
             input_stream = tmp
 
         if args.train_file is not None:
-            tokenizer.train([args.train_file], trainer=trainer)
+            tokenizer.train(
+                [args.train_file],
+                trainer=trainer
+            )
         else:
-            tokenizer.train_from_iterator((i.strip() for i in input_stream), trainer=trainer)
+            tokenizer.train_from_iterator(
+                (i.strip() for i in input_stream),
+                trainer=trainer
+            )
 
         tokenizer.save(args.model)
         input_stream.seek(0)
