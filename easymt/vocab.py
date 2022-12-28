@@ -7,8 +7,9 @@ order. Minimum frequency can be enforced.
 import sys
 from utils.lang import Vocab
 from pathlib import Path
+import json
 
-from preprocessing_tools.sentence_piece import SentencePieceTokenizer
+from tokenizers import Tokenizer
 
 
 def main(args):
@@ -20,6 +21,12 @@ def main(args):
         output_file = sys.stdout
 
     try:
+        tokenizer = Tokenizer.from_file(args.input)
+
+        for word, position in sorted(tokenizer.get_vocab().items(), key=lambda x: x[-1]):
+            print(f"{word}\t{position}", file=output_file)
+
+    except Exception:
         # input file is a text file, calculate vocabulary
         voc = Vocab(args.min_freq)
         with input_file.open(encoding="utf-8") as infile:
@@ -39,13 +46,6 @@ def main(args):
 
         for word, count in voc.get_vocab():
             print(f"{word}\t{count}", file=output_file)
-
-    except UnicodeDecodeError:
-        # input file is a pretrained sentencepiece tokenizer
-        tokenizer = SentencePieceTokenizer.from_pretrained(input_file)
-
-        for word, score in tokenizer.get_vocab():
-            print(f"{word}\t{score}", file=output_file)
 
     output_file.close()
     print("Complete: Building vocabulary", file=sys.stderr)
