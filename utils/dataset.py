@@ -49,7 +49,7 @@ class DataLoader(dict):
         self.tgt_file = Path(tgt_file) if tgt_file is not None else EmptyFile()
         self.src_file = Path(src_file)
 
-    def add_pair(self, src, tgt, dynamic=True):
+    def add_pair(self, src, tgt):
         p = Pair(src, tgt)
         position = self.i
         self[position] = p
@@ -58,10 +58,11 @@ class DataLoader(dict):
         # add to bin with same length
         self.bins[p.len].append(position)
 
-        if dynamic is True:
-            if len(self.bins[p.len]) == self.batch_size:
-                idxs = self.bins.pop(p.len)
-                return [self.pop(i) for i in idxs]
+        if len(self.bins[p.len]) == self.batch_size:
+            idxs = self.bins.pop(p.len)
+            return [self.pop(i) for i in idxs]
+
+        return None
 
     def shuffle(self):
         """
