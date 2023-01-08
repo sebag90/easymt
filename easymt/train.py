@@ -18,7 +18,7 @@ from model.loss import MaskedLoss
 from model.optimizers import get_optimizer
 
 from utils.lang import Language
-from utils.dataset import DataLoader, BatchedData
+from utils.dataset import DataLoader
 
 from utils.parameters import Parameters
 
@@ -51,11 +51,10 @@ class Memory:
 
 
 class Trainer:
-    def __init__(self, resume, batched, mixed, params):
+    def __init__(self, resume, mixed, params):
         self.resume = resume
-        self.batched = batched
-        self.params = params
         self.mixed = mixed
+        self.params = params
         self.scaler = torch.cuda.amp.GradScaler() if mixed is True else None
 
         # avoid abrpt termination of training by
@@ -95,29 +94,20 @@ class Trainer:
             self.model = self.checkpoint["model"]
 
         # load eval dataset
-        self.eval_data = DataLoader.from_files(
-            self.params.data.src_eval,
-            self.params.data.tgt_eval,
-            self.params.model.max_length,
-            self.params.training.batch_size,
-            verbose=False  # evaluation dataset is small
+        self.eval_data = DataLoader(
+            src_file=self.params.data.src_eval,
+            tgt_file=self.params.data.tgt_eval,
+            max_len=self.params.model.max_length,
+            batch_size=self.params.training.batch_size,
         )
 
         # load train dataset
-        if self.batched:
-            self.train_data = BatchedData(
-                Path(self.batched),
-                self.params.model.max_length,
-                self.params.training.batch_size
-                )
-
-        else:
-            self.train_data = DataLoader.from_files(
-                self.params.data.src_train,
-                self.params.data.tgt_train,
-                self.params.model.max_length,
-                self.params.training.batch_size
-            )
+        self.train_data = DataLoader(
+            src_file=self.params.data.src_train,
+            tgt_file=self.params.data.tgt_train,
+            max_len=self.params.model.max_length,
+            batch_size=self.params.training.batch_size
+        )
 
     def create_model(self):
         """
@@ -151,7 +141,7 @@ class Trainer:
 
         # loss
         self.criterion = MaskedLoss(
-            padding_idx=self.src_lang.word2index["<pad>"],
+            padding_idx=self.src_language.word2index["<pad>"],
             smoothing=self.params.training.label_smoothing
         )
 
@@ -222,9 +212,6 @@ class Trainer:
         while training:
             # initialize variables for monitoring
             loss_memory = Memory()
-
-            # shuffle data
-            self.train_data.shuffle()
 
             # start training loop over batches
             for batch in self.train_data:
@@ -340,7 +327,7 @@ def main(args):
     params = Parameters.from_config(args.path)
 
     # initialize trainer
-    trainer = Trainer(args.resume, args.batched, args.mixed, params)
+    trainer = Trainer(args.resume, args.mixed, params)
     trainer.read_data()
     trainer.create_model()
     trainer.train_loop()

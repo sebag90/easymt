@@ -42,49 +42,6 @@ def easymt_arguments():
         help="Path to the output file"
     )
 
-    # batch data set
-    batch = subparsers.add_parser(
-        "batch",
-        help="convert train files to byte files"
-    )
-    batch.add_argument(
-        "--src",
-        action="store",
-        required=True,
-        help="Path to the source train data"
-    )
-    batch.add_argument(
-        "--tgt",
-        action="store",
-        help="Path to the target train data (empty for LM)"
-    )
-    batch.add_argument(
-        "--batch-size",
-        action="store",
-        default=256,
-        type=int,
-        help="output file"
-    )
-    batch.add_argument(
-        "--max-len",
-        action="store",
-        type=int,
-        default=512,
-        help="Maximum length of sentences (default: %(default)s)"
-    )
-    batch.add_argument(
-        "--min-len",
-        action="store",
-        type=int,
-        default=10,
-        help="Minimum length of sentences (default: %(default)s)"
-    )
-    batch.add_argument(
-        "--output",
-        action="store",
-        help="write to this file instead of stdout"
-    )
-
     # train
     train = subparsers.add_parser(
         "train", help="train a new model"
@@ -96,12 +53,6 @@ def easymt_arguments():
     train.add_argument(
         "--resume", action="store", metavar="MODEL",
         help="path to model to resume training"
-    )
-    train.add_argument(
-        "--batched", action="store", metavar="BATCHED-FILE",
-        help=(
-            "path to the directory containing "
-            "the batched files")
     )
     train.add_argument(
         "--mixed", action="store_true",

@@ -1,11 +1,8 @@
 from collections import defaultdict
 from dataclasses import dataclass
-from itertools import islice
 from functools import total_ordering
-import math
 from pathlib import Path
 import random
-import sys
 
 
 @dataclass
@@ -32,16 +29,25 @@ class EmptyFile:
     def close(self):
         pass
 
+    def open(self, *args, **kwargs):
+        return self
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
+
 
 class DataLoader(dict):
-    def __init__(self, batch_size=32):
+    def __init__(self, src_file, tgt_file, max_len, batch_size=32):
         self.batch_size = batch_size
         self.bins = defaultdict(list)
+        self.buffer = list()
         self.i = 0
-
-    @property
-    def n_batches(self):
-        return math.ceil(len(self) // self.batch_size)
+        self.max_len = max_len
+        self.tgt_file = Path(tgt_file) if tgt_file is not None else EmptyFile()
+        self.src_file = Path(src_file)
 
     def add_pair(self, src, tgt, dynamic=True):
         p = Pair(src, tgt)
@@ -75,105 +81,52 @@ class DataLoader(dict):
             shuffled = random.sample(to_add, len(to_add))
             self.order += shuffled
 
+    def empty_buffer(self):
+        random.shuffle(self.buffer)
+        buffer = self.buffer.copy()
+        self.buffer = list()
+        for batch in buffer:
+            src = [datapoint.src.split() for datapoint in batch]
+            tgt = [datapoint.tgt.split() for datapoint in batch]
+            yield src, tgt
+
+    def reset(self):
+        self.i = 0
+        self.clear()
+        self.bins.clear()
+        self.buffer = list()
+        self.order = list()
+
     def __iter__(self):
+        with self.src_file.open(encoding="utf-8") as srcfile, \
+                self.tgt_file.open(encoding="utf-8") as tgtfile:
+            for l1, l2 in zip(srcfile, tgtfile):
+                # check if pair can be added to dataloader
+                if isinstance(self.tgt_file, EmptyFile):
+                    can_add = 0 < len(l1.split()) <= self.max_len
+                else:
+                    can_add = ((0 < len(l1.split()) <= self.max_len) and
+                               (0 < len(l2.split()) <= self.max_len))
+
+                # add pair
+                if can_add:
+                    batch = self.add_pair(l1, l2)
+                    if batch is not None:
+                        self.buffer.append(batch)
+
+                # empty buffer if we have at least 10 batches
+                if len(self.buffer) == 10:
+                    yield from self.empty_buffer()
+
+        # empty buffer before yielding unpaired batches
+        yield from self.empty_buffer()
+
+        # yield remaining sentences
+        self.shuffle()
         for i in range(0, len(self.order), self.batch_size):
             batch_idx = self.order[i:i + self.batch_size]
             src = [self[idx].src.split() for idx in batch_idx]
             tgt = [self[idx].tgt.split() for idx in batch_idx]
             yield src, tgt
 
-    def n_longest(self, n):
-        yielded = 0
-        for key in sorted(self.bins.keys(), reverse=True):
-            for position in self.bins[key]:
-                yield self[position]
-                yielded += 1
-
-                if yielded == n:
-                    return
-
-    @classmethod
-    def from_files(cls, src_file, tgt_file, max_len, batch_size, verbose=True):
-        """
-        read src and tgt file and prepare dataset of encoded
-        sentences in pairs (src, tgt)
-        """
-        print("Reading data set", file=sys.stderr, flush=True)
-
-        data = cls(batch_size=batch_size)
-
-        src_file = Path(src_file).open(encoding="utf-8")
-        if tgt_file is None:
-            tgt_file = EmptyFile()
-        else:
-            tgt_file = Path(tgt_file).open(encoding="utf-8")
-
-        for i, (l1, l2) in enumerate(zip(src_file, tgt_file)):
-            l1 = l1.strip()
-            l2 = l2.strip()
-
-            if tgt_file is None:
-                can_add = 0 < len(l1.split()) <= max_len
-            else:
-                can_add = ((0 < len(l1.split()) <= max_len) and
-                           (0 < len(l2.split()) <= max_len))
-
-            if can_add:
-                data.add_pair(l1, l2)
-
-            if verbose is True:
-                if i % 1000000 == 0:
-                    print(i, end="", file=sys.stderr, flush=True)
-
-                elif i % 100000 == 0:
-                    print(".", end="", file=sys.stderr, flush=True)
-
-        src_file.close()
-        tgt_file.close()
-        data.shuffle()
-        return data
-
-
-class BatchedData:
-    def __init__(self, path, max_len, batch_size):
-        self.path = Path(path)
-        self.batch_size = batch_size
-        self.max_len = max_len
-
-    def __repr__(self):
-        return f"BatchedData({self.path})"
-
-    def shuffle(self):
-        """
-        batched data cannot be shuffled, placeholder
-        """
-        pass
-
-    def __iter__(self):
-        with self.path.open("r", encoding="utf-8") as infile:
-            # read a batch from the dataset file
-            batch = list(islice(infile, self.batch_size))
-            while len(batch) != 0:
-                src = list()
-                tgt = list()
-                for line in batch:
-                    line = line.strip()
-                    if len(line) > 0:
-                        line = line.split("\t")
-
-                        # language modeling data
-                        if len(line) == 1:
-                            src.append(line[0].split())
-                            tgt.append("")
-
-                        # language translation data
-                        else:
-                            s, t = line
-                            src.append(s.split())
-                            tgt.append(t.split())
-
-                if len(src) > 0 and len(tgt) > 0:
-                    yield src, tgt
-
-                # get next batch
-                batch = list(islice(infile, self.batch_size))
+        self.reset()
