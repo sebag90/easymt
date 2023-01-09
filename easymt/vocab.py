@@ -22,10 +22,13 @@ def main(args):
 
     try:
         model_string = Path(args.input).read_text()
+        # make sure file is valid JSON to trig json.JSONDecodeError
         model = json.loads(model_string)
         tokenizer = Tokenizer.from_str(model_string)
 
-        for word, position in sorted(tokenizer.get_vocab().items(), key=lambda x: x[-1]):
+        for word, position in sorted(
+                tokenizer.get_vocab().items(), key=lambda x: x[-1]
+                ):
             print(f"{word}\t{position}", file=output_file)
 
     except json.JSONDecodeError:

@@ -8,9 +8,11 @@ for machine translation. The pipeline will:
 """
 import argparse
 from io import TextIOWrapper
+import multiprocessing as mp
 from pathlib import Path
 import sys
 import tempfile
+import uuid
 
 from tokenizers import (
     Tokenizer,
@@ -22,12 +24,56 @@ from tokenizers import (
 )
 
 
+class MultiTok:
+    def __init__(self, tokenizer):
+        self.tokenizer = tokenizer
+        self.temp_dir = Path(f"temp{str(uuid.uuid4())}")
+        self.temp_dir.mkdir(exist_ok=True)
+
+    def single(self, line_tuple):
+        index, line = line_tuple
+        filename = Path(f"{self.temp_dir}/{index}")
+        with filename.open("w", encoding="utf-8") as outfile:
+            tokens = " ".join(self.tokenizer.encode(line.strip()).tokens)
+            print(tokens, file=outfile)
+
+    def multi(self, input_stream):
+        iter_file = ((i, line) for i, line in enumerate(input_stream))
+
+        with mp.Pool() as pool:
+            for i, _ in enumerate(pool.imap(self.single,
+                                            iter_file,
+                                            chunksize=300)):
+                # print progress
+                if i % 1000000 == 0:
+                    print(i, end="", file=sys.stderr, flush=True)
+
+                elif i % 100000 == 0:
+                    print(".", end="", file=sys.stderr, flush=True)
+
+    def join(self, output_file):
+        i = 0
+        while True:
+            filename = Path(f"{self.temp_dir}/{i}")
+            if not filename.is_file():
+                break
+
+            with filename.open(encoding="utf-8") as infile:
+                for line in infile:
+                    print(line.strip(), file=output_file)
+
+            filename.unlink()
+            i += 1
+
+        self.temp_dir.rmdir()
+
+
 def main(args):
     if args.input is not None:
         input_stream = Path(args.input).open(encoding="utf-8")
         output_file = Path(args.output).open("w", encoding="utf-8")
     else:
-        input_stream = TextIOWrapper(sys.stdin.buffer, encoding='utf-8')
+        input_stream = TextIOWrapper(sys.stdin.buffer, encoding="utf-8")
         output_file = sys.stdout
 
     if Path(args.model).is_file():
@@ -47,7 +93,7 @@ def main(args):
             vocab_size=args.size,
             min_frequency=args.min_freq,
             special_tokens=["<pad>", "<bos>", "<eos>", "<unk>"],
-            initial_alphabet=pre_tokenizers.ByteLevel.alphabet()
+            initial_alphabet=pre_tokenizers.ByteLevel.alphabet(),
         )
 
         if args.input is None:
@@ -59,29 +105,19 @@ def main(args):
             input_stream = tmp
 
         if args.train_file is not None:
-            tokenizer.train(
-                [args.train_file],
-                trainer=trainer
-            )
+            tokenizer.train([args.train_file], trainer=trainer)
         else:
             tokenizer.train_from_iterator(
-                (i.strip() for i in input_stream),
-                trainer=trainer
+                (i.strip() for i in input_stream), trainer=trainer
             )
 
         tokenizer.save(args.model)
         input_stream.seek(0)
 
-    for i, line in enumerate(input_stream):
-        tokens = " ".join(tokenizer.encode(line.strip()).tokens)
-        print(tokens, file=output_file)
-
-        # print progress
-        if i % 1000000 == 0:
-            print(i, end="", file=sys.stderr, flush=True)
-
-        elif i % 100000 == 0:
-            print(".", end="", file=sys.stderr, flush=True)
+    # MP goes here
+    multitok = MultiTok(tokenizer)
+    multitok.multi(input_stream)
+    multitok.join(output_file)
 
     print("\nComplete: Tokenizing", file=sys.stderr)
     input_stream.close()
@@ -104,7 +140,7 @@ if __name__ == "__main__":
             "output path for the trained tokenizer "
             "or to an already existing tokenizer"
         ),
-        required=True
+        required=True,
     )
     parser.add_argument(
         "--size",
