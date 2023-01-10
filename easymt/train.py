@@ -241,7 +241,7 @@ class Trainer:
                             self.criterion
                         )
 
-                loss = loss.mean().unsqueeze(0)
+                loss = loss.mean()
                 loss_memory.add(loss.item())
                 if accumulation:
                     # scale loss if using gradient accumulation

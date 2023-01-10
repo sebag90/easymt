@@ -1,7 +1,11 @@
 """
-Train and apply a BPE tokenizer to preprocess data
+The preprocessing step prepares clean data to be used
+for machine translation. The pipeline will:
+    - normalize punctuation
+    - tokenize
+    - truecase
+    - apply subword splitting (optional)
 """
-
 import argparse
 from io import TextIOWrapper
 import multiprocessing as mp
