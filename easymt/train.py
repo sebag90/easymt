@@ -28,14 +28,6 @@ DEVICE = torch.device(
 )
 
 
-class MyDataParallel(nn.DataParallel):
-    def __getattr__(self, name):
-        try:
-            return super().__getattr__(name)
-        except AttributeError:
-            return getattr(self.module, name)
-
-
 class Memory:
     """
     class to keep track of loss
@@ -142,7 +134,6 @@ class Trainer:
 
         print(self.model, flush=True)
         # move model to device
-        self.model = MyDataParallel(self.model)
         self.model.to(DEVICE)
 
         # set training mode
@@ -241,7 +232,6 @@ class Trainer:
                             self.criterion
                         )
 
-                loss = loss.mean()
                 loss_memory.add(loss.item())
                 if accumulation:
                     # scale loss if using gradient accumulation
