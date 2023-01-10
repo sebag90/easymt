@@ -134,6 +134,7 @@ class Trainer:
 
         print(self.model, flush=True)
         # move model to device
+        self.model = nn.DataParallel(self.model)
         self.model.to(DEVICE)
 
         # set training mode
