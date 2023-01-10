@@ -240,8 +240,8 @@ class Trainer:
                             self.params.training.teacher_ratio,
                             self.criterion
                         )
-                print(loss)
-                loss_memory.add(loss.item())
+
+                loss_memory.add(loss.mean().item())
                 if accumulation:
                     # scale loss if using gradient accumulation
                     norm = self.params.training.step_size / batch_size
