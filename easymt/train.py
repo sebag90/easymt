@@ -30,7 +30,10 @@ DEVICE = torch.device(
 
 class MyDataParallel(nn.DataParallel):
     def __getattr__(self, name):
-        return getattr(self.module, name)
+        try:
+            return super().__getattr__(name)
+        except AttributeError:
+            return getattr(self.module, name)
 
 
 class Memory:
