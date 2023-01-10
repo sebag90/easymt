@@ -241,7 +241,8 @@ class Trainer:
                             self.criterion
                         )
 
-                loss_memory.add(loss.mean().item())
+                loss = loss.mean()
+                loss_memory.add(loss.item())
                 if accumulation:
                     # scale loss if using gradient accumulation
                     norm = self.params.training.step_size / batch_size
