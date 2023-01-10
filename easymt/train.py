@@ -28,6 +28,11 @@ DEVICE = torch.device(
 )
 
 
+class MyDataParallel(nn.DataParallel):
+    def __getattr__(self, name):
+        return getattr(self.module, name)
+
+
 class Memory:
     """
     class to keep track of loss
@@ -134,7 +139,7 @@ class Trainer:
 
         print(self.model, flush=True)
         # move model to device
-        self.model = nn.DataParallel(self.model)
+        self.model = MyDataParallel(self.model)
         self.model.to(DEVICE)
 
         # set training mode
