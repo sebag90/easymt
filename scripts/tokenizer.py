@@ -161,11 +161,6 @@ if __name__ == "__main__":
         help="path to a training file for the tokenizer",
     )
     parser.add_argument(
-        "--bpe",
-        action="store_true",
-        help="use BPE model",
-    )
-    parser.add_argument(
         "--output",
         metavar="PATH",
         action="store",
