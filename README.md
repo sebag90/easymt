@@ -75,7 +75,7 @@ gradient_clipping = 0.9
 ### 3) train your model
 
 ```
-python easymt.py train config.ini
+python run.py train config.ini
 ```
 
 During training easymt will save the trained models at the specified steps in the directory ```easymt/checkpoints```.  
