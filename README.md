@@ -54,10 +54,10 @@ attn_dropout = 0.1
 residual_dropout = 0.1
 
 [TRAINING]
-print_every = 10
+print_every = 100
 steps = 100000
-batch_size = 4
-step_size = 32
+batch_size = 16
+step_size = 64
 optimizer = noam
 learning_rate = 0.001
 lr_reducing_factor = 0.5
@@ -69,7 +69,7 @@ teacher = True
 teacher_ratio = 0.5
 valid_steps = 20000
 label_smoothing = 0.1
-gradient_clipping = 5
+gradient_clipping = 0.9
 ```
 
 ### 3) train your model
