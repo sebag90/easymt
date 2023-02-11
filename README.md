@@ -81,7 +81,7 @@ python easymt.py train config.ini
 During training easymt will save the trained models at the specified steps in the directory ```easymt/checkpoints```.  
 Depending on your hardware, this step can take A VERY long time, you might consider running it as:
 ```
-nohup python easymt.py train config.ini &
+nohup python run.py train config.ini &
 ```
 this way the training will run in the background and the output will be written to ```nohup.out```.
 To check on how the model is training, use: ```tail -f nohup.out```
@@ -91,13 +91,13 @@ To check on how the model is training, use: ```tail -f nohup.out```
 Once you trained a model you can test this on the newssyscomb evaluation files.
 First translate a document:
 ```
-python easymt.py translate --model checkpoints/transformer_en-it_100000.pt < data/newssyscomb.2009.processed.en > data/translated.it
+python run.py translate --model checkpoints/transformer_en-it_100000.pt < data/newssyscomb.2009.processed.en > data/translated.it
 ```
 
 This step will generate the file ```data/translated.it``` which is still encoded or tokenized according to the preprocessing steps we used during data preparation. To undo this, use ```txtr.py```:
 
 ```
-python txtr.py decode --model data/tokenizer.model < data/translated.it > normalized.it
+python scripts/detookenizer --model data/tokenizer.json < data/translated.it > normalized.it
 ```
 
 which will produce ```normalized.it```.  
