@@ -36,7 +36,12 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description=(
+            "chunk sentences in a text file so that every line has a "
+            "user defined maximum length "
+        )
+    )
     parser.add_argument(
         "--max-len",
         metavar="N",
@@ -44,7 +49,7 @@ if __name__ == "__main__":
         type=int,
         help="maximum length of each sentence (default: %(default)s)",
         required=True,
-        default=256
+        default=1024
     )
     parser.add_argument(
         "--input",

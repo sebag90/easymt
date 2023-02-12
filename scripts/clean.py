@@ -52,20 +52,28 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description=(
+            "clean a text document by removing xml and lines that are either "
+            "too long, short or the ratio between source and target "
+            "sentence too big is. The input file can either be a TSV document "
+            "with source and target sentence or a normal text file with "
+            "a single sentence"
+        )
+    )
     parser.add_argument(
         "--max-len",
         metavar="N",
         action="store",
         help="maximum sentence length (default: %(default)s)",
-        default=256,
+        default=1024,
         type=int
     )
     parser.add_argument(
         "--min-len",
         action="store",
         help="minimum sentence length (default: %(default)s)",
-        default=1,
+        default=15,
         type=int
     )
     parser.add_argument(

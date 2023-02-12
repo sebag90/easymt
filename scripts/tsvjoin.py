@@ -35,7 +35,11 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description=(
+            "join different files into a single TSV file"
+        )
+    )
     parser.add_argument(
         "files",
         nargs=2,

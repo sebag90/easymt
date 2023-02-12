@@ -37,7 +37,11 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description=(
+            "split a TSV file into 2 separate text files"
+        )
+    )
     parser.add_argument(
         "--input",
         metavar="PATH",

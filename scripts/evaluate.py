@@ -26,7 +26,11 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description=(
+            "calculate the BLEU score between a 2 text files"
+        )
+    )
     parser.add_argument(
         "--reference",
         "-r",

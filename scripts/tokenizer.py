@@ -121,7 +121,14 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description=(
+            "tokenize the input text based on a trained tokenizer. "
+            "If the tokenizer.json does not exists, the script will "
+            "first train a tokenizer and then use this to tokenize "
+            "the input test"
+        )
+    )
     parser.add_argument(
         "--input",
         metavar="PATH",

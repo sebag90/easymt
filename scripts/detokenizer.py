@@ -42,7 +42,11 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description=(
+            "Detokenize a file based on a trained tokenizer "
+        )
+    )
     parser.add_argument(
         "--model",
         "-m",

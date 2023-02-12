@@ -57,7 +57,12 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description=(
+            "split a text file in .train, .eval and .test based on "
+            "number of lines for each subset "
+        )
+    )
     parser.add_argument(
         "--output",
         "-o",

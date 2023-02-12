@@ -61,14 +61,21 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description=(
+            "replace <num> tokens in a translated file based on the "
+            "reference (or source) file. <num> tokens will only be "
+            "replaced if the script finds the same ammount of numbers "
+            "between the reference and translated file"
+        )
+    )
     parser.add_argument(
-        "reference",
+        "--reference",
         action="store",
         help="path to reference translation"
     )
     parser.add_argument(
-        "translation",
+        "--translation",
         action="store",
         help="path to translated document"
     )
