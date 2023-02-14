@@ -23,45 +23,26 @@ from tokenizers import (
 class MultiTok:
     def __init__(self, tokenizer):
         self.tokenizer = tokenizer
-        self.temp_dir = Path(f"temp{str(uuid.uuid4())}")
-        self.temp_dir.mkdir(exist_ok=True)
 
-    def single(self, line_tuple):
-        index, line = line_tuple
-        filename = Path(f"{self.temp_dir}/{index}")
-        with filename.open("w", encoding="utf-8") as outfile:
-            tokens = " ".join(self.tokenizer.encode(line.strip()).tokens)
-            print(tokens, file=outfile)
+    def single(self, line):
+        return " ".join(self.tokenizer.encode(line.strip()).tokens)
 
-    def multi(self, input_stream):
-        iter_file = ((i, line) for i, line in enumerate(input_stream))
+    def multi(self, input_stream, outfile):
+        iter_file = (line for line in input_stream)
 
         with mp.Pool() as pool:
-            for i, _ in enumerate(pool.imap(self.single,
+            for i, line in enumerate(pool.imap(self.single,
                                             iter_file,
                                             chunksize=300)):
+
+                print(line, file=outfile)
+
                 # print progress
                 if i % 1000000 == 0:
                     print(i, end="", file=sys.stderr, flush=True)
 
                 elif i % 100000 == 0:
                     print(".", end="", file=sys.stderr, flush=True)
-
-    def join(self, output_file):
-        i = 0
-        while True:
-            filename = Path(f"{self.temp_dir}/{i}")
-            if not filename.is_file():
-                break
-
-            with filename.open(encoding="utf-8") as infile:
-                for line in infile:
-                    print(line.strip(), file=output_file)
-
-            filename.unlink()
-            i += 1
-
-        self.temp_dir.rmdir()
 
 
 def main(args):
@@ -72,10 +53,7 @@ def main(args):
         input_stream = TextIOWrapper(sys.stdin.buffer, encoding="utf-8")
         output_file = sys.stdout
 
-    if Path(args.model).is_file():
-        tokenizer = Tokenizer.from_file(args.model)
-
-    else:
+    if not Path(args.model).is_file():
         tokenizer = Tokenizer(models.BPE())
         tokenizer.pre_tokenizer = pre_tokenizers.ByteLevel(
             add_prefix_space=False
@@ -110,10 +88,11 @@ def main(args):
         tokenizer.save(args.model)
         input_stream.seek(0)
 
-    # MP goes here
+    tokenizer = Tokenizer.from_file(args.model)
+
+    # start multiprocessing tokenization
     multitok = MultiTok(tokenizer)
-    multitok.multi(input_stream)
-    multitok.join(output_file)
+    multitok.multi(input_stream, output_file)
 
     print("\nComplete: Tokenizing", file=sys.stderr)
     input_stream.close()
