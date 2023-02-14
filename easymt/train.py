@@ -235,7 +235,8 @@ class Trainer:
                             self.params.training.teacher_ratio,
                             self.criterion
                         )
-
+                print(loss.dtype)
+                return
                 loss_memory.add(loss.item())
                 if accumulation:
                     # scale loss if using gradient accumulation
