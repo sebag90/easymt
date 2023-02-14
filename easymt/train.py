@@ -27,6 +27,10 @@ DEVICE = torch.device(
     "cuda" if torch.cuda.is_available() else "cpu"
 )
 
+AUTOCAST_TYPE = (
+    torch.float16 if torch.cuda.is_available() else torch.bfloat16
+)
+
 
 class Memory:
     """
@@ -219,7 +223,7 @@ class Trainer:
                 acc_steps += batch_size
                 # process batch
                 if self.mixed is True:
-                    with torch.cuda.amp.autocast():
+                    with torch.autocast(device_type=str(DEVICE), dtype=AUTOCAST_TYPE):
                         loss = self.model(
                             batch,
                             self.params.training.teacher_ratio,
