@@ -10,6 +10,8 @@ from model.transformer.blocks import Decoder as tr_decoder
 
 from utils.errors import DimensionError
 
+import torch.nn as nn
+
 
 class ModelGenerator:
     def translation(self, params, src_language, tgt_language):
@@ -105,15 +107,22 @@ class ModelGenerator:
                 "encoder and decoder must match"
             )
 
-        encoder = tr_encoder(
+
+        enclayer = nn.TransformerEncoderLayer(
             d_model=params.transformer.d_model,
-            n_head=params.transformer.heads,
-            dim_ff=params.transformer.dim_feedforward,
-            attn_dropout=params.transformer.attn_dropout,
-            residual_dropout=params.transformer.residual_dropout,
-            num_layers=params.model.encoder_layers,
-            max_len=params.model.max_length
+            nhead=params.transformer.heads,
+            batch_first=True
         )
+        encoder = nn.TransformerEncoder(enclayer, num_layers=params.model.encoder_layers)
+        # encoder = tr_encoder(
+        #     d_model=,
+        #     n_head=,
+        #     dim_ff=params.transformer.dim_feedforward,
+        #     attn_dropout=params.transformer.attn_dropout,
+        #     residual_dropout=params.transformer.residual_dropout,
+        #     num_layers=params.model.encoder_layers,
+        #     max_len=params.model.max_length
+        # )
 
         # force shared embedding
         embedding = EmbeddingLayer(
@@ -128,7 +137,8 @@ class ModelGenerator:
             embedding,
             language,
             params.model.max_length,
-            lm_type
+            lm_type,
+            params.transformer.d_model
         )
 
         return model

@@ -14,7 +14,7 @@ DEVICE = torch.device(
 
 class LanguageModel(nn.Module):
     def __init__(
-            self, model, embedding, language, max_len, lm_type):
+            self, model, embedding, language, max_len, lm_type, size):
         super().__init__()
         self.type = lm_type
         self.model = model
@@ -22,8 +22,8 @@ class LanguageModel(nn.Module):
         self.src_lang = self.tgt_lang = language
         self.max_len = max_len
         self.steps = 0
-        self.size = model.d_model
-        self.generator = nn.Linear(self.size, len(self.tgt_lang))
+        self.size = size
+        self.generator = nn.Linear(size, len(self.tgt_lang))
 
     def __repr__(self):
         # count trainable parameters
@@ -105,8 +105,9 @@ class LanguageModel(nn.Module):
         elif self.type == "generator":
             mask = d_mask
 
+
         # pass through model and generate logits
-        output = self.model(input_var, mask)
+        output = self.model(input_var, mask.squeeze(0))
         decoded = self.generator(output)
 
         # calculate and return loss
@@ -114,6 +115,7 @@ class LanguageModel(nn.Module):
             decoded.view(-1, decoded.size(-1)),
             target_var.view(-1)
         )
+
 
         return loss
 
