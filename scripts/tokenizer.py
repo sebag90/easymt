@@ -64,7 +64,6 @@ def main(args):
         )
 
         extra_tokens = args.special_tokens or list()
-        print(extra_tokens)
 
         trainer = trainers.BpeTrainer(
             vocab_size=args.size,
