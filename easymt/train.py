@@ -96,6 +96,8 @@ class Trainer:
                 map_location=DEVICE
             )
             self.model = self.checkpoint["model"]
+            self.src_language = self.model.src_lang
+            self.tgt_language = self.model.tgt_lang
 
         # load eval dataset
         self.eval_data = DataLoader(
