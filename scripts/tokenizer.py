@@ -63,10 +63,12 @@ def main(args):
             trim_offsets=True
         )
 
+        extra_tokens = args.special_tokens or list()
+
         trainer = trainers.BpeTrainer(
             vocab_size=args.size,
             min_frequency=args.min_freq,
-            special_tokens=["<pad>", "<sos>", "<eos>", "<unk>"],
+            special_tokens=["<pad>", "<sos>", "<eos>", "<unk>"] + extra_tokens,
             initial_alphabet=pre_tokenizers.ByteLevel.alphabet(),
         )
 
@@ -152,6 +154,11 @@ if __name__ == "__main__":
         action="store",
         required="--input" in sys.argv
     )
+    parser.add_argument(
+        "--special-tokens",
+        nargs="+",
+    )
 
     args = parser.parse_args()
+    mp.set_start_method('spawn')
     main(args)
