@@ -42,45 +42,39 @@ class EmptyFile:
 class DataLoader(dict):
     def __init__(self, src_file, tgt_file, max_len, batch_size=32):
         self.batch_size = batch_size
-        self.bins = defaultdict(list)
         self.buffer = list()
-        self.i = 0
         self.max_len = max_len
         self.tgt_file = Path(tgt_file) if tgt_file is not None else EmptyFile()
         self.src_file = Path(src_file)
 
     def add_pair(self, src, tgt):
         p = Pair(src, tgt)
-        position = self.i
-        self[position] = p
-        self.i += 1
 
         # add to bin with same length
-        self.bins[p.len].append(position)
+        if p.len not in self:
+            self[p.len] = list()
+        self[p.len].append(p)
 
-        if len(self.bins[p.len]) == self.batch_size:
-            idxs = self.bins.pop(p.len)
-            return [self.pop(i) for i in idxs]
+        if len(self[p.len]) == self.batch_size:
+            return self.pop(p.len)
 
         return None
 
     def shuffle(self):
         """
         Order is based on length of input sentence.
-        First the keys of self.bins are shuffled and then
+        First the keys of are shuffled and then
         each bin is shuffled and added to self.order.
-        This ensures that sentences with the same length are
-        batched together
         """
         self.order = list()
         # shuffle bins keys (lenght of sentences)
-        keys = list(self.bins.keys())
+        keys = list(self.keys())
         random.shuffle(keys)
         # shuffle indeces at each key and add to self.order
         for key in keys:
-            to_add = self.bins[key]
-            shuffled = random.sample(to_add, len(to_add))
-            self.order += shuffled
+            to_add = self.pop(key)
+            random.shuffle(to_add)
+            self.order += to_add
 
     def empty_buffer(self):
         random.shuffle(self.buffer)
@@ -92,9 +86,7 @@ class DataLoader(dict):
             yield src, tgt
 
     def reset(self):
-        self.i = 0
         self.clear()
-        self.bins.clear()
         self.buffer = list()
         self.order = list()
 
@@ -125,9 +117,9 @@ class DataLoader(dict):
         # yield remaining sentences
         self.shuffle()
         for i in range(0, len(self.order), self.batch_size):
-            batch_idx = self.order[i:i + self.batch_size]
-            src = [self[idx].src.split() for idx in batch_idx]
-            tgt = [self[idx].tgt.split() for idx in batch_idx]
+            pairs = self.order[i:i + self.batch_size]
+            src = [pair.src.split() for pair in pairs]
+            tgt = [pair.tgt.split() for pair in pairs]
             yield src, tgt
 
         self.reset()
